@@ -6,10 +6,10 @@
     <p class="text-muted">Resumen general del sistema</p>
 </div>
 
-<div class="row">
+<div class="row g-3">
 
     <!-- USUARIOS -->
-    <div class="col-md-3">
+    <div class="col-12 col-sm-6 col-md-3">
         <a href="usuarios.php" class="text-decoration-none text-dark">
             <div class="card shadow-sm border-0 hover-card">
                 <div class="card-body">
@@ -28,31 +28,26 @@
     </div>
 
     <!-- DEPORTISTAS -->
-    <div class="col-md-3">
-    <a href="<?php echo $url_base; ?>modulos/deportistas/" class="text-decoration-none text-dark">
-        
-        <div class="card shadow-sm border-0 hover-card">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    
-                    <div>
-                        <h6 class="text-muted">Deportistas</h6>
-                        <h4 class="fw-bold">85</h4>
+    <div class="col-12 col-sm-6 col-md-3">
+        <a href="<?php echo $url_base; ?>modulos/deportistas/" class="text-decoration-none text-dark">
+            <div class="card shadow-sm border-0 hover-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted">Deportistas</h6>
+                            <h4 class="fw-bold">85</h4>
+                        </div>
+                        <div class="bg-success text-white p-3 rounded">
+                            🏃
+                        </div>
                     </div>
-
-                    <div class="bg-success text-white p-3 rounded">
-                        🏃
-                    </div>
-
                 </div>
             </div>
-        </div>
-
-    </a>
-</div>
+        </a>
+    </div>
 
     <!-- PAGOS -->
-    <div class="col-md-3">
+    <div class="col-12 col-sm-6 col-md-3">
         <a href="pagos.php" class="text-decoration-none text-dark">
             <div class="card shadow-sm border-0 hover-card">
                 <div class="card-body">
@@ -70,8 +65,27 @@
         </a>
     </div>
 
+    <!-- ASISTENCIA -->
+    <div class="col-12 col-sm-6 col-md-3">
+        <a href="<?php echo $url_base; ?>modulos/asistencia/" class="text-decoration-none text-dark">
+            <div class="card shadow-sm border-0 hover-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted">Asistencia</h6>
+                            <h4 class="fw-bold">Control</h4>
+                        </div>
+                        <div class="bg-info text-white p-3 rounded">
+                            📅
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
     <!-- REPORTES -->
-    <div class="col-md-3">
+    <div class="col-12 col-sm-6 col-md-3">
         <a href="reportes.php" class="text-decoration-none text-dark">
             <div class="card shadow-sm border-0 hover-card">
                 <div class="card-body">

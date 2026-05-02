@@ -50,10 +50,9 @@ body {
     transition: all 0.3s ease;
 }
 
-/* ===== BOTÓN MENÚ (OCULTO EN DESKTOP) ===== */
+/* ===== BOTÓN MENÚ ===== */
 .menu-toggle {
     display: none;
-    /* 🔥 oculto por defecto */
     position: fixed;
     top: 15px;
     left: 15px;
@@ -129,38 +128,134 @@ a {
     min-width: 45px;
 }
 
-/* ===== RESPONSIVE ===== */
+/* ===== RESPONSIVE MEJORADO ===== */
 
-/* TABLET */
+/* ===== TABLET ===== */
 @media (max-width: 992px) {
+
     .sidebar {
-        width: 200px;
+        width: 220px;
     }
 
     .main-content {
-        margin-left: 200px;
+        margin-left: 220px;
+        padding: 20px;
+    }
+
+    /* cards en 2 columnas */
+    .col-md-3 {
+        flex: 0 0 50%;
+        max-width: 50%;
     }
 }
 
-/* MÓVIL */
+/* ===== MÓVIL ===== */
 @media (max-width: 768px) {
 
-    /* 🔥 mostrar botón solo en móvil */
+    /* botón menú */
     .menu-toggle {
         display: block;
     }
 
+    /* sidebar tipo overlay */
     .sidebar {
-        transform: translateX(-100%);
+        position: fixed;
+        left: -250px;
+        top: 0;
         width: 250px;
+        height: 100%;
+        z-index: 1000;
+        transition: 0.3s;
     }
 
     .sidebar.active {
-        transform: translateX(0);
+        left: 0;
     }
 
+    /* overlay */
+    .overlay {
+        display: none;
+    }
+
+    .overlay.active {
+        display: block;
+    }
+
+    /* contenido full */
     .main-content {
-        margin-left: 0;
+        margin-left: 0 !important;
+        width: 100%;
+        padding: 15px;
+    }
+
+    /* grid vertical */
+    .row {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    /* cards full width */
+    .col-md-3 {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    /* cards */
+    .card-body {
         padding: 20px;
     }
+
+    /* textos */
+    h3 {
+        font-size: 1.3rem;
+    }
+
+    h4 {
+        font-size: 1.2rem;
+    }
+
+    h6 {
+        font-size: 0.9rem;
+    }
+
+    /* iconos */
+    .card .rounded {
+        padding: 15px !important;
+        font-size: 20px;
+    }
+
+    /* espacio superior */
+    .main-content {
+        padding-top: 60px;
+    }
+}
+
+/* ===== EXTRA MÓVILES PEQUEÑOS ===== */
+@media (max-width: 480px) {
+
+    .card-body {
+        padding: 15px;
+    }
+
+    h3 {
+        font-size: 1.1rem;
+    }
+
+    h4 {
+        font-size: 1rem;
+    }
+
+    h6 {
+        font-size: 0.8rem;
+    }
+
+    .card .rounded {
+        padding: 12px !important;
+        font-size: 18px;
+    }
+}
+
+body {
+    background: lime !important;
 }
