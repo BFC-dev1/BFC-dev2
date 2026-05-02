@@ -41,12 +41,19 @@ header("location:index.php");
 
 <?php include("../../template/header_modulos.php") ?>
 
-<!-- Button trigger modal -->
-<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#create">
-  Nuevo
-</button>
+<div class="d-flex align-items-center gap-2 mb-3">
 
-<div class="table-responsive">
+    <a href="http://localhost/BFC-dev2/modulos/dashboard/index.php" 
+       class="btn btn-outline-dark">
+        ← Volver al Dashboard
+    </a>
+
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#create">
+        Nuevo
+    </button>
+
+</div> 
+
 <table class="table text-center align-middle">
 
     <thead class="table-dark">

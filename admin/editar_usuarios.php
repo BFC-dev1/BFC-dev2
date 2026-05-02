@@ -4,7 +4,7 @@
 
         <div class="card-header pb-0">
             <h4>
-                Agregar Usuarios
+                Editar Usuarios
                 <a href="usuarios.php" class="btn btn-danger float-end">Atras</a>
             </h4>
         </div>
@@ -72,7 +72,7 @@
 
           <div class="col-md-9  ">
             <div class="mb-3 text-end">
-              <button type="submit" name="saveUser" class="btn btn-info">Guardar</button>
+              <button type="submit" name="updateUser" class="btn btn-info">Actualizar</button>
             </div>
           </div>
 
