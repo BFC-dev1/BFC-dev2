@@ -9,7 +9,7 @@ $modo = $_GET['modo'] ?? "tomar";
 
 <div class="container">
 
-    <h4 class="fw-bold mb-3">📊 Asistencia tipo Excel</h4>
+    <h4 class="fw-bold mb-3">📊 Asistencia</h4>
 
     <!-- CONTROLES -->
     <div class="d-flex gap-2 mb-3">
