@@ -61,8 +61,4 @@ document.addEventListener("DOMContentLoaded", function(){
     });
 
 });
-<<<<<<< HEAD
 </script>
-=======
-</script>
->>>>>>> 1db6aaf8a5476ce21e7c33f0213aaf15de3f5d62
