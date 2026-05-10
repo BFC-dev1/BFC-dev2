@@ -43,7 +43,11 @@
                         </li>
 
                         <li class="nav-item">
+<<<<<<< HEAD
                             <a href="<?php echo $url_base; ?>modulos/asistencia/" class="nav-link text-white">
+=======
+                            <a href="asistencia.php" class="nav-link text-white">
+>>>>>>> 1db6aaf8a5476ce21e7c33f0213aaf15de3f5d62
                                 📅 Asistencia
                             </a>
                         </li>

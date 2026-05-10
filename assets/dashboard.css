@@ -50,9 +50,16 @@ body {
     transition: all 0.3s ease;
 }
 
+<<<<<<< HEAD
 /* ===== BOTÓN MENÚ ===== */
 .menu-toggle {
     display: none;
+=======
+/* ===== BOTÓN MENÚ (OCULTO EN DESKTOP) ===== */
+.menu-toggle {
+    display: none;
+    /* 🔥 oculto por defecto */
+>>>>>>> 1db6aaf8a5476ce21e7c33f0213aaf15de3f5d62
     position: fixed;
     top: 15px;
     left: 15px;
@@ -128,6 +135,7 @@ a {
     min-width: 45px;
 }
 
+<<<<<<< HEAD
 /* ===== RESPONSIVE MEJORADO ===== */
 
 /* ===== TABLET ===== */
@@ -153,10 +161,30 @@ a {
 @media (max-width: 768px) {
 
     /* botón menú */
+=======
+/* ===== RESPONSIVE ===== */
+
+/* TABLET */
+@media (max-width: 992px) {
+    .sidebar {
+        width: 200px;
+    }
+
+    .main-content {
+        margin-left: 200px;
+    }
+}
+
+/* MÓVIL */
+@media (max-width: 768px) {
+
+    /* 🔥 mostrar botón solo en móvil */
+>>>>>>> 1db6aaf8a5476ce21e7c33f0213aaf15de3f5d62
     .menu-toggle {
         display: block;
     }
 
+<<<<<<< HEAD
     /* sidebar tipo overlay */
     .sidebar {
         position: fixed;
@@ -258,4 +286,19 @@ a {
 
 body {
     background: lime !important;
+=======
+    .sidebar {
+        transform: translateX(-100%);
+        width: 250px;
+    }
+
+    .sidebar.active {
+        transform: translateX(0);
+    }
+
+    .main-content {
+        margin-left: 0;
+        padding: 20px;
+    }
+>>>>>>> 1db6aaf8a5476ce21e7c33f0213aaf15de3f5d62
 }

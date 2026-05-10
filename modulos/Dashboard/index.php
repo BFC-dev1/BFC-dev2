@@ -6,10 +6,17 @@
     <p class="text-muted">Resumen general del sistema</p>
 </div>
 
+<<<<<<< HEAD
 <div class="row g-3">
 
     <!-- USUARIOS -->
     <div class="col-12 col-sm-6 col-md-3">
+=======
+<div class="row">
+
+    <!-- USUARIOS -->
+    <div class="col-md-3">
+>>>>>>> 1db6aaf8a5476ce21e7c33f0213aaf15de3f5d62
         <a href="usuarios.php" class="text-decoration-none text-dark">
             <div class="card shadow-sm border-0 hover-card">
                 <div class="card-body">
@@ -28,6 +35,7 @@
     </div>
 
     <!-- DEPORTISTAS -->
+<<<<<<< HEAD
     <div class="col-12 col-sm-6 col-md-3">
         <a href="<?php echo $url_base; ?>modulos/deportistas/" class="text-decoration-none text-dark">
             <div class="card shadow-sm border-0 hover-card">
@@ -48,6 +56,33 @@
 
     <!-- PAGOS -->
     <div class="col-12 col-sm-6 col-md-3">
+=======
+    <div class="col-md-3">
+    <a href="<?php echo $url_base; ?>modulos/deportistas/" class="text-decoration-none text-dark">
+        
+        <div class="card shadow-sm border-0 hover-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    
+                    <div>
+                        <h6 class="text-muted">Deportistas</h6>
+                        <h4 class="fw-bold">85</h4>
+                    </div>
+
+                    <div class="bg-success text-white p-3 rounded">
+                        🏃
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </a>
+</div>
+
+    <!-- PAGOS -->
+    <div class="col-md-3">
+>>>>>>> 1db6aaf8a5476ce21e7c33f0213aaf15de3f5d62
         <a href="pagos.php" class="text-decoration-none text-dark">
             <div class="card shadow-sm border-0 hover-card">
                 <div class="card-body">
@@ -65,6 +100,7 @@
         </a>
     </div>
 
+<<<<<<< HEAD
     <!-- ASISTENCIA -->
     <div class="col-12 col-sm-6 col-md-3">
         <a href="<?php echo $url_base; ?>modulos/asistencia/" class="text-decoration-none text-dark">
@@ -86,6 +122,10 @@
 
     <!-- REPORTES -->
     <div class="col-12 col-sm-6 col-md-3">
+=======
+    <!-- REPORTES -->
+    <div class="col-md-3">
+>>>>>>> 1db6aaf8a5476ce21e7c33f0213aaf15de3f5d62
         <a href="reportes.php" class="text-decoration-none text-dark">
             <div class="card shadow-sm border-0 hover-card">
                 <div class="card-body">
@@ -105,4 +145,8 @@
 
 </div>
 
+<<<<<<< HEAD
 <?php include("../../includes/footer_dashboard.php") ?>
+=======
+<?php include("../../includes/footer_dashboard.php") ?>
+>>>>>>> 1db6aaf8a5476ce21e7c33f0213aaf15de3f5d62
