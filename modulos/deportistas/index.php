@@ -1,40 +1,55 @@
 <?php  
 include("../../modulos/conexion_modulos.php");
 
-
 include("crear_deportista.php");
-
 
 $stm = $conexion->prepare("
     SELECT 
         d.*, 
         c.nombre AS categoria_nombre,
-        (
-            SELECT u.usuario 
-            FROM usuario u
-            INNER JOIN usuario_deportista ud 
-                ON u.id = ud.usuario_id
-            WHERE ud.deportista_id = d.id
-            LIMIT 1
-        ) AS acudiente_nombre
+
+        -- ✅ ACUDIENTE MANUAL
+        ud.acudiente AS acudiente_nombre
+
     FROM deportista d
-    LEFT JOIN categoria c ON d.categoria_id = c.id
+
+    LEFT JOIN categoria c 
+        ON d.categoria_id = c.id
+
+    LEFT JOIN usuario_deportista ud
+        ON ud.deportista_id = d.id
+
+    ORDER BY d.id DESC
 ");
+
 $stm->execute();
-$deportista=$stm->fetchAll(PDO::FETCH_ASSOC);
+$deportista = $stm->fetchAll(PDO::FETCH_ASSOC);
 
 
 
+// ✅ ELIMINAR
 if(isset($_GET['id'])){
 
-$txtid=(isset($_GET['id'])?$_GET['id']:"");
-$stm=$conexion->prepare("DELETE FROM deportista WHERE id=:id");
-$stm->bindparam(":id",$txtid);
-$stm->execute();
-header("location:index.php");
+    $txtid = (isset($_GET['id']) ? $_GET['id'] : "");
+
+    $stm = $conexion->prepare("
+    DELETE FROM deportista 
+    WHERE id = :id
+    ");
+
+    $stm->bindParam(":id", $txtid);
+
+    $stm->execute();
+
+    // ✅ REDIRECCIÓN SIN WARNING
+    echo "
+    <script>
+        window.location='index.php';
+    </script>
+    ";
+    exit;
 
 }
-
 
 ?>
 
@@ -43,12 +58,19 @@ header("location:index.php");
 
 <div class="d-flex align-items-center gap-2 mb-3">
 
-    <a href="http://localhost/BFC-dev2/modulos/dashboard/index.php" 
-       class="btn btn-outline-dark">
+    <a 
+        href="http://localhost/BFC-dev2/modulos/dashboard/index.php" 
+        class="btn btn-outline-dark"
+    >
         ← Volver al Dashboard
     </a>
 
-    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#create">
+    <button 
+        type="button" 
+        class="btn btn-primary" 
+        data-bs-toggle="modal" 
+        data-bs-target="#create"
+    >
         Nuevo
     </button>
 
@@ -57,7 +79,9 @@ header("location:index.php");
 <table class="table text-center align-middle">
 
     <thead class="table-dark">
+
         <tr>
+
             <th>Tipo de Documento</th>
             <th>Documento</th>
             <th>Teléfono</th>
@@ -67,41 +91,64 @@ header("location:index.php");
             <th>Acudiente</th>
             <th>Estado</th>
             <th>Acciones</th>
+
         </tr>
+
     </thead>
 
     <tbody>
+
     <?php foreach($deportista as $deportista) { ?>
+
         <tr>
+
             <td><?php echo $deportista['tipo_documento']; ?></td>
+
             <td><?php echo $deportista['documento']; ?></td>
+
             <td><?php echo $deportista['telefono']; ?></td>
+
             <td><?php echo $deportista['nombre']; ?></td>
+
             <td><?php echo $deportista['fecha_nacimiento']; ?></td>
+
             <td><?php echo $deportista['categoria_nombre']; ?></td>
+
+            <!-- ✅ ACUDIENTE -->
             <td><?php echo $deportista['acudiente_nombre']; ?></td>
+
             <td><?php echo $deportista['estado']; ?></td>
 
             <td>
+
                 <div class="d-flex justify-content-center gap-2">
-                    <a href="editar.php?id=<?php echo $deportista['id']; ?>" class="btn btn-success btn-sm">Editar</a>
-                    <a href="index.php?id=<?php echo $deportista['id']; ?>" class="btn btn-danger btn-sm">Eliminar</a>
+
+                    <a 
+                        href="editar.php?id=<?php echo $deportista['id']; ?>" 
+                        class="btn btn-success btn-sm"
+                    >
+                        Editar
+                    </a>
+
+                    <a 
+                        href="index.php?id=<?php echo $deportista['id']; ?>" 
+                        class="btn btn-danger btn-sm"
+                    >
+                        Eliminar
+                    </a>
+
                 </div>
+
             </td>
+
         </tr>
+
     <?php } ?>
+
     </tbody>
 
 </table>
+
 </div>
 
-
-
-
-
-
-
-
 <?php include("../../template/footer_modulos.php") ?>
-
-
