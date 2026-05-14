@@ -1,5 +1,11 @@
 <?php 
 
+// ✅ VARIABLES DE ERROR
+$error_documento = false;
+$error_nombre = false;
+
+$mensaje_error = "";
+
 if($_POST){
 
 $tipo_documento = trim($_POST['tipo_documento'] ?? "");
@@ -17,13 +23,15 @@ $parentesco = trim($_POST['parentesco'] ?? "");
 // 🔒 VALIDACIONES
 
 if(empty($acudiente)){
-    header("Location: index.php?error=acudiente");
-    exit;
+
+    $mensaje_error = "Debe ingresar un acudiente";
+
 }
 
 if(empty($categoria_id)){
-    header("Location: index.php?error=categoria");
-    exit;
+
+    $mensaje_error = "Debe seleccionar una categoría";
+
 }
 
 // 🔍 validar categoría
@@ -38,11 +46,12 @@ $stmt_cat->execute([
 ]);
 
 if(!$stmt_cat->fetch()){
-    header("Location: index.php?error=categoria_invalida");
-    exit;
+
+    $mensaje_error = "La categoría seleccionada no existe";
+
 }
 
-// 🔍 validar documento único
+// 🔍 VALIDAR DOCUMENTO REPETIDO
 $stmt_check = $conexion->prepare("
 SELECT id 
 FROM deportista 
@@ -54,9 +63,36 @@ $stmt_check->execute([
 ]);
 
 if($stmt_check->fetch()){
-    header("Location: index.php?error=documento");
-    exit;
+
+    $error_documento = true;
+
+    $mensaje_error = "El documento ya está registrado. Cambia el número.";
+
 }
+
+
+// 🔍 VALIDAR NOMBRE REPETIDO
+$stmt_nombre = $conexion->prepare("
+SELECT id 
+FROM deportista 
+WHERE nombre = :nombre
+");
+
+$stmt_nombre->execute([
+    ":nombre"=>$nombre
+]);
+
+if($stmt_nombre->fetch()){
+
+    $error_nombre = true;
+
+    $mensaje_error = "El nombre ya está registrado. Verifica el deportista.";
+
+}
+
+
+// ✅ SI NO HAY ERRORES → INSERTAR
+if(empty($mensaje_error)){
 
 // ✅ INSERTAR DEPORTISTA
 $stm = $conexion->prepare("
@@ -116,10 +152,16 @@ header("Location: index.php?success=1");
 exit;
 
 }
+
+}
 ?>
 
 <!-- Modal create -->
-<div class="modal fade" id="create" tabindex="-1">
+<div class="modal fade <?php if(!empty($mensaje_error)){ echo 'show'; } ?>" 
+     id="create" 
+     tabindex="-1"
+     style="<?php if(!empty($mensaje_error)){ echo 'display:block; background:rgba(0,0,0,0.5);'; } ?>"
+>
 
     <div class="modal-dialog">
 
@@ -143,13 +185,25 @@ exit;
 
                 <div class="modal-body">
 
+                    <!-- ✅ ALERTA ERROR -->
+                    <?php if(!empty($mensaje_error)){ ?>
+
+                        <div class="alert alert-danger">
+
+                            <?php echo $mensaje_error; ?>
+
+                        </div>
+
+                    <?php } ?>
+
                     <!-- TIPO DOCUMENTO -->
                     <label>Tipo Documento</label>
 
                     <input 
                         type="text" 
                         name="tipo_documento" 
-                        class="form-control" 
+                        class="form-control"
+                        value="<?php echo $_POST['tipo_documento'] ?? ''; ?>"
                         placeholder="Ingrese Tipo de Documento"
                     >
 
@@ -159,9 +213,18 @@ exit;
                     <input 
                         type="text" 
                         name="documento" 
-                        class="form-control" 
+                        class="form-control <?php if($error_documento){ echo 'border border-danger'; } ?>"
+                        value="<?php echo $_POST['documento'] ?? ''; ?>"
                         placeholder="Ingrese Documento"
                     >
+
+                    <?php if($error_documento){ ?>
+
+                        <small class="text-danger">
+                            Este documento ya existe. Intenta con otro número.
+                        </small>
+
+                    <?php } ?>
 
                     <!-- TELÉFONO -->
                     <label>Teléfono</label>
@@ -169,7 +232,8 @@ exit;
                     <input 
                         type="text" 
                         name="telefono" 
-                        class="form-control" 
+                        class="form-control"
+                        value="<?php echo $_POST['telefono'] ?? ''; ?>"
                         placeholder="Ingrese Teléfono"
                     >
 
@@ -179,9 +243,18 @@ exit;
                     <input 
                         type="text" 
                         name="nombre" 
-                        class="form-control" 
+                        class="form-control <?php if($error_nombre){ echo 'border border-danger'; } ?>"
+                        value="<?php echo $_POST['nombre'] ?? ''; ?>"
                         placeholder="Ingrese Nombre"
                     >
+
+                    <?php if($error_nombre){ ?>
+
+                        <small class="text-danger">
+                            Este nombre ya existe. Verifica si el deportista ya fue registrado.
+                        </small>
+
+                    <?php } ?>
 
                     <!-- FECHA -->
                     <label>Fecha de nacimiento</label>
@@ -190,6 +263,7 @@ exit;
                         type="date" 
                         class="form-control" 
                         name="fecha_nacimiento"
+                        value="<?php echo $_POST['fecha_nacimiento'] ?? ''; ?>"
                     >
 
                     <!-- ✅ ACUDIENTE MANUAL -->
@@ -198,20 +272,44 @@ exit;
                     <input 
                         type="text" 
                         name="acudiente" 
-                        class="form-control" 
+                        class="form-control"
+                        value="<?php echo $_POST['acudiente'] ?? ''; ?>"
                         placeholder="Ingrese nombre del acudiente"
                         required
                     >
 
-                    <!-- PARENTESCO -->
+                    <!-- ✅ PARENTESCO -->
                     <label>Parentesco</label>
 
-                    <input 
-                        type="text" 
+                    <select 
                         name="parentesco" 
-                        class="form-control" 
-                        placeholder="Ej: Padre, Madre"
+                        class="form-control"
+                        required
                     >
+
+                        <option value="">
+                            Seleccione parentesco
+                        </option>
+
+                        <option value="Papá"
+                        <?php if(($_POST['parentesco'] ?? '') == 'Papá'){ echo 'selected'; } ?>
+                        >
+                            Papá
+                        </option>
+
+                        <option value="Mamá"
+                        <?php if(($_POST['parentesco'] ?? '') == 'Mamá'){ echo 'selected'; } ?>
+                        >
+                            Mamá
+                        </option>
+
+                        <option value="Acudiente"
+                        <?php if(($_POST['parentesco'] ?? '') == 'Acudiente'){ echo 'selected'; } ?>
+                        >
+                            Acudiente
+                        </option>
+
+                    </select>
 
                     <!-- ✅ CATEGORIA -->
                     <label>Categoria</label>
@@ -235,8 +333,14 @@ exit;
 
                         while($row = $stmt->fetch(PDO::FETCH_ASSOC)){
 
+                            $selected = "";
+
+                            if(($_POST['categoria_id'] ?? '') == $row['id']){
+                                $selected = "selected";
+                            }
+
                             echo "
-                            <option value='".$row['id']."'>
+                            <option value='".$row['id']."' $selected>
                                 ".$row['nombre']."
                             </option>
                             ";
@@ -274,3 +378,21 @@ exit;
     </div>
 
 </div>
+
+<!-- ✅ POPUP CONFIRMAR ELIMINACIÓN -->
+
+<script>
+
+function confirmarEliminacion(id){
+
+    let confirmar = confirm("¿Seguro que deseas eliminar este deportista?");
+
+    if(confirmar){
+
+        window.location = "index.php?id=" + id;
+
+    }
+
+}
+
+</script>
