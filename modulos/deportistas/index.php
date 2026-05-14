@@ -41,7 +41,6 @@ if(isset($_GET['id'])){
 
     $stm->execute();
 
-    // ✅ REDIRECCIÓN SIN WARNING
     echo "
     <script>
         window.location='index.php';
@@ -130,8 +129,10 @@ if(isset($_GET['id'])){
                         Editar
                     </a>
 
+                    <!-- ✅ BOTÓN ELIMINAR CON CONFIRMACIÓN -->
                     <a 
-                        href="index.php?id=<?php echo $deportista['id']; ?>" 
+                        href="javascript:void(0)"
+                        onclick="confirmarEliminacion(<?php echo $deportista['id']; ?>)"
                         class="btn btn-danger btn-sm"
                     >
                         Eliminar
@@ -150,5 +151,23 @@ if(isset($_GET['id'])){
 </table>
 
 </div>
+
+<!-- ✅ SCRIPT CONFIRMAR ELIMINACIÓN -->
+
+<script>
+
+function confirmarEliminacion(id){
+
+    let confirmar = confirm("¿Seguro que deseas eliminar este deportista?");
+
+    if(confirmar){
+
+        window.location = "index.php?id=" + id;
+
+    }
+
+}
+
+</script>
 
 <?php include("../../template/footer_modulos.php") ?>
