@@ -1,4 +1,4 @@
-<?php $url_base="http://localhost/BFC-dev1.github.io/";  ?>
+<?php $url_base="http://localhost/BFC-dev2/"; ?>
 
 
 

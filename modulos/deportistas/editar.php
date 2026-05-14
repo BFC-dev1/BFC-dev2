@@ -36,6 +36,9 @@ if(isset($_GET['id'])){
         $fecha_nacimiento = $registro['fecha_nacimiento'];
         $categoria_id = $registro['categoria_id'];
 
+        // ✅ NUEVO ESTADO
+        $estado = $registro['estado'];
+
         // ✅ ACUDIENTE MANUAL
         $acudiente = $registro['acudiente'];
 
@@ -57,6 +60,9 @@ $telefono = $_POST['telefono'] ?? "";
 $nombre = $_POST['nombre'] ?? "";
 $fecha_nacimiento = $_POST['fecha_nacimiento'] ?? "";
 $categoria_id = $_POST['categoria_id'] ?? "";
+
+// ✅ NUEVO ESTADO
+$estado = $_POST['estado'] ?? "activo";
 
 // ✅ ACUDIENTE MANUAL
 $acudiente = trim($_POST['acudiente'] ?? "");
@@ -122,7 +128,8 @@ SET
     telefono = :telefono,
     nombre = :nombre,
     fecha_nacimiento = :fecha_nacimiento,
-    categoria_id = :categoria_id
+    categoria_id = :categoria_id,
+    estado = :estado
 
 WHERE id = :id
 ");
@@ -134,6 +141,7 @@ $stm->execute([
     ":nombre"=>$nombre,
     ":fecha_nacimiento"=>$fecha_nacimiento,
     ":categoria_id"=>$categoria_id,
+    ":estado"=>$estado,
     ":id"=>$txtid
 ]);
 
@@ -262,6 +270,31 @@ exit;
         <?php if($parentesco=="Acudiente"){ echo "selected"; } ?>
     >
         Acudiente
+    </option>
+
+</select>
+
+<!-- ✅ NUEVO CAMPO ESTADO -->
+<label>Estado</label>
+
+<select 
+    name="estado" 
+    class="form-control"
+    required
+>
+
+    <option 
+        value="activo"
+        <?php if($estado=="activo"){ echo "selected"; } ?>
+    >
+        Activo
+    </option>
+
+    <option 
+        value="inactivo"
+        <?php if($estado=="inactivo"){ echo "selected"; } ?>
+    >
+        Inactivo
     </option>
 
 </select>
