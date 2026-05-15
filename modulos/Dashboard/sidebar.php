@@ -61,8 +61,8 @@
             <hr class="bg-secondary">
 
             <li class="nav-item">
-                <a href="logout.php" class="nav-link text-danger">
-                    🚪 Cerrar sesión
+                <a href="/BFC-dev2/auth/logout.php" class="nav-link text-danger">
+                🚪 Cerrar sesión
                 </a>
             </li>
 

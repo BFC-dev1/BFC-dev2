@@ -1,3 +1,12 @@
+<?php
+session_start();
+
+if(!isset($_SESSION['usuario'])){
+    header("Location: /BFC-dev2/auth/login.php");
+    exit;
+}
+?>
+
 <?php include("../../includes/header_dashboard.php") ?>
 <?php include("../../modulos/Dashboard/sidebar.php") ?>
 

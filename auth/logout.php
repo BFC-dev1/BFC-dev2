@@ -1,5 +1,9 @@
 <?php
 session_start();
+
+session_unset();
 session_destroy();
-header("Location: login.php");
+
+header("Location: /BFC-dev2/auth/login.php");
+exit;
 ?>
