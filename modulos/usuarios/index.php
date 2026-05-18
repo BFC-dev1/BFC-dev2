@@ -1,44 +1,39 @@
 <?php  
 
-include("../../modulos/conexion_modulos.php");
+// ✅ CONEXIÓN
+include("../conexion_modulos.php");
 
-include("crear_deportista.php");
+// ✅ MODAL CREAR
+include("crear_usuario.php");
 
 
-// ✅ CONSULTAR DEPORTISTAS
+// ✅ CONSULTAR USUARIOS + ROL
 $stm = $conexion->prepare("
     SELECT 
-        d.*, 
-        c.nombre AS categoria_nombre,
+        u.*,
+        r.nombre AS rol_nombre
 
-        -- ✅ ACUDIENTE MANUAL
-        ud.acudiente AS acudiente_nombre
+    FROM usuario u
 
-    FROM deportista d
+    LEFT JOIN rol r
+        ON u.rol_id = r.id
 
-    LEFT JOIN categoria c 
-        ON d.categoria_id = c.id
-
-    LEFT JOIN usuario_deportista ud
-        ON ud.deportista_id = d.id
-
-    ORDER BY d.id DESC
+    ORDER BY u.id DESC
 ");
 
 $stm->execute();
 
-$deportista = $stm->fetchAll(PDO::FETCH_ASSOC);
-
+$usuarios = $stm->fetchAll(PDO::FETCH_ASSOC);
 
 
 // ✅ ELIMINAR
 if(isset($_GET['id'])){
 
-    $txtid = (isset($_GET['id']) ? $_GET['id'] : "");
+    $txtid = $_GET['id'];
 
     $stm = $conexion->prepare("
-    DELETE FROM deportista 
-    WHERE id = :id
+        DELETE FROM usuario
+        WHERE id = :id
     ");
 
     $stm->bindParam(":id", $txtid);
@@ -52,9 +47,7 @@ if(isset($_GET['id'])){
     ";
 
     exit;
-
 }
-
 
 
 // ✅ CAMBIAR ESTADO
@@ -63,27 +56,27 @@ if(isset($_GET['estado'])){
     $id = $_GET['estado'];
 
     $stm = $conexion->prepare("
-    SELECT estado
-    FROM deportista
-    WHERE id = :id
+        SELECT estado
+        FROM usuario
+        WHERE id = :id
     ");
 
     $stm->execute([
         ":id"=>$id
     ]);
 
-    $deportista_estado = $stm->fetch(PDO::FETCH_ASSOC);
+    $usuario = $stm->fetch(PDO::FETCH_ASSOC);
 
-    if($deportista_estado){
+    if($usuario){
 
-        $nuevo_estado = ($deportista_estado['estado'] == 'activo')
+        $nuevo_estado = ($usuario['estado'] == 'activo')
         ? 'inactivo'
         : 'activo';
 
         $update = $conexion->prepare("
-        UPDATE deportista
-        SET estado = :estado
-        WHERE id = :id
+            UPDATE usuario
+            SET estado = :estado
+            WHERE id = :id
         ");
 
         $update->execute([
@@ -100,13 +93,12 @@ if(isset($_GET['estado'])){
     ";
 
     exit;
-
 }
 
 ?>
 
 
-<?php include("../../template/header_modulos.php") ?>
+<?php include("../../template/header_modulos_Usuarios.php") ?>
 
 
 <div class="d-flex align-items-center gap-2 mb-3">
@@ -124,25 +116,24 @@ if(isset($_GET['estado'])){
         data-bs-toggle="modal" 
         data-bs-target="#create"
     >
-        Crear Deportista
+        Crear Usuario
     </button>
 
 </div> 
 
 
-<table class="table text-center align-middle">
+<table class="table table-bordered table-hover text-center align-middle">
 
     <thead class="table-dark">
 
         <tr>
 
-            <th>Tipo de Documento</th>
+            <th>Nombre</th>
+            <th>Tipo Documento</th>
             <th>Documento</th>
             <th>Teléfono</th>
-            <th>Nombre</th>
-            <th>Fecha</th>
-            <th>Categoría</th>
-            <th>Acudiente</th>
+            <th>Correo</th>
+            <th>Rol</th>
             <th>Estado</th>
             <th>Acciones</th>
 
@@ -152,26 +143,33 @@ if(isset($_GET['estado'])){
 
     <tbody>
 
-    <?php foreach($deportista as $deportista) { ?>
+    <?php foreach($usuarios as $usuario) { ?>
 
         <tr>
 
-            <td><?php echo $deportista['tipo_documento']; ?></td>
+            <td><?php echo $usuario['nombre']; ?></td>
 
-            <td><?php echo $deportista['documento']; ?></td>
+            <td><?php echo $usuario['tipo_documento']; ?></td>
 
-            <td><?php echo $deportista['telefono']; ?></td>
+            <td><?php echo $usuario['documento']; ?></td>
 
-            <td><?php echo $deportista['nombre']; ?></td>
+            <td><?php echo $usuario['telefono']; ?></td>
 
-            <td><?php echo $deportista['fecha_nacimiento']; ?></td>
+            <td><?php echo $usuario['correo']; ?></td>
 
-            <td><?php echo $deportista['categoria_nombre']; ?></td>
+            <!-- ✅ ROL -->
+            <td>
 
-            <!-- ✅ ACUDIENTE -->
-            <td><?php echo $deportista['acudiente_nombre']; ?></td>
+                <span class="badge bg-info text-dark">
 
-            <!-- ✅ SWITCH ESTADO -->
+                    <?php echo $usuario['rol_nombre']; ?>
+
+                </span>
+
+            </td>
+
+
+            <!-- ✅ ESTADO -->
             <td>
 
                 <div class="form-check form-switch d-flex justify-content-center">
@@ -181,33 +179,34 @@ if(isset($_GET['estado'])){
                         type="checkbox"
 
                         <?php 
-                        if($deportista['estado'] == 'activo'){
+                        if($usuario['estado'] == 'activo'){
                             echo 'checked';
                         }
                         ?>
 
-                        onclick="cambiarEstado(<?php echo $deportista['id']; ?>)"
+                        onclick="cambiarEstado(<?php echo $usuario['id']; ?>)"
                     >
 
                 </div>
 
             </td>
 
+
+            <!-- ✅ ACCIONES -->
             <td>
 
                 <div class="d-flex justify-content-center gap-2">
 
                     <a 
-                        href="editar.php?id=<?php echo $deportista['id']; ?>" 
+                        href="editar_usuario.php?id=<?php echo $usuario['id']; ?>" 
                         class="btn btn-success btn-sm"
                     >
                         Editar
                     </a>
 
-                    <!-- ✅ ELIMINAR -->
                     <a 
                         href="javascript:void(0)"
-                        onclick="confirmarEliminacion(<?php echo $deportista['id']; ?>)"
+                        onclick="confirmarEliminacion(<?php echo $usuario['id']; ?>)"
                         class="btn btn-danger btn-sm"
                     >
                         Eliminar
@@ -226,13 +225,13 @@ if(isset($_GET['estado'])){
 </table>
 
 
-<!-- ✅ SCRIPT ELIMINAR -->
+<!-- ✅ SCRIPT -->
 
 <script>
 
 function confirmarEliminacion(id){
 
-    let confirmar = confirm("¿Seguro que deseas eliminar este deportista?");
+    let confirmar = confirm("¿Seguro que deseas eliminar este usuario?");
 
     if(confirmar){
 
@@ -253,4 +252,4 @@ function cambiarEstado(id){
 </script>
 
 
-<?php include("../../template/footer_modulos.php") ?>
+<?php include("../../template/footer_modulos_Usuarios.php") ?>

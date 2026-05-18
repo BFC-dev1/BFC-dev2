@@ -48,7 +48,7 @@
                         <li class="nav-item">
 
                             <a 
-                                href="/BFC-dev2/admin/usuarios.php" 
+                                href="/BFC-dev2/modulos/usuarios" 
                                 class="nav-link text-white"
                             >
                                 📋 Listado

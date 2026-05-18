@@ -36,8 +36,12 @@ if(isset($_GET['id'])){
         $fecha_nacimiento = $registro['fecha_nacimiento'];
         $categoria_id = $registro['categoria_id'];
 
-        // ✅ NUEVO ESTADO
+        // ✅ ESTADO
         $estado = $registro['estado'];
+
+        // ✅ FOTO Y DOCUMENTO
+        $foto = $registro['foto'] ?? "";
+        $documento_pdf = $registro['documento_pdf'] ?? "";
 
         // ✅ ACUDIENTE MANUAL
         $acudiente = $registro['acudiente'];
@@ -61,7 +65,7 @@ $nombre = $_POST['nombre'] ?? "";
 $fecha_nacimiento = $_POST['fecha_nacimiento'] ?? "";
 $categoria_id = $_POST['categoria_id'] ?? "";
 
-// ✅ NUEVO ESTADO
+// ✅ ESTADO
 $estado = $_POST['estado'] ?? "activo";
 
 // ✅ ACUDIENTE MANUAL
@@ -119,6 +123,51 @@ if($stmt_check->fetch()){
 }
 
 
+// ✅ MANTENER ARCHIVOS ACTUALES
+$stmt_actual = $conexion->prepare("
+SELECT foto, documento_pdf
+FROM deportista
+WHERE id = :id
+");
+
+$stmt_actual->execute([
+    ":id"=>$txtid
+]);
+
+$actual = $stmt_actual->fetch(PDO::FETCH_ASSOC);
+
+$foto = $actual['foto'] ?? "";
+$documento_pdf = $actual['documento_pdf'] ?? "";
+
+
+// ✅ SUBIR FOTO
+if(isset($_FILES['foto']) && $_FILES['foto']['error'] == 0){
+
+    $nombreFoto = time() . "_" . $_FILES['foto']['name'];
+
+    move_uploaded_file(
+        $_FILES['foto']['tmp_name'],
+        "../../uploads/fotos/" . $nombreFoto
+    );
+
+    $foto = $nombreFoto;
+}
+
+
+// ✅ SUBIR PDF
+if(isset($_FILES['documento_pdf']) && $_FILES['documento_pdf']['error'] == 0){
+
+    $nombrePdf = time() . "_" . $_FILES['documento_pdf']['name'];
+
+    move_uploaded_file(
+        $_FILES['documento_pdf']['tmp_name'],
+        "../../uploads/documentos/" . $nombrePdf
+    );
+
+    $documento_pdf = $nombrePdf;
+}
+
+
 // ✅ actualizar deportista
 $stm = $conexion->prepare("
 UPDATE deportista 
@@ -129,7 +178,9 @@ SET
     nombre = :nombre,
     fecha_nacimiento = :fecha_nacimiento,
     categoria_id = :categoria_id,
-    estado = :estado
+    estado = :estado,
+    foto = :foto,
+    documento_pdf = :documento_pdf
 
 WHERE id = :id
 ");
@@ -142,6 +193,8 @@ $stm->execute([
     ":fecha_nacimiento"=>$fecha_nacimiento,
     ":categoria_id"=>$categoria_id,
     ":estado"=>$estado,
+    ":foto"=>$foto,
+    ":documento_pdf"=>$documento_pdf,
     ":id"=>$txtid
 ]);
 
@@ -173,177 +226,359 @@ exit;
 
 <?php include("../../template/header_modulos.php") ?>
 
-<form action="" method="post">
 
-<input 
-    type="hidden" 
-    name="id" 
-    value="<?php echo $txtid; ?>"
->
+<div class="container mt-4">
 
-<label>Tipo Documento</label>
+    <div class="card shadow border-0">
 
-<input 
-    type="text" 
-    class="form-control" 
-    name="tipo_documento" 
-    value="<?php echo $tipo_documento; ?>"
->
+        <!-- HEADER -->
+        <div class="card-header bg-primary text-white">
 
-<label>Documento</label>
+            <h4 class="mb-0">
+                Editar Deportista
+            </h4>
 
-<input 
-    type="text" 
-    class="form-control" 
-    name="documento" 
-    value="<?php echo $documento; ?>"
->
+        </div>
 
-<label>Teléfono</label>
+        <div class="card-body">
 
-<input 
-    type="text" 
-    class="form-control" 
-    name="telefono" 
-    value="<?php echo $telefono; ?>"
->
+            <form action="" method="post" enctype="multipart/form-data">
 
-<label>Nombre</label>
+                <input 
+                    type="hidden" 
+                    name="id" 
+                    value="<?php echo $txtid; ?>"
+                >
 
-<input 
-    type="text" 
-    class="form-control" 
-    name="nombre" 
-    value="<?php echo $nombre; ?>"
->
+                <div class="row">
 
-<label>Fecha de nacimiento</label>
+                    <!-- FOTO PERFIL -->
+                    <div class="col-md-12 text-center mb-4">
 
-<input 
-    type="date" 
-    class="form-control" 
-    name="fecha_nacimiento" 
-    value="<?php echo $fecha_nacimiento; ?>"
->
+                        <!-- TEXTO EDITAR -->
+                        <label 
+                            for="fotoInput"
+                            style="
+                                cursor:pointer;
+                                color:#0d6efd;
+                                font-weight:bold;
+                                display:block;
+                                margin-bottom:10px;
+                            "
+                        >
+                            Editar Foto
+                        </label>
 
-<!-- ✅ ACUDIENTE MANUAL -->
-<label>Acudiente</label>
+                        <?php if(!empty($foto)){ ?>
 
-<input 
-    type="text" 
-    name="acudiente" 
-    class="form-control" 
-    value="<?php echo $acudiente; ?>"
-    placeholder="Ingrese acudiente"
-    required
->
+                            <img 
+                                src="../../uploads/fotos/<?php echo $foto; ?>" 
+                                width="150"
+                                height="150"
+                                class="rounded-circle shadow"
+                                style="object-fit:cover;"
+                            >
 
-<!-- ✅ PARENTESCO DROPDOWN -->
-<label>Parentesco</label>
+                        <?php }else{ ?>
 
-<select 
-    name="parentesco" 
-    class="form-control"
-    required
->
+                            <img 
+                                src="https://via.placeholder.com/150"
+                                width="150"
+                                height="150"
+                                class="rounded-circle shadow"
+                                style="object-fit:cover;"
+                            >
 
-    <option value="">
-        Seleccione parentesco
-    </option>
+                        <?php } ?>
 
-    <option 
-        value="Papá"
-        <?php if($parentesco=="Papá"){ echo "selected"; } ?>
-    >
-        Papá
-    </option>
+                        <!-- INPUT OCULTO -->
+                        <input 
+                            type="file" 
+                            id="fotoInput"
+                            name="foto"
+                            accept="image/*"
+                            style="display:none;"
+                        >
 
-    <option 
-        value="Mamá"
-        <?php if($parentesco=="Mamá"){ echo "selected"; } ?>
-    >
-        Mamá
-    </option>
+                    </div>
 
-    <option 
-        value="Acudiente"
-        <?php if($parentesco=="Acudiente"){ echo "selected"; } ?>
-    >
-        Acudiente
-    </option>
 
-</select>
+                    <!-- DOCUMENTOS -->
+                    <div class="col-md-12 mb-4">
 
-<!-- ✅ NUEVO CAMPO ESTADO -->
-<label>Estado</label>
+                        <label class="form-label fw-bold">
+                            Adjuntar Documentos (PDF)
+                        </label>
 
-<select 
-    name="estado" 
-    class="form-control"
-    required
->
+                        <input 
+                            type="file" 
+                            name="documento_pdf"
+                            class="form-control"
+                            accept=".pdf"
+                        >
 
-    <option 
-        value="activo"
-        <?php if($estado=="activo"){ echo "selected"; } ?>
-    >
-        Activo
-    </option>
+                        <?php if(!empty($documento_pdf)){ ?>
 
-    <option 
-        value="inactivo"
-        <?php if($estado=="inactivo"){ echo "selected"; } ?>
-    >
-        Inactivo
-    </option>
+                            <div class="mt-2">
 
-</select>
+                                <a 
+                                    href="../../uploads/documentos/<?php echo $documento_pdf; ?>" 
+                                    target="_blank"
+                                    class="btn btn-outline-primary btn-sm"
+                                >
+                                    Ver Documento Actual
+                                </a>
 
-<!-- ✅ CATEGORIA -->
-<label>Categoria</label>
+                            </div>
 
-<select 
-    name="categoria_id" 
-    class="form-control" 
-    required
->
+                        <?php } ?>
 
-    <option value="">
-        Seleccionar categoria
-    </option>
+                    </div>
 
-    <?php
 
-    $stmt = $conexion->query("
-    SELECT id, nombre 
-    FROM categoria
-    ");
+                    <!-- TIPO DOCUMENTO -->
+                    <div class="col-md-6 mb-3">
 
-    while($row = $stmt->fetch(PDO::FETCH_ASSOC)){
+                        <label class="form-label">
+                            Tipo Documento
+                        </label>
 
-        $selected = ($row['id'] == $categoria_id) ? "selected" : "";
+                        <input 
+                            type="text" 
+                            class="form-control" 
+                            name="tipo_documento" 
+                            value="<?php echo $tipo_documento; ?>"
+                        >
 
-        echo "
-        <option value='".$row['id']."' $selected>
-            ".$row['nombre']."
-        </option>
-        ";
-    }
+                    </div>
 
-    ?>
 
-</select>
+                    <!-- DOCUMENTO -->
+                    <div class="col-md-6 mb-3">
 
-<br>
+                        <label class="form-label">
+                            Documento
+                        </label>
 
-<a href="index.php" class="btn btn-danger">
-    Cancelar
-</a>
+                        <input 
+                            type="text" 
+                            class="form-control" 
+                            name="documento" 
+                            value="<?php echo $documento; ?>"
+                        >
 
-<button type="submit" class="btn btn-primary">
-    Actualizar
-</button>
+                    </div>
 
-</form>
+
+                    <!-- TELEFONO -->
+                    <div class="col-md-6 mb-3">
+
+                        <label class="form-label">
+                            Teléfono
+                        </label>
+
+                        <input 
+                            type="text" 
+                            class="form-control" 
+                            name="telefono" 
+                            value="<?php echo $telefono; ?>"
+                        >
+
+                    </div>
+
+
+                    <!-- NOMBRE -->
+                    <div class="col-md-6 mb-3">
+
+                        <label class="form-label">
+                            Nombre
+                        </label>
+
+                        <input 
+                            type="text" 
+                            class="form-control" 
+                            name="nombre" 
+                            value="<?php echo $nombre; ?>"
+                        >
+
+                    </div>
+
+
+                    <!-- FECHA NACIMIENTO -->
+                    <div class="col-md-6 mb-3">
+
+                        <label class="form-label">
+                            Fecha de nacimiento
+                        </label>
+
+                        <input 
+                            type="date" 
+                            class="form-control" 
+                            name="fecha_nacimiento" 
+                            value="<?php echo $fecha_nacimiento; ?>"
+                        >
+
+                    </div>
+
+
+                    <!-- ACUDIENTE -->
+                    <div class="col-md-6 mb-3">
+
+                        <label class="form-label">
+                            Acudiente
+                        </label>
+
+                        <input 
+                            type="text" 
+                            name="acudiente" 
+                            class="form-control" 
+                            value="<?php echo $acudiente; ?>"
+                            placeholder="Ingrese acudiente"
+                            required
+                        >
+
+                    </div>
+
+
+                    <!-- PARENTESCO -->
+                    <div class="col-md-6 mb-3">
+
+                        <label class="form-label">
+                            Parentesco
+                        </label>
+
+                        <select 
+                            name="parentesco" 
+                            class="form-control"
+                            required
+                        >
+
+                            <option value="">
+                                Seleccione parentesco
+                            </option>
+
+                            <option 
+                                value="Papá"
+                                <?php if($parentesco=="Papá"){ echo "selected"; } ?>
+                            >
+                                Papá
+                            </option>
+
+                            <option 
+                                value="Mamá"
+                                <?php if($parentesco=="Mamá"){ echo "selected"; } ?>
+                            >
+                                Mamá
+                            </option>
+
+                            <option 
+                                value="Acudiente"
+                                <?php if($parentesco=="Acudiente"){ echo "selected"; } ?>
+                            >
+                                Acudiente
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- ESTADO -->
+                    <div class="col-md-3 mb-3">
+
+                        <label class="form-label">
+                            Estado
+                        </label>
+
+                        <select 
+                            name="estado" 
+                            class="form-control"
+                            required
+                        >
+
+                            <option 
+                                value="activo"
+                                <?php if($estado=="activo"){ echo "selected"; } ?>
+                            >
+                                Activo
+                            </option>
+
+                            <option 
+                                value="inactivo"
+                                <?php if($estado=="inactivo"){ echo "selected"; } ?>
+                            >
+                                Inactivo
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- CATEGORIA -->
+                    <div class="col-md-3 mb-3">
+
+                        <label class="form-label">
+                            Categoría
+                        </label>
+
+                        <select 
+                            name="categoria_id" 
+                            class="form-control" 
+                            required
+                        >
+
+                            <option value="">
+                                Seleccionar categoría
+                            </option>
+
+                            <?php
+
+                            $stmt = $conexion->query("
+                            SELECT id, nombre 
+                            FROM categoria
+                            ");
+
+                            while($row = $stmt->fetch(PDO::FETCH_ASSOC)){
+
+                                $selected = ($row['id'] == $categoria_id) ? "selected" : "";
+
+                                echo "
+                                <option value='".$row['id']."' $selected>
+                                    ".$row['nombre']."
+                                </option>
+                                ";
+                            }
+
+                            ?>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+
+                <!-- BOTONES -->
+                <div class="d-flex gap-2 mt-3">
+
+                    <a href="index.php" class="btn btn-danger">
+                        Cancelar
+                    </a>
+
+                    <button type="submit" class="btn btn-primary">
+                        Actualizar Deportista
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
 
 <?php include("../../template/footer_modulos.php") ?>

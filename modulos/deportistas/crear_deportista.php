@@ -8,184 +8,256 @@ $mensaje_error = "";
 
 if($_POST){
 
-$tipo_documento = trim($_POST['tipo_documento'] ?? "");
-$documento = trim($_POST['documento'] ?? "");
-$telefono = trim($_POST['telefono'] ?? "");
-$nombre = trim($_POST['nombre'] ?? "");
-$fecha_nacimiento = $_POST['fecha_nacimiento'] ?? "";
-$categoria_id = $_POST['categoria_id'] ?? "";
+    $tipo_documento = trim($_POST['tipo_documento'] ?? "");
+    $documento = trim($_POST['documento'] ?? "");
+    $telefono = trim($_POST['telefono'] ?? "");
+    $nombre = trim($_POST['nombre'] ?? "");
+    $fecha_nacimiento = $_POST['fecha_nacimiento'] ?? "";
+    $categoria_id = $_POST['categoria_id'] ?? "";
 
-// ✅ ACUDIENTE MANUAL
-$acudiente = trim($_POST['acudiente'] ?? "");
+    // ✅ ACUDIENTE MANUAL
+    $acudiente = trim($_POST['acudiente'] ?? "");
+    $parentesco = trim($_POST['parentesco'] ?? "");
 
-$parentesco = trim($_POST['parentesco'] ?? "");
+    // ✅ FOTO Y DOCUMENTOS
+    $foto = "";
+    $documento_pdf = "";
 
-// 🔒 VALIDACIONES
+    // 🔒 VALIDACIONES
 
-if(empty($acudiente)){
+    if(empty($acudiente)){
 
-    $mensaje_error = "Debe ingresar un acudiente";
+        $mensaje_error = "Debe ingresar un acudiente";
 
-}
+    }
 
-if(empty($categoria_id)){
+    if(empty($categoria_id)){
 
-    $mensaje_error = "Debe seleccionar una categoría";
+        $mensaje_error = "Debe seleccionar una categoría";
 
-}
+    }
 
-// 🔍 validar categoría
-$stmt_cat = $conexion->prepare("
-SELECT id 
-FROM categoria 
-WHERE id = :id
-");
+    // 🔍 validar categoría
+    if(empty($mensaje_error)){
 
-$stmt_cat->execute([
-    ":id"=>$categoria_id
-]);
+        $stmt_cat = $conexion->prepare("
+        SELECT id 
+        FROM categoria 
+        WHERE id = :id
+        ");
 
-if(!$stmt_cat->fetch()){
+        $stmt_cat->execute([
+            ":id"=>$categoria_id
+        ]);
 
-    $mensaje_error = "La categoría seleccionada no existe";
+        if(!$stmt_cat->fetch()){
 
-}
+            $mensaje_error = "La categoría seleccionada no existe";
 
-// 🔍 VALIDAR DOCUMENTO REPETIDO
-$stmt_check = $conexion->prepare("
-SELECT id 
-FROM deportista 
-WHERE documento = :documento
-");
+        }
 
-$stmt_check->execute([
-    ":documento"=>$documento
-]);
+    }
 
-if($stmt_check->fetch()){
+    // 🔍 VALIDAR DOCUMENTO REPETIDO
+    if(empty($mensaje_error)){
 
-    $error_documento = true;
+        $stmt_check = $conexion->prepare("
+        SELECT id 
+        FROM deportista 
+        WHERE documento = :documento
+        ");
 
-    $mensaje_error = "El documento ya está registrado. Cambia el número.";
+        $stmt_check->execute([
+            ":documento"=>$documento
+        ]);
 
-}
+        if($stmt_check->fetch()){
 
+            $error_documento = true;
 
-// 🔍 VALIDAR NOMBRE REPETIDO
-$stmt_nombre = $conexion->prepare("
-SELECT id 
-FROM deportista 
-WHERE nombre = :nombre
-");
+            $mensaje_error = "El documento ya está registrado. Cambia el número.";
 
-$stmt_nombre->execute([
-    ":nombre"=>$nombre
-]);
+        }
 
-if($stmt_nombre->fetch()){
+    }
 
-    $error_nombre = true;
+    // 🔍 VALIDAR NOMBRE REPETIDO
+    if(empty($mensaje_error)){
 
-    $mensaje_error = "El nombre ya está registrado. Verifica el deportista.";
+        $stmt_nombre = $conexion->prepare("
+        SELECT id 
+        FROM deportista 
+        WHERE nombre = :nombre
+        ");
 
-}
+        $stmt_nombre->execute([
+            ":nombre"=>$nombre
+        ]);
 
+        if($stmt_nombre->fetch()){
 
-// ✅ SI NO HAY ERRORES → INSERTAR
-if(empty($mensaje_error)){
+            $error_nombre = true;
 
-// ✅ INSERTAR DEPORTISTA
-$stm = $conexion->prepare("
-INSERT INTO deportista(
-    tipo_documento,
-    documento,
-    telefono,
-    nombre,
-    fecha_nacimiento,
-    categoria_id,
-    estado
-)
-VALUES(
-    :tipo_documento,
-    :documento,
-    :telefono,
-    :nombre,
-    :fecha_nacimiento,
-    :categoria_id,
-    'activo'
-)
-");
+            $mensaje_error = "El nombre ya está registrado.";
 
-$stm->execute([
-    ":tipo_documento"=>$tipo_documento,
-    ":documento"=>$documento,
-    ":telefono"=>$telefono,
-    ":nombre"=>$nombre,
-    ":fecha_nacimiento"=>$fecha_nacimiento,
-    ":categoria_id"=>$categoria_id
-]);
+        }
 
-// ✅ obtener ID del deportista
-$deportista_id = $conexion->lastInsertId();
+    }
 
-// ✅ guardar acudiente manual
-$stmt_rel = $conexion->prepare("
-INSERT INTO usuario_deportista(
-    deportista_id,
-    acudiente,
-    parentesco
-)
-VALUES(
-    :deportista_id,
-    :acudiente,
-    :parentesco
-)
-");
+    // ✅ SUBIR FOTO
+    if(empty($mensaje_error) && isset($_FILES['foto'])){
 
-$stmt_rel->execute([
-    ":deportista_id"=>$deportista_id,
-    ":acudiente"=>$acudiente,
-    ":parentesco"=>$parentesco
-]);
+        if($_FILES['foto']['error'] == 0){
 
-header("Location: index.php?success=1");
-exit;
+            $carpeta_fotos = "../../uploads/fotos/";
 
-}
+            if(!file_exists($carpeta_fotos)){
+                mkdir($carpeta_fotos, 0777, true);
+            }
+
+            $nombre_foto = time() . "_" . $_FILES['foto']['name'];
+
+            $ruta_foto = $carpeta_fotos . $nombre_foto;
+
+            move_uploaded_file(
+                $_FILES['foto']['tmp_name'],
+                $ruta_foto
+            );
+
+            $foto = $nombre_foto;
+
+        }
+
+    }
+
+    // ✅ SUBIR DOCUMENTO PDF
+    if(empty($mensaje_error) && isset($_FILES['documento_pdf'])){
+
+        if($_FILES['documento_pdf']['error'] == 0){
+
+            $carpeta_docs = "../../uploads/documentos/";
+
+            if(!file_exists($carpeta_docs)){
+                mkdir($carpeta_docs, 0777, true);
+            }
+
+            $nombre_pdf = time() . "_" . $_FILES['documento_pdf']['name'];
+
+            $ruta_pdf = $carpeta_docs . $nombre_pdf;
+
+            move_uploaded_file(
+                $_FILES['documento_pdf']['tmp_name'],
+                $ruta_pdf
+            );
+
+            $documento_pdf = $nombre_pdf;
+
+        }
+
+    }
+
+    // ✅ INSERTAR
+    if(empty($mensaje_error)){
+
+        $stm = $conexion->prepare("
+        INSERT INTO deportista(
+            tipo_documento,
+            documento,
+            telefono,
+            nombre,
+            fecha_nacimiento,
+            categoria_id,
+            foto,
+            documento_pdf,
+            estado
+        )
+        VALUES(
+            :tipo_documento,
+            :documento,
+            :telefono,
+            :nombre,
+            :fecha_nacimiento,
+            :categoria_id,
+            :foto,
+            :documento_pdf,
+            'activo'
+        )
+        ");
+
+        $stm->execute([
+            ":tipo_documento"=>$tipo_documento,
+            ":documento"=>$documento,
+            ":telefono"=>$telefono,
+            ":nombre"=>$nombre,
+            ":fecha_nacimiento"=>$fecha_nacimiento,
+            ":categoria_id"=>$categoria_id,
+            ":foto"=>$foto,
+            ":documento_pdf"=>$documento_pdf
+        ]);
+
+        // ✅ ID DEPORTISTA
+        $deportista_id = $conexion->lastInsertId();
+
+        // ✅ GUARDAR ACUDIENTE
+        $stmt_rel = $conexion->prepare("
+        INSERT INTO usuario_deportista(
+            deportista_id,
+            acudiente,
+            parentesco
+        )
+        VALUES(
+            :deportista_id,
+            :acudiente,
+            :parentesco
+        )
+        ");
+
+        $stmt_rel->execute([
+            ":deportista_id"=>$deportista_id,
+            ":acudiente"=>$acudiente,
+            ":parentesco"=>$parentesco
+        ]);
+
+        header("Location: index.php?success=1");
+        exit;
+
+    }
 
 }
 ?>
 
-<!-- Modal create -->
-<div class="modal fade <?php if(!empty($mensaje_error)){ echo 'show'; } ?>" 
-     id="create" 
-     tabindex="-1"
-     style="<?php if(!empty($mensaje_error)){ echo 'display:block; background:rgba(0,0,0,0.5);'; } ?>"
+<!-- ✅ MODAL CREAR -->
+<div 
+    class="modal fade <?php if(!empty($mensaje_error)){ echo 'show'; } ?>" 
+    id="create" 
+    tabindex="-1"
+    style="<?php if(!empty($mensaje_error)){ echo 'display:block; background:rgba(0,0,0,0.5);'; } ?>"
 >
 
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-xl">
 
-        <div class="modal-content">
+        <div class="modal-content shadow">
 
-            <div class="modal-header">
+            <!-- HEADER -->
+            <div class="modal-header bg-primary text-white">
 
                 <h5 class="modal-title">
-                    Agregar Deportista
+                    Crear Deportista
                 </h5>
 
                 <button 
                     type="button" 
-                    class="btn-close" 
+                    class="btn-close btn-close-white" 
                     data-bs-dismiss="modal"
                 ></button>
 
             </div>
 
-            <form action="" method="post">
+            <form action="" method="post" enctype="multipart/form-data">
 
                 <div class="modal-body">
 
-                    <!-- ✅ ALERTA ERROR -->
+                    <!-- ERROR -->
                     <?php if(!empty($mensaje_error)){ ?>
 
                         <div class="alert alert-danger">
@@ -196,177 +268,251 @@ exit;
 
                     <?php } ?>
 
-                    <!-- TIPO DOCUMENTO -->
-                    <label>Tipo Documento</label>
+                    <div class="row">
 
-                    <input 
-                        type="text" 
-                        name="tipo_documento" 
-                        class="form-control"
-                        value="<?php echo $_POST['tipo_documento'] ?? ''; ?>"
-                        placeholder="Ingrese Tipo de Documento"
-                    >
+                        <!-- FOTO PERFIL -->
+                        <div class="col-md-4 mb-3">
 
-                    <!-- DOCUMENTO -->
-                    <label>Documento</label>
+                            <div class="card p-3 text-center shadow-sm">
 
-                    <input 
-                        type="text" 
-                        name="documento" 
-                        class="form-control <?php if($error_documento){ echo 'border border-danger'; } ?>"
-                        value="<?php echo $_POST['documento'] ?? ''; ?>"
-                        placeholder="Ingrese Documento"
-                    >
+                                <h6 class="mb-3">
+                                    Foto de Perfil
+                                </h6>
 
-                    <?php if($error_documento){ ?>
+                                <input 
+                                    type="file"
+                                    name="foto"
+                                    class="form-control"
+                                    accept="image/*"
+                                >
 
-                        <small class="text-danger">
-                            Este documento ya existe. Intenta con otro número.
-                        </small>
+                                <small class="text-muted mt-2">
+                                    JPG, PNG o WEBP
+                                </small>
 
-                    <?php } ?>
+                            </div>
 
-                    <!-- TELÉFONO -->
-                    <label>Teléfono</label>
+                        </div>
 
-                    <input 
-                        type="text" 
-                        name="telefono" 
-                        class="form-control"
-                        value="<?php echo $_POST['telefono'] ?? ''; ?>"
-                        placeholder="Ingrese Teléfono"
-                    >
+                        <!-- DOCUMENTOS -->
+                        <div class="col-md-8">
 
-                    <!-- NOMBRE -->
-                    <label>Nombre</label>
+                            <div class="row">
 
-                    <input 
-                        type="text" 
-                        name="nombre" 
-                        class="form-control <?php if($error_nombre){ echo 'border border-danger'; } ?>"
-                        value="<?php echo $_POST['nombre'] ?? ''; ?>"
-                        placeholder="Ingrese Nombre"
-                    >
+                                <!-- TIPO DOCUMENTO -->
+                                <div class="col-md-6 mb-3">
 
-                    <?php if($error_nombre){ ?>
+                                    <label class="form-label">
+                                        Tipo Documento
+                                    </label>
 
-                        <small class="text-danger">
-                            Este nombre ya existe. Verifica si el deportista ya fue registrado.
-                        </small>
+                                    <input 
+                                        type="text" 
+                                        name="tipo_documento" 
+                                        class="form-control"
+                                        value="<?php echo $_POST['tipo_documento'] ?? ''; ?>"
+                                    >
 
-                    <?php } ?>
+                                </div>
 
-                    <!-- FECHA -->
-                    <label>Fecha de nacimiento</label>
+                                <!-- DOCUMENTO -->
+                                <div class="col-md-6 mb-3">
 
-                    <input 
-                        type="date" 
-                        class="form-control" 
-                        name="fecha_nacimiento"
-                        value="<?php echo $_POST['fecha_nacimiento'] ?? ''; ?>"
-                    >
+                                    <label class="form-label">
+                                        Documento
+                                    </label>
 
-                    <!-- ✅ ACUDIENTE MANUAL -->
-                    <label>Acudiente</label>
+                                    <input 
+                                        type="text" 
+                                        name="documento" 
+                                        class="form-control <?php if($error_documento){ echo 'border border-danger'; } ?>"
+                                        value="<?php echo $_POST['documento'] ?? ''; ?>"
+                                    >
 
-                    <input 
-                        type="text" 
-                        name="acudiente" 
-                        class="form-control"
-                        value="<?php echo $_POST['acudiente'] ?? ''; ?>"
-                        placeholder="Ingrese nombre del acudiente"
-                        required
-                    >
+                                </div>
 
-                    <!-- ✅ PARENTESCO -->
-                    <label>Parentesco</label>
+                                <!-- TELÉFONO -->
+                                <div class="col-md-6 mb-3">
 
-                    <select 
-                        name="parentesco" 
-                        class="form-control"
-                        required
-                    >
+                                    <label class="form-label">
+                                        Teléfono
+                                    </label>
 
-                        <option value="">
-                            Seleccione parentesco
-                        </option>
+                                    <input 
+                                        type="text" 
+                                        name="telefono" 
+                                        class="form-control"
+                                        value="<?php echo $_POST['telefono'] ?? ''; ?>"
+                                    >
 
-                        <option value="Papá"
-                        <?php if(($_POST['parentesco'] ?? '') == 'Papá'){ echo 'selected'; } ?>
-                        >
-                            Papá
-                        </option>
+                                </div>
 
-                        <option value="Mamá"
-                        <?php if(($_POST['parentesco'] ?? '') == 'Mamá'){ echo 'selected'; } ?>
-                        >
-                            Mamá
-                        </option>
+                                <!-- NOMBRE -->
+                                <div class="col-md-6 mb-3">
 
-                        <option value="Acudiente"
-                        <?php if(($_POST['parentesco'] ?? '') == 'Acudiente'){ echo 'selected'; } ?>
-                        >
-                            Acudiente
-                        </option>
+                                    <label class="form-label">
+                                        Nombre
+                                    </label>
 
-                    </select>
+                                    <input 
+                                        type="text" 
+                                        name="nombre" 
+                                        class="form-control <?php if($error_nombre){ echo 'border border-danger'; } ?>"
+                                        value="<?php echo $_POST['nombre'] ?? ''; ?>"
+                                    >
 
-                    <!-- ✅ CATEGORIA -->
-                    <label>Categoria</label>
+                                </div>
 
-                    <select 
-                        name="categoria_id" 
-                        class="form-control" 
-                        required
-                    >
+                                <!-- FECHA -->
+                                <div class="col-md-6 mb-3">
 
-                        <option value="">
-                            Seleccionar categoria
-                        </option>
+                                    <label class="form-label">
+                                        Fecha de nacimiento
+                                    </label>
 
-                        <?php
+                                    <input 
+                                        type="date" 
+                                        class="form-control" 
+                                        name="fecha_nacimiento"
+                                        value="<?php echo $_POST['fecha_nacimiento'] ?? ''; ?>"
+                                    >
 
-                        $stmt = $conexion->query("
-                        SELECT id, nombre 
-                        FROM categoria
-                        ");
+                                </div>
 
-                        while($row = $stmt->fetch(PDO::FETCH_ASSOC)){
+                                <!-- CATEGORIA -->
+                                <div class="col-md-6 mb-3">
 
-                            $selected = "";
+                                    <label class="form-label">
+                                        Categoría
+                                    </label>
 
-                            if(($_POST['categoria_id'] ?? '') == $row['id']){
-                                $selected = "selected";
-                            }
+                                    <select 
+                                        name="categoria_id" 
+                                        class="form-control"
+                                    >
 
-                            echo "
-                            <option value='".$row['id']."' $selected>
-                                ".$row['nombre']."
-                            </option>
-                            ";
-                        }
+                                        <option value="">
+                                            Seleccionar categoría
+                                        </option>
 
-                        ?>
+                                        <?php
 
-                    </select>
+                                        $stmt = $conexion->query("
+                                        SELECT id, nombre 
+                                        FROM categoria
+                                        ");
+
+                                        while($row = $stmt->fetch(PDO::FETCH_ASSOC)){
+
+                                            $selected = "";
+
+                                            if(($_POST['categoria_id'] ?? '') == $row['id']){
+                                                $selected = "selected";
+                                            }
+
+                                            echo "
+                                            <option value='".$row['id']."' $selected>
+                                                ".$row['nombre']."
+                                            </option>
+                                            ";
+                                        }
+
+                                        ?>
+
+                                    </select>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <hr>
+
+                    <div class="row">
+
+                        <!-- ACUDIENTE -->
+                        <div class="col-md-6 mb-3">
+
+                            <label class="form-label">
+                                Acudiente
+                            </label>
+
+                            <input 
+                                type="text" 
+                                name="acudiente" 
+                                class="form-control"
+                                value="<?php echo $_POST['acudiente'] ?? ''; ?>"
+                            >
+
+                        </div>
+
+                        <!-- PARENTESCO -->
+                        <div class="col-md-6 mb-3">
+
+                            <label class="form-label">
+                                Parentesco
+                            </label>
+
+                            <select 
+                                name="parentesco" 
+                                class="form-control"
+                            >
+
+                                <option value="">
+                                    Seleccione parentesco
+                                </option>
+
+                                <option value="Papá">Papá</option>
+                                <option value="Mamá">Mamá</option>
+                                <option value="Acudiente">Acudiente</option>
+
+                            </select>
+
+                        </div>
+
+                        <!-- DOCUMENTOS PDF -->
+                        <div class="col-md-12 mb-3">
+
+                            <label class="form-label">
+                                Adjuntar Documentos
+                            </label>
+
+                            <input 
+                                type="file"
+                                name="documento_pdf"
+                                class="form-control"
+                                accept=".pdf,.jpg,.png"
+                            >
+
+                            <small class="text-muted">
+                                Puedes adjuntar PDF, JPG o PNG
+                            </small>
+
+                        </div>
+
+                    </div>
 
                 </div>
 
+                <!-- FOOTER -->
                 <div class="modal-footer">
 
                     <button 
                         type="button" 
-                        class="btn btn-secondary" 
+                        class="btn btn-danger" 
                         data-bs-dismiss="modal"
                     >
-                        Cerrar
+                        Cancelar
                     </button>
 
                     <button 
                         type="submit" 
                         class="btn btn-primary"
                     >
-                        Guardar
+                        Guardar Deportista
                     </button>
 
                 </div>
@@ -378,21 +524,3 @@ exit;
     </div>
 
 </div>
-
-<!-- ✅ POPUP CONFIRMAR ELIMINACIÓN -->
-
-<script>
-
-function confirmarEliminacion(id){
-
-    let confirmar = confirm("¿Seguro que deseas eliminar este deportista?");
-
-    if(confirmar){
-
-        window.location = "index.php?id=" + id;
-
-    }
-
-}
-
-</script>
