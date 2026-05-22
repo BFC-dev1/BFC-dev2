@@ -9,7 +9,7 @@
 
         <!-- TITULO -->
         <h4 class="text-center mb-4 fw-bold">
-            ⚙️ Admin
+            ⚙️ Admin CMS
         </h4>
 
         <!-- MENU -->
@@ -17,25 +17,20 @@
 
             <!-- DASHBOARD -->
             <li class="nav-item mb-2">
-
-                <a 
-                    href="/BFC-dev2/modulos/Dashboard/index.php" 
-                    class="nav-link text-white"
-                >
+                <a href="/BFC-dev2/modulos/Dashboard/index.php" class="nav-link text-white">
                     🏠 Dashboard
                 </a>
-
             </li>
 
+            <!-- ========================= -->
             <!-- USUARIOS -->
+            <!-- ========================= -->
             <li class="nav-item mb-2">
 
-                <a 
-                    class="nav-link text-white d-flex justify-content-between align-items-center"
+                <a class="nav-link text-white d-flex justify-content-between align-items-center"
                     data-bs-toggle="collapse"
                     href="#submenuUsuarios"
-                    role="button"
-                >
+                    role="button">
                     👤 Usuarios
                     <span>▼</span>
                 </a>
@@ -44,28 +39,16 @@
 
                     <ul class="nav flex-column">
 
-                        <!-- LISTADO -->
                         <li class="nav-item">
-
-                            <a 
-                                href="/BFC-dev2/modulos/usuarios" 
-                                class="nav-link text-white"
-                            >
+                            <a href="/BFC-dev2/modulos/usuarios/" class="nav-link text-white">
                                 📋 Listado
                             </a>
-
                         </li>
 
-                        <!-- CREAR USUARIO -->
                         <li class="nav-item">
-
-                            <a 
-                                href="/BFC-dev2/admin/crear_usuarios.php" 
-                                class="nav-link text-white"
-                            >
+                            <a href="/BFC-dev2/admin/crear_usuarios.php" class="nav-link text-white">
                                 ➕ Crear Usuario
                             </a>
-
                         </li>
 
                     </ul>
@@ -74,15 +57,15 @@
 
             </li>
 
+            <!-- ========================= -->
             <!-- DEPORTISTAS -->
+            <!-- ========================= -->
             <li class="nav-item mb-2">
 
-                <a 
-                    class="nav-link text-white d-flex justify-content-between align-items-center"
+                <a class="nav-link text-white d-flex justify-content-between align-items-center"
                     data-bs-toggle="collapse"
                     href="#submenuDeportistas"
-                    role="button"
-                >
+                    role="button">
                     🏃 Deportistas
                     <span>▼</span>
                 </a>
@@ -91,40 +74,22 @@
 
                     <ul class="nav flex-column">
 
-                        <!-- LISTADO -->
                         <li class="nav-item">
-
-                            <a 
-                                href="<?php echo $url_base; ?>modulos/deportistas/" 
-                                class="nav-link text-white"
-                            >
+                            <a href="/BFC-dev2/modulos/deportistas/" class="nav-link text-white">
                                 📋 Listado
                             </a>
-
                         </li>
 
-                        <!-- PAGOS -->
                         <li class="nav-item">
-
-                            <a 
-                                href="/BFC-dev2/modulos/pagos/" 
-                                class="nav-link text-white"
-                            >
+                            <a href="/BFC-dev2/modulos/pagos/" class="nav-link text-white">
                                 💰 Pagos
                             </a>
-
                         </li>
 
-                        <!-- ASISTENCIA -->
                         <li class="nav-item">
-
-                            <a 
-                                href="<?php echo $url_base; ?>modulos/asistencia/" 
-                                class="nav-link text-white"
-                            >
+                            <a href="/BFC-dev2/modulos/asistencia/" class="nav-link text-white">
                                 📅 Asistencia
                             </a>
-
                         </li>
 
                     </ul>
@@ -133,30 +98,63 @@
 
             </li>
 
-            <!-- REPORTES -->
+            <!-- ========================= -->
+            <!-- CMS / EDITOR DE PÁGINAS -->
+            <!-- ========================= -->
             <li class="nav-item mb-2">
 
-                <a 
-                    href="/BFC-dev2/modulos/reportes/" 
-                    class="nav-link text-white"
-                >
-                    📊 Reportes
+                <a class="nav-link text-white d-flex justify-content-between align-items-center"
+                    data-bs-toggle="collapse"
+                    href="#submenuCMS"
+                    role="button">
+                    🧩 Editar Páginas
+                    <span>▼</span>
                 </a>
 
+                <div class="collapse ms-3" id="submenuCMS">
+
+                    <ul class="nav flex-column">
+
+                        <li class="nav-item">
+                            <a href="/BFC-dev2/admin/edit_page_Content/editar_inicio.php" class="nav-link text-white">
+                                🏠 Página principal
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a href="/BFC-dev2/admin/edit_page_Content/editar_contacto.php" class="nav-link text-white">
+                                📞 Contacto
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a href="/BFC-dev2/admin/edit_page_Content/editar_quienes_somos.php" class="nav-link text-white">
+                                ℹ️ Quiénes somos
+                            </a>
+                        </li>
+
+                    </ul>
+
+                </div>
+
+            </li>
+
+            <!-- ========================= -->
+            <!-- REPORTES -->
+            <!-- ========================= -->
+            <li class="nav-item mb-2">
+                <a href="/BFC-dev2/modulos/reportes/reportes.php" class="nav-link text-white">
+                    📊 Reportes
+                </a>
             </li>
 
             <hr class="bg-secondary">
 
             <!-- LOGOUT -->
             <li class="nav-item">
-
-                <a 
-                    href="/BFC-dev2/auth/logout.php" 
-                    class="nav-link text-danger"
-                >
+                <a href="/BFC-dev2/auth/logout.php" class="nav-link text-danger">
                     🚪 Cerrar sesión
                 </a>
-
             </li>
 
         </ul>

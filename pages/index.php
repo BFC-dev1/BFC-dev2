@@ -1,60 +1,152 @@
 <?php
 session_start();
+
+/*
+=========================
+CONEXIÓN
+=========================
+*/
+include("../includes/conexion.php");
+
+/*
+=========================
+CONSULTAR DATOS
+=========================
+*/
+
+$stmt = $conexion->prepare("
+    SELECT *
+    FROM pagina_inicio
+    LIMIT 1
+");
+
+$stmt->execute();
+
+$inicio = $stmt->fetch(PDO::FETCH_ASSOC);
+
 ?>
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
+
     <meta charset="UTF-8">
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
     <title>BellavistaFC</title>
 
-    <!-- Conecta el CSS -->
-    <link rel="stylesheet" href="/BFC-dev1.github.io/assets/estilo.css">
+    <!-- CSS -->
+    <link
+        rel="stylesheet"
+        href="/BFC-dev1.github.io/assets/estilo.css"
+    >
+
 </head>
 
 <body>
 
 <?php include("../includes/header.php"); ?>
 
-    <!-- ===== SECCIÓN PRINCIPAL ===== -->
-    <section class="principal">
+<!-- ===================================== -->
+<!-- SECCIÓN PRINCIPAL -->
+<!-- ===================================== -->
 
-        <!-- Imagen principal -->
-        <div class="imagen-central">
-            <img src="/BFC-dev1.github.io/assets/img/img1.png" alt="Image1">
-        </div>
+<section class="principal">
 
-        <!-- Texto al lado derecho -->
-        <div class="texto-lateral">
-            <p>Entrenamientos enfocados en el desarrollo técnico</p>
-        </div>
+    <!-- IMAGEN PRINCIPAL -->
 
-    </section>
+    <div class="imagen-central">
 
-    <!-- ===== TARJETAS (3 bloques) ===== -->
+        <img
+            src="/BFC-dev1.github.io/assets/img/<?php echo $inicio['imagen_principal']; ?>"
+            alt="Image1"
+        >
+
+    </div>
+
+    <!-- TEXTO -->
+
+    <div class="texto-lateral">
+
+        <p>
+
+            <?php echo $inicio['descripcion']; ?>
+
+        </p>
+
+    </div>
+
+</section>
+
+<!-- ===================================== -->
+<!-- TARJETAS -->
+<!-- ===================================== -->
+
 <section class="tarjetas">
 
-    <div class="card">
-        <img src="/BFC-dev1.github.io/assets/img/img2.png">
-        <div class="overlay">
-            <p>Trabajo de control y pase</p>
-        </div>
-    </div>
+    <!-- TARJETA 1 -->
 
     <div class="card">
-        <img src="/BFC-dev1.github.io/assets/img/img3.png">
+
+        <img
+            src="/BFC-dev1.github.io/assets/img/<?php echo $inicio['tarjeta1_img']; ?>"
+        >
+
         <div class="overlay">
-            <p>Trabajo en equipo</p>
+
+            <p>
+
+                <?php echo $inicio['tarjeta1_texto']; ?>
+
+            </p>
+
         </div>
+
     </div>
 
+    <!-- TARJETA 2 -->
+
     <div class="card">
-        <img src="/BFC-dev1.github.io/assets/img/img4.png">
+
+        <img
+            src="/BFC-dev1.github.io/assets/img/<?php echo $inicio['tarjeta2_img']; ?>"
+        >
+
         <div class="overlay">
-            <p>Coordinación y técnica</p>
+
+            <p>
+
+                <?php echo $inicio['tarjeta2_texto']; ?>
+
+            </p>
+
         </div>
+
+    </div>
+
+    <!-- TARJETA 3 -->
+
+    <div class="card">
+
+        <img
+            src="/BFC-dev1.github.io/assets/img/<?php echo $inicio['tarjeta3_img']; ?>"
+        >
+
+        <div class="overlay">
+
+            <p>
+
+                <?php echo $inicio['tarjeta3_texto']; ?>
+
+            </p>
+
+        </div>
+
     </div>
 
 </section>

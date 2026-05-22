@@ -1,12 +1,17 @@
-/* ===== RESET ===== */
+/* =========================
+RESET BASE
+========================= */
 body {
     margin: 0;
     padding: 0;
     background-color: #f4f6f9;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #111;
 }
 
-/* ===== SIDEBAR (IZQUIERDA) ===== */
+/* =========================
+SIDEBAR
+========================= */
 .sidebar {
     width: 250px;
     height: 100vh;
@@ -43,14 +48,18 @@ body {
     color: #fff;
 }
 
-/* ===== CONTENIDO ===== */
+/* =========================
+CONTENIDO
+========================= */
 .main-content {
     margin-left: 250px;
     padding: 25px;
     transition: all 0.3s ease;
 }
 
-/* ===== BOTÓN MENÚ ===== */
+/* =========================
+BOTÓN MENÚ
+========================= */
 .menu-toggle {
     display: none;
     position: fixed;
@@ -65,7 +74,9 @@ body {
     cursor: pointer;
 }
 
-/* ===== OVERLAY ===== */
+/* =========================
+OVERLAY
+========================= */
 .overlay {
     display: none;
     position: fixed;
@@ -81,83 +92,11 @@ body {
     display: block;
 }
 
-/* ===== SIDEBAR OCULTO ===== */
-.sidebar.oculto {
-    transform: translateX(-100%);
-}
-
-.main-content.expandido {
-    margin-left: 0;
-}
-
-/* ===== CARDS ===== */
-.card {
-    border-radius: 12px;
-}
-
-.hover-card {
-    transition: all 0.2s ease;
-    cursor: pointer;
-}
-
-.hover-card:hover {
-    transform: translateY(-5px);
-}
-
-/* ===== ICONOS CARDS ===== */
-.card-icon {
-    font-size: 20px;
-    padding: 15px;
-    border-radius: 10px;
-    color: #fff;
-}
-
-/* ===== LINKS ===== */
-a {
-    text-decoration: none !important;
-}
-
-/* ===== LISTA ASISTENCIA ===== */
-.list-group-item {
-    border-radius: 10px;
-    margin-bottom: 10px;
-    transition: 0.2s;
-}
-
-.btn-group .btn {
-    min-width: 45px;
-}
-
-/* ===== RESPONSIVE MEJORADO ===== */
-
-/* ===== TABLET ===== */
-@media (max-width: 992px) {
-
-    .sidebar {
-        width: 220px;
-    }
-
-    .main-content {
-        margin-left: 220px;
-        padding: 20px;
-    }
-
-    /* cards en 2 columnas */
-    .col-md-3 {
-        flex: 0 0 50%;
-        max-width: 50%;
-    }
-}
-
-/* ===== MÓVIL ===== */
+/* =========================
+SIDEBAR RESPONSIVE
+========================= */
 @media (max-width: 768px) {
 
-    /* botón menú */
-    .menu-toggle {
-        display: block;
-    }
-
-    /* sidebar tipo overlay */
     .sidebar {
         position: fixed;
         left: -250px;
@@ -165,97 +104,358 @@ a {
         width: 250px;
         height: 100%;
         z-index: 1000;
-        transition: 0.3s;
     }
 
     .sidebar.active {
         left: 0;
     }
 
-    /* overlay */
-    .overlay {
-        display: none;
-    }
-
-    .overlay.active {
-        display: block;
-    }
-
-    /* contenido full */
     .main-content {
         margin-left: 0 !important;
-        width: 100%;
         padding: 15px;
     }
 
-    /* grid vertical */
-    .row {
-        display: flex;
+    .menu-toggle {
+        display: block;
+    }
+}
+
+/* =========================
+CARDS BASE
+========================= */
+.card {
+    border-radius: 14px;
+    border: none;
+}
+
+.hover-card {
+    transition: 0.2s ease;
+}
+
+.hover-card:hover {
+    transform: translateY(-5px);
+}
+
+/* =========================
+DASHBOARD HEADER
+========================= */
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.dashboard-header h2 {
+    margin: 0;
+    font-weight: 700;
+}
+
+.dashboard-header p {
+    margin: 0;
+    color: #777;
+    font-size: 14px;
+}
+
+/* =========================
+BOTÓN EXPORT
+========================= */
+.btn-export {
+    background: #111;
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    text-decoration: none;
+    transition: 0.2s;
+}
+
+.btn-export:hover {
+    background: #0d6efd;
+}
+
+/* =========================
+KPI / METRICAS
+========================= */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+.kpi-card {
+    background: #fff;
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+
+.kpi-card h2 {
+    margin: 10px 0;
+    font-size: 30px;
+}
+
+/* =========================
+PROGRESS BAR
+========================= */
+.progress {
+    width: 100%;
+    height: 8px;
+    background: #eee;
+    border-radius: 20px;
+    overflow: hidden;
+    margin: 10px 0;
+}
+
+.bar {
+    height: 100%;
+    border-radius: 20px;
+}
+
+.bar.green {
+    background: #28a745;
+}
+
+.bar.blue {
+    background: #0d6efd;
+}
+
+/* =========================
+GRID DETALLE
+========================= */
+.grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+/* =========================
+CARD BOX
+========================= */
+.card-box {
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+
+/* =========================
+TEXTOS ESTADO
+========================= */
+.text-green {
+    color: #28a745;
+}
+
+.text-red {
+    color: #dc3545;
+}
+
+/* =========================
+RESPONSIVE DASHBOARD
+========================= */
+@media (max-width: 768px) {
+
+    .kpi-grid,
+    .grid-2 {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-header {
         flex-direction: column;
-        gap: 15px;
-    }
-
-    /* cards full width */
-    .col-md-3 {
-        width: 100% !important;
-        max-width: 100% !important;
-    }
-
-    /* cards */
-    .card-body {
-        padding: 20px;
-    }
-
-    /* textos */
-    h3 {
-        font-size: 1.3rem;
-    }
-
-    h4 {
-        font-size: 1.2rem;
-    }
-
-    h6 {
-        font-size: 0.9rem;
-    }
-
-    /* iconos */
-    .card .rounded {
-        padding: 15px !important;
-        font-size: 20px;
-    }
-
-    /* espacio superior */
-    .main-content {
-        padding-top: 60px;
+        align-items: flex-start;
+        gap: 10px;
     }
 }
 
-/* ===== EXTRA MÓVILES PEQUEÑOS ===== */
-@media (max-width: 480px) {
+/* =========================
+ASISTENCIAS (NUEVO MÓDULO)
+========================= */
 
-    .card-body {
-        padding: 15px;
-    }
+/* filtros */
+.asistencia-filtros {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+}
 
-    h3 {
-        font-size: 1.1rem;
-    }
+.asistencia-filtros input,
+.asistencia-filtros select {
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    background: #fff;
+}
 
-    h4 {
-        font-size: 1rem;
-    }
+/* tabla asistencia */
+.table-asistencia {
+    width: 100%;
+    background: #fff;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+}
 
-    h6 {
-        font-size: 0.8rem;
-    }
+.table-asistencia th {
+    background: #111;
+    color: #fff;
+    padding: 12px;
+}
 
-    .card .rounded {
-        padding: 12px !important;
-        font-size: 18px;
+.table-asistencia td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+/* botones asistencia */
+.btn-asistencia {
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.btn-presente {
+    background: #28a745;
+    color: #fff;
+}
+
+.btn-ausente {
+    background: #dc3545;
+    color: #fff;
+}
+
+.btn-tarde {
+    background: #ffc107;
+    color: #111;
+}
+
+/* hover fila */
+.table-asistencia tr:hover {
+    background: #f8f9fa;
+}
+
+/* =========================
+DASHBOARD METRIC CARDS PRO
+========================= */
+
+.section-title {
+    font-weight: 700;
+    margin: 25px 0 15px;
+    font-size: 18px;
+    color: #111;
+}
+
+.metric-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    transition: 0.2s ease;
+    border-left: 5px solid transparent;
+}
+
+.metric-card:hover {
+    transform: translateY(-4px);
+}
+
+.metric-title {
+    font-size: 13px;
+    color: #6c757d;
+}
+
+.metric-value {
+    font-size: 28px;
+    font-weight: 700;
+    margin-top: 5px;
+}
+
+/* BORDES COLORES */
+.border-primary {
+    border-left-color: #0d6efd;
+}
+
+.border-success {
+    border-left-color: #28a745;
+}
+
+.border-danger {
+    border-left-color: #dc3545;
+}
+
+.border-warning {
+    border-left-color: #ffc107;
+}
+
+.border-dark {
+    border-left-color: #343a40;
+}
+
+/* TEXTOS */
+.text-success {
+    color: #28a745 !important;
+}
+
+.text-danger {
+    color: #dc3545 !important;
+}
+
+.text-warning {
+    color: #ffc107 !important;
+}
+
+/* RESPONSIVE FIX */
+@media (max-width: 768px) {
+    .metric-value {
+        font-size: 22px;
     }
 }
 
-body {
-    background: lime !important;
+/* =========================
+DASHBOARD / METRICS
+========================= */
+
+.metric-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 18px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+    transition: 0.2s;
+    border-left: 5px solid #0d6efd;
+}
+
+.metric-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+.metric-title {
+    font-size: 13px;
+    color: #6c757d;
+}
+
+.metric-value {
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.section-title {
+    font-weight: 700;
+    margin: 25px 0 15px;
+    font-size: 18px;
+}
+
+/* colores utilitarios */
+.text-success {
+    color: #28a745;
+}
+
+.text-danger {
+    color: #dc3545;
+}
+
+.text-warning {
+    color: #ffc107;
 }
