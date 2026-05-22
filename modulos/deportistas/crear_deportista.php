@@ -19,9 +19,8 @@ if($_POST){
     $acudiente = trim($_POST['acudiente'] ?? "");
     $parentesco = trim($_POST['parentesco'] ?? "");
 
-    // ✅ FOTO Y DOCUMENTOS
+    // ✅ FOTO
     $foto = "";
-    $documento_pdf = "";
 
     // 🔒 VALIDACIONES
 
@@ -75,7 +74,7 @@ if($_POST){
 
             $error_documento = true;
 
-            $mensaje_error = "El documento ya está registrado. Cambia el número.";
+            $mensaje_error = "El documento ya está registrado.";
 
         }
 
@@ -104,7 +103,10 @@ if($_POST){
 
     }
 
-    // ✅ SUBIR FOTO
+    // =========================
+    // SUBIR FOTO
+    // =========================
+
     if(empty($mensaje_error) && isset($_FILES['foto'])){
 
         if($_FILES['foto']['error'] == 0){
@@ -130,33 +132,10 @@ if($_POST){
 
     }
 
-    // ✅ SUBIR DOCUMENTO PDF
-    if(empty($mensaje_error) && isset($_FILES['documento_pdf'])){
+    // =========================
+    // INSERTAR DEPORTISTA
+    // =========================
 
-        if($_FILES['documento_pdf']['error'] == 0){
-
-            $carpeta_docs = "../../uploads/documentos/";
-
-            if(!file_exists($carpeta_docs)){
-                mkdir($carpeta_docs, 0777, true);
-            }
-
-            $nombre_pdf = time() . "_" . $_FILES['documento_pdf']['name'];
-
-            $ruta_pdf = $carpeta_docs . $nombre_pdf;
-
-            move_uploaded_file(
-                $_FILES['documento_pdf']['tmp_name'],
-                $ruta_pdf
-            );
-
-            $documento_pdf = $nombre_pdf;
-
-        }
-
-    }
-
-    // ✅ INSERTAR
     if(empty($mensaje_error)){
 
         $stm = $conexion->prepare("
@@ -168,7 +147,6 @@ if($_POST){
             fecha_nacimiento,
             categoria_id,
             foto,
-            documento_pdf,
             estado
         )
         VALUES(
@@ -179,7 +157,6 @@ if($_POST){
             :fecha_nacimiento,
             :categoria_id,
             :foto,
-            :documento_pdf,
             'activo'
         )
         ");
@@ -191,14 +168,16 @@ if($_POST){
             ":nombre"=>$nombre,
             ":fecha_nacimiento"=>$fecha_nacimiento,
             ":categoria_id"=>$categoria_id,
-            ":foto"=>$foto,
-            ":documento_pdf"=>$documento_pdf
+            ":foto"=>$foto
         ]);
 
         // ✅ ID DEPORTISTA
         $deportista_id = $conexion->lastInsertId();
 
-        // ✅ GUARDAR ACUDIENTE
+        // =========================
+        // GUARDAR ACUDIENTE
+        // =========================
+
         $stmt_rel = $conexion->prepare("
         INSERT INTO usuario_deportista(
             deportista_id,
@@ -217,6 +196,66 @@ if($_POST){
             ":acudiente"=>$acudiente,
             ":parentesco"=>$parentesco
         ]);
+
+        // =========================
+        // SUBIR MULTIPLES DOCUMENTOS
+        // =========================
+
+        if(isset($_FILES['documentos'])){
+
+            $carpeta_docs = "../../uploads/documentos/";
+
+            if(!file_exists($carpeta_docs)){
+                mkdir($carpeta_docs, 0777, true);
+            }
+
+            foreach($_FILES['documentos']['tmp_name'] as $key => $tmp_name){
+
+                if($_FILES['documentos']['error'][$key] == 0){
+
+                    $archivoOriginal = $_FILES['documentos']['name'][$key];
+
+                    $extension = strtolower(pathinfo($archivoOriginal, PATHINFO_EXTENSION));
+
+                    // ✅ permitir PDF, JPG, PNG
+                    if(
+                        $extension == "pdf" ||
+                        $extension == "jpg" ||
+                        $extension == "jpeg" ||
+                        $extension == "png"
+                    ){
+
+                        $nuevoNombre = time() . "_" . uniqid() . "." . $extension;
+
+                        move_uploaded_file(
+                            $tmp_name,
+                            $carpeta_docs . $nuevoNombre
+                        );
+
+                        // ✅ guardar BD
+                        $stmtInsert = $conexion->prepare("
+                        INSERT INTO deportista_documentos(
+                            deportista_id,
+                            archivo
+                        )
+                        VALUES(
+                            :deportista_id,
+                            :archivo
+                        )
+                        ");
+
+                        $stmtInsert->execute([
+                            ":deportista_id"=>$deportista_id,
+                            ":archivo"=>$nuevoNombre
+                        ]);
+
+                    }
+
+                }
+
+            }
+
+        }
 
         header("Location: index.php?success=1");
         exit;
@@ -294,7 +333,7 @@ if($_POST){
 
                         </div>
 
-                        <!-- DOCUMENTOS -->
+                        <!-- DATOS -->
                         <div class="col-md-8">
 
                             <div class="row">
@@ -389,6 +428,7 @@ if($_POST){
                                     <select 
                                         name="categoria_id" 
                                         class="form-control"
+                                        required
                                     >
 
                                         <option value="">
@@ -445,6 +485,7 @@ if($_POST){
                                 name="acudiente" 
                                 class="form-control"
                                 value="<?php echo $_POST['acudiente'] ?? ''; ?>"
+                                required
                             >
 
                         </div>
@@ -459,6 +500,7 @@ if($_POST){
                             <select 
                                 name="parentesco" 
                                 class="form-control"
+                                required
                             >
 
                                 <option value="">
@@ -473,22 +515,23 @@ if($_POST){
 
                         </div>
 
-                        <!-- DOCUMENTOS PDF -->
+                        <!-- DOCUMENTOS -->
                         <div class="col-md-12 mb-3">
 
-                            <label class="form-label">
+                            <label class="form-label fw-bold">
                                 Adjuntar Documentos
                             </label>
 
                             <input 
                                 type="file"
-                                name="documento_pdf"
+                                name="documentos[]"
                                 class="form-control"
-                                accept=".pdf,.jpg,.png"
+                                accept=".pdf,.jpg,.jpeg,.png"
+                                multiple
                             >
 
                             <small class="text-muted">
-                                Puedes adjuntar PDF, JPG o PNG
+                                Puedes subir múltiples archivos PDF, JPG o PNG
                             </small>
 
                         </div>

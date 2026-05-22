@@ -2,12 +2,15 @@
 
 include("../../modulos/conexion_modulos.php");
 
-// 🔍 OBTENER DATOS
-if(isset($_GET['id'])){
+// =========================
+// OBTENER DATOS
+// =========================
 
-    $txtid = $_GET['id'];
+$txtid = $_GET['id'] ?? "";
 
-    // ✅ traer deportista + acudiente manual
+if($txtid != ""){
+
+    // ✅ TRAER DEPORTISTA
     $stm = $conexion->prepare("
         SELECT 
             d.*, 
@@ -36,16 +39,11 @@ if(isset($_GET['id'])){
         $fecha_nacimiento = $registro['fecha_nacimiento'];
         $categoria_id = $registro['categoria_id'];
 
-        // ✅ ESTADO
         $estado = $registro['estado'];
 
-        // ✅ FOTO Y DOCUMENTO
         $foto = $registro['foto'] ?? "";
-        $documento_pdf = $registro['documento_pdf'] ?? "";
 
-        // ✅ ACUDIENTE MANUAL
         $acudiente = $registro['acudiente'];
-
         $parentesco = $registro['parentesco'];
 
     }
@@ -53,172 +51,256 @@ if(isset($_GET['id'])){
 }
 
 
-// 🔄 ACTUALIZAR
+// =========================
+// ELIMINAR DOCUMENTO
+// =========================
+
+if(isset($_GET['eliminar_doc'])){
+
+    $doc_id = $_GET['eliminar_doc'];
+
+    // buscar documento
+    $stmtDoc = $conexion->prepare("
+    SELECT archivo
+    FROM deportista_documentos
+    WHERE id = :id
+    ");
+
+    $stmtDoc->execute([
+        ":id"=>$doc_id
+    ]);
+
+    $doc = $stmtDoc->fetch(PDO::FETCH_ASSOC);
+
+    if($doc){
+
+        $ruta = "../../uploads/documentos/" . $doc['archivo'];
+
+        // eliminar archivo físico
+        if(file_exists($ruta)){
+            unlink($ruta);
+        }
+
+        // eliminar registro BD
+        $stmtDelete = $conexion->prepare("
+        DELETE FROM deportista_documentos
+        WHERE id = :id
+        ");
+
+        $stmtDelete->execute([
+            ":id"=>$doc_id
+        ]);
+
+    }
+
+    header("Location: editar.php?id=".$txtid);
+    exit;
+
+}
+
+
+// =========================
+// ACTUALIZAR
+// =========================
+
 if($_POST){
 
-$txtid = $_POST['id'] ?? "";
+    $txtid = $_POST['id'] ?? "";
 
-$tipo_documento = $_POST['tipo_documento'] ?? "";
-$documento = $_POST['documento'] ?? "";
-$telefono = $_POST['telefono'] ?? "";
-$nombre = $_POST['nombre'] ?? "";
-$fecha_nacimiento = $_POST['fecha_nacimiento'] ?? "";
-$categoria_id = $_POST['categoria_id'] ?? "";
+    $tipo_documento = $_POST['tipo_documento'] ?? "";
+    $documento = $_POST['documento'] ?? "";
+    $telefono = $_POST['telefono'] ?? "";
+    $nombre = $_POST['nombre'] ?? "";
+    $fecha_nacimiento = $_POST['fecha_nacimiento'] ?? "";
+    $categoria_id = $_POST['categoria_id'] ?? "";
 
-// ✅ ESTADO
-$estado = $_POST['estado'] ?? "activo";
+    $estado = $_POST['estado'] ?? "activo";
 
-// ✅ ACUDIENTE MANUAL
-$acudiente = trim($_POST['acudiente'] ?? "");
+    $acudiente = trim($_POST['acudiente'] ?? "");
 
-$parentesco = $_POST['parentesco'] ?? "";
+    $parentesco = $_POST['parentesco'] ?? "";
 
 
-// 🔒 VALIDACIONES
+    // =========================
+    // VALIDACIONES
+    // =========================
 
-if(empty($acudiente)){
-    echo "<script>alert('Ingresa un acudiente');</script>";
+    if(empty($acudiente)){
+        echo "<script>alert('Ingresa un acudiente');</script>";
+        exit;
+    }
+
+    if(empty($categoria_id)){
+        echo "<script>alert('Selecciona una categoría');</script>";
+        exit;
+    }
+
+
+    // =========================
+    // VALIDAR DOCUMENTO
+    // =========================
+
+    $stmt_check = $conexion->prepare("
+    SELECT id 
+    FROM deportista 
+    WHERE documento = :documento 
+    AND id != :id
+    ");
+
+    $stmt_check->execute([
+        ":documento"=>$documento,
+        ":id"=>$txtid
+    ]);
+
+    if($stmt_check->fetch()){
+
+        echo "<script>alert('Este documento ya está registrado');</script>";
+        exit;
+
+    }
+
+
+    // =========================
+    // FOTO ACTUAL
+    // =========================
+
+    $stmt_actual = $conexion->prepare("
+    SELECT foto
+    FROM deportista
+    WHERE id = :id
+    ");
+
+    $stmt_actual->execute([
+        ":id"=>$txtid
+    ]);
+
+    $actual = $stmt_actual->fetch(PDO::FETCH_ASSOC);
+
+    $foto = $actual['foto'] ?? "";
+
+
+    // =========================
+    // SUBIR FOTO
+    // =========================
+
+    if(isset($_FILES['foto']) && $_FILES['foto']['error'] == 0){
+
+        $nombreFoto = time() . "_" . $_FILES['foto']['name'];
+
+        move_uploaded_file(
+            $_FILES['foto']['tmp_name'],
+            "../../uploads/fotos/" . $nombreFoto
+        );
+
+        $foto = $nombreFoto;
+    }
+
+
+    // =========================
+    // ACTUALIZAR DEPORTISTA
+    // =========================
+
+    $stm = $conexion->prepare("
+    UPDATE deportista 
+    SET 
+        tipo_documento = :tipo_documento,
+        documento = :documento,
+        telefono = :telefono,
+        nombre = :nombre,
+        fecha_nacimiento = :fecha_nacimiento,
+        categoria_id = :categoria_id,
+        estado = :estado,
+        foto = :foto
+
+    WHERE id = :id
+    ");
+
+    $stm->execute([
+        ":tipo_documento"=>$tipo_documento,
+        ":documento"=>$documento,
+        ":telefono"=>$telefono,
+        ":nombre"=>$nombre,
+        ":fecha_nacimiento"=>$fecha_nacimiento,
+        ":categoria_id"=>$categoria_id,
+        ":estado"=>$estado,
+        ":foto"=>$foto,
+        ":id"=>$txtid
+    ]);
+
+
+    // =========================
+    // ACTUALIZAR ACUDIENTE
+    // =========================
+
+    $stmt_rel = $conexion->prepare("
+    UPDATE usuario_deportista 
+
+    SET 
+        acudiente = :acudiente,
+        parentesco = :parentesco
+
+    WHERE deportista_id = :deportista_id
+    ");
+
+    $stmt_rel->execute([
+        ":acudiente"=>$acudiente,
+        ":parentesco"=>$parentesco,
+        ":deportista_id"=>$txtid
+    ]);
+
+
+    // =========================
+    // SUBIR MULTIPLES PDFs
+    // =========================
+
+    if(isset($_FILES['documentos'])){
+
+        foreach($_FILES['documentos']['tmp_name'] as $key => $tmp_name){
+
+            if($_FILES['documentos']['error'][$key] == 0){
+
+                $archivoOriginal = $_FILES['documentos']['name'][$key];
+
+                $extension = strtolower(pathinfo($archivoOriginal, PATHINFO_EXTENSION));
+
+                // validar PDF
+                if($extension == "pdf"){
+
+                    $nuevoNombre = time() . "_" . uniqid() . ".pdf";
+
+                    move_uploaded_file(
+                        $tmp_name,
+                        "../../uploads/documentos/" . $nuevoNombre
+                    );
+
+                    // guardar BD
+                    $stmtInsert = $conexion->prepare("
+                    INSERT INTO deportista_documentos(
+                        deportista_id,
+                        archivo
+                    )
+                    VALUES(
+                        :deportista_id,
+                        :archivo
+                    )
+                    ");
+
+                    $stmtInsert->execute([
+                        ":deportista_id"=>$txtid,
+                        ":archivo"=>$nuevoNombre
+                    ]);
+
+                }
+
+            }
+
+        }
+
+    }
+
+
+    header("location:index.php");
     exit;
-}
-
-if(empty($categoria_id)){
-    echo "<script>alert('Selecciona una categoría');</script>";
-    exit;
-}
-
-
-// validar categoría
-$stmt_cat = $conexion->prepare("
-SELECT id 
-FROM categoria 
-WHERE id = :id
-");
-
-$stmt_cat->execute([
-    ":id"=>$categoria_id
-]);
-
-if(!$stmt_cat->fetch()){
-    echo "<script>alert('Categoría inválida');</script>";
-    exit;
-}
-
-
-// validar documento único
-$stmt_check = $conexion->prepare("
-SELECT id 
-FROM deportista 
-WHERE documento = :documento 
-AND id != :id
-");
-
-$stmt_check->execute([
-    ":documento"=>$documento,
-    ":id"=>$txtid
-]);
-
-if($stmt_check->fetch()){
-    echo "<script>alert('Este documento ya está registrado');</script>";
-    exit;
-}
-
-
-// ✅ MANTENER ARCHIVOS ACTUALES
-$stmt_actual = $conexion->prepare("
-SELECT foto, documento_pdf
-FROM deportista
-WHERE id = :id
-");
-
-$stmt_actual->execute([
-    ":id"=>$txtid
-]);
-
-$actual = $stmt_actual->fetch(PDO::FETCH_ASSOC);
-
-$foto = $actual['foto'] ?? "";
-$documento_pdf = $actual['documento_pdf'] ?? "";
-
-
-// ✅ SUBIR FOTO
-if(isset($_FILES['foto']) && $_FILES['foto']['error'] == 0){
-
-    $nombreFoto = time() . "_" . $_FILES['foto']['name'];
-
-    move_uploaded_file(
-        $_FILES['foto']['tmp_name'],
-        "../../uploads/fotos/" . $nombreFoto
-    );
-
-    $foto = $nombreFoto;
-}
-
-
-// ✅ SUBIR PDF
-if(isset($_FILES['documento_pdf']) && $_FILES['documento_pdf']['error'] == 0){
-
-    $nombrePdf = time() . "_" . $_FILES['documento_pdf']['name'];
-
-    move_uploaded_file(
-        $_FILES['documento_pdf']['tmp_name'],
-        "../../uploads/documentos/" . $nombrePdf
-    );
-
-    $documento_pdf = $nombrePdf;
-}
-
-
-// ✅ actualizar deportista
-$stm = $conexion->prepare("
-UPDATE deportista 
-SET 
-    tipo_documento = :tipo_documento,
-    documento = :documento,
-    telefono = :telefono,
-    nombre = :nombre,
-    fecha_nacimiento = :fecha_nacimiento,
-    categoria_id = :categoria_id,
-    estado = :estado,
-    foto = :foto,
-    documento_pdf = :documento_pdf
-
-WHERE id = :id
-");
-
-$stm->execute([
-    ":tipo_documento"=>$tipo_documento,
-    ":documento"=>$documento,
-    ":telefono"=>$telefono,
-    ":nombre"=>$nombre,
-    ":fecha_nacimiento"=>$fecha_nacimiento,
-    ":categoria_id"=>$categoria_id,
-    ":estado"=>$estado,
-    ":foto"=>$foto,
-    ":documento_pdf"=>$documento_pdf,
-    ":id"=>$txtid
-]);
-
-
-// ✅ actualizar acudiente manual
-$stmt_rel = $conexion->prepare("
-UPDATE usuario_deportista 
-
-SET 
-    acudiente = :acudiente,
-    parentesco = :parentesco
-
-WHERE deportista_id = :deportista_id
-");
-
-$stmt_rel->execute([
-    ":acudiente"=>$acudiente,
-    ":parentesco"=>$parentesco,
-    ":deportista_id"=>$txtid
-]);
-
-
-header("location:index.php");
-exit;
 
 }
 
@@ -252,10 +334,9 @@ exit;
 
                 <div class="row">
 
-                    <!-- FOTO PERFIL -->
+                    <!-- FOTO -->
                     <div class="col-md-12 text-center mb-4">
 
-                        <!-- TEXTO EDITAR -->
                         <label 
                             for="fotoInput"
                             style="
@@ -291,7 +372,6 @@ exit;
 
                         <?php } ?>
 
-                        <!-- INPUT OCULTO -->
                         <input 
                             type="file" 
                             id="fotoInput"
@@ -307,31 +387,114 @@ exit;
                     <div class="col-md-12 mb-4">
 
                         <label class="form-label fw-bold">
-                            Adjuntar Documentos (PDF)
+                            Adjuntar Documentos PDF
                         </label>
 
                         <input 
                             type="file" 
-                            name="documento_pdf"
+                            name="documentos[]"
                             class="form-control"
                             accept=".pdf"
+                            multiple
                         >
 
-                        <?php if(!empty($documento_pdf)){ ?>
+                    </div>
 
-                            <div class="mt-2">
 
-                                <a 
-                                    href="../../uploads/documentos/<?php echo $documento_pdf; ?>" 
-                                    target="_blank"
-                                    class="btn btn-outline-primary btn-sm"
-                                >
-                                    Ver Documento Actual
-                                </a>
+                    <!-- LISTAR DOCUMENTOS -->
+                    <div class="col-md-12 mb-4">
 
-                            </div>
+                        <div class="border rounded p-3 bg-light">
 
-                        <?php } ?>
+                            <h5 class="fw-bold mb-3">
+                                📁 Documentos Adjuntos
+                            </h5>
+
+                            <?php
+
+                            $stmtDocs = $conexion->prepare("
+                            SELECT *
+                            FROM deportista_documentos
+                            WHERE deportista_id = :id
+                            ORDER BY id DESC
+                            ");
+
+                            $stmtDocs->execute([
+                                ":id"=>$txtid
+                            ]);
+
+                            $documentos = $stmtDocs->fetchAll(PDO::FETCH_ASSOC);
+
+                            ?>
+
+                            <?php if(count($documentos) > 0){ ?>
+
+                                <?php foreach($documentos as $doc){ ?>
+
+                                    <div class="d-flex justify-content-between align-items-center border rounded p-2 mb-2 bg-white">
+
+                                        <!-- NOMBRE -->
+                                        <div>
+
+                                            <span class="fw-bold text-danger">
+                                                📄 PDF
+                                            </span>
+
+                                            <br>
+
+                                            <small class="text-muted">
+                                                <?php echo $doc['archivo']; ?>
+                                            </small>
+
+                                        </div>
+
+                                        <!-- BOTONES -->
+                                        <div class="d-flex gap-2">
+
+                                            <!-- VER -->
+                                            <a 
+                                                href="../../uploads/documentos/<?php echo $doc['archivo']; ?>"
+                                                target="_blank"
+                                                class="btn btn-primary btn-sm"
+                                            >
+                                                👁 Ver
+                                            </a>
+
+                                            <!-- DESCARGAR -->
+                                            <a 
+                                                href="../../uploads/documentos/<?php echo $doc['archivo']; ?>"
+                                                download
+                                                class="btn btn-success btn-sm"
+                                            >
+                                                ⬇ Descargar
+                                            </a>
+
+                                            <!-- ELIMINAR -->
+                                            <a 
+                                                href="?id=<?php echo $txtid; ?>&eliminar_doc=<?php echo $doc['id']; ?>"
+                                                class="btn btn-danger btn-sm"
+                                                onclick="return confirm('¿Eliminar documento?')"
+                                            >
+                                                🗑 Eliminar
+                                            </a>
+
+                                        </div>
+
+                                    </div>
+
+                                <?php } ?>
+
+                            <?php }else{ ?>
+
+                                <div class="alert alert-warning mb-0">
+
+                                    No hay documentos adjuntos.
+
+                                </div>
+
+                            <?php } ?>
+
+                        </div>
 
                     </div>
 
@@ -433,7 +596,6 @@ exit;
                             name="acudiente" 
                             class="form-control" 
                             value="<?php echo $acudiente; ?>"
-                            placeholder="Ingrese acudiente"
                             required
                         >
 
@@ -483,8 +645,51 @@ exit;
                     </div>
 
 
+                    <!-- CATEGORIA -->
+                    <div class="col-md-6 mb-3">
+
+                        <label class="form-label">
+                            Categoría
+                        </label>
+
+                        <select 
+                            name="categoria_id" 
+                            class="form-control"
+                            required
+                        >
+
+                            <option value="">
+                                Seleccionar categoría
+                            </option>
+
+                            <?php
+
+                            $stmt = $conexion->query("
+                            SELECT id, nombre 
+                            FROM categoria
+                            ORDER BY nombre ASC
+                            ");
+
+                            while($row = $stmt->fetch(PDO::FETCH_ASSOC)){
+
+                                $selected = ($row['id'] == $categoria_id) ? "selected" : "";
+
+                                echo "
+                                <option value='".$row['id']."' $selected>
+                                    ".$row['nombre']."
+                                </option>
+                                ";
+                            }
+
+                            ?>
+
+                        </select>
+
+                    </div>
+
+
                     <!-- ESTADO -->
-                    <div class="col-md-3 mb-3">
+                    <div class="col-md-6 mb-3">
 
                         <label class="form-label">
                             Estado
@@ -514,48 +719,6 @@ exit;
 
                     </div>
 
-
-                    <!-- CATEGORIA -->
-                    <div class="col-md-3 mb-3">
-
-                        <label class="form-label">
-                            Categoría
-                        </label>
-
-                        <select 
-                            name="categoria_id" 
-                            class="form-control" 
-                            required
-                        >
-
-                            <option value="">
-                                Seleccionar categoría
-                            </option>
-
-                            <?php
-
-                            $stmt = $conexion->query("
-                            SELECT id, nombre 
-                            FROM categoria
-                            ");
-
-                            while($row = $stmt->fetch(PDO::FETCH_ASSOC)){
-
-                                $selected = ($row['id'] == $categoria_id) ? "selected" : "";
-
-                                echo "
-                                <option value='".$row['id']."' $selected>
-                                    ".$row['nombre']."
-                                </option>
-                                ";
-                            }
-
-                            ?>
-
-                        </select>
-
-                    </div>
-
                 </div>
 
 
@@ -579,6 +742,5 @@ exit;
     </div>
 
 </div>
-
 
 <?php include("../../template/footer_modulos.php") ?>
