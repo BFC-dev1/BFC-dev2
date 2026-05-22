@@ -3,71 +3,340 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 session_start();
+
 include("../includes/conexion.php");
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+// =========================
+// VARIABLES
+// =========================
 
-    if (empty($_POST['usuario']) || empty($_POST['password'])) {
-        $error = "Completa todos los campos.";
-    } else {
+$error_documento = false;
+$error_usuario = false;
 
-        $usuario = trim($_POST['usuario']);
-        $password = trim($_POST['password']);
+$mensaje_error = "";
+$mensaje_success = "";
 
-        // Verificar si el usuario ya existe
-        $stmt = $conn->prepare("SELECT id FROM administradores WHERE usuario = ?");
-        $stmt->bind_param("s", $usuario);
-        $stmt->execute();
-        $stmt->store_result();
+// =========================
+// REGISTRAR USUARIO
+// =========================
 
-        if ($stmt->num_rows > 0) {
-    $error = "El usuario ya existe.";
-    $stmt->close();
-    } else {
+if($_POST){
 
-         $stmt->close();
+    $nombre = trim($_POST['nombre'] ?? "");
+    $tipo_documento = trim($_POST['tipo_documento'] ?? "");
+    $documento = trim($_POST['documento'] ?? "");
+    $telefono = trim($_POST['telefono'] ?? "");
+    $correo = trim($_POST['correo'] ?? "");
+    $usuario = trim($_POST['usuario'] ?? "");
+    $password = trim($_POST['password'] ?? "");
 
-            // Encriptar contraseña
-            $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+    // ✅ VALIDAR CAMPOS
+    if(
+        empty($nombre) ||
+        empty($tipo_documento) ||
+        empty($documento) ||
+        empty($telefono) ||
+        empty($correo) ||
+        empty($usuario) ||
+        empty($password)
+    ){
 
-            // Insertar usuario
-            $stmt = $conn->prepare("INSERT INTO administradores (usuario, password) VALUES (?, ?)");
-            $stmt->bind_param("ss", $usuario, $passwordHash);
+        $mensaje_error = "Todos los campos son obligatorios.";
 
-            if ($stmt->execute()) {
-                $success = "Usuario registrado correctamente.";
-            } else {
-                $error = "Error al registrar.";
-            }
-            $stmt->close(); 
+    }
+
+    // ✅ VALIDAR DOCUMENTO
+    if(empty($mensaje_error)){
+
+        $stmt_doc = $conexion->prepare("
+        SELECT id
+        FROM usuario
+        WHERE documento = :documento
+        ");
+
+        $stmt_doc->execute([
+            ":documento"=>$documento
+        ]);
+
+        if($stmt_doc->fetch()){
+
+            $error_documento = true;
+
+            $mensaje_error = "El documento ya está registrado.";
+
         }
 
     }
+
+    // ✅ VALIDAR USUARIO
+    if(empty($mensaje_error)){
+
+        $stmt_user = $conexion->prepare("
+        SELECT id
+        FROM usuario
+        WHERE usuario = :usuario
+        ");
+
+        $stmt_user->execute([
+            ":usuario"=>$usuario
+        ]);
+
+        if($stmt_user->fetch()){
+
+            $error_usuario = true;
+
+            $mensaje_error = "El usuario ya existe.";
+
+        }
+
+    }
+
+    // ✅ INSERTAR
+    if(empty($mensaje_error)){
+
+        try{
+
+            $stm = $conexion->prepare("
+            INSERT INTO usuario(
+                nombre,
+                tipo_documento,
+                documento,
+                telefono,
+                correo,
+                usuario,
+                password,
+                rol_id,
+                estado
+            )
+            VALUES(
+                :nombre,
+                :tipo_documento,
+                :documento,
+                :telefono,
+                :correo,
+                :usuario,
+                :password,
+                4,
+                'activo'
+            )
+            ");
+
+            $stm->execute([
+                ":nombre"=>$nombre,
+                ":tipo_documento"=>$tipo_documento,
+                ":documento"=>$documento,
+                ":telefono"=>$telefono,
+                ":correo"=>$correo,
+                ":usuario"=>$usuario,
+                ":password"=>$password
+            ]);
+
+            $mensaje_success = "Usuario registrado correctamente.";
+
+        }catch(PDOException $e){
+
+            $mensaje_error = $e->getMessage();
+
+        }
+
+    }
+
 }
 
-$conn->close();
+$conexion = null;
 ?>
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
+
     <meta charset="UTF-8">
-    <title>Registro</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Registro - Bellavista FC</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="/BFC-dev2/assets/usuarios.css">
+
 </head>
+
 <body>
 
-<h2>Registro de Usuario</h2>
+<div class="contenedor">
 
-<?php if(isset($error)) echo "<p style='color:red;'>$error</p>"; ?>
-<?php if(isset($success)) echo "<p style='color:green;'>$success</p>"; ?>
+    <div class="card">
 
-<form method="POST">
-    <input type="text" name="usuario" placeholder="Usuario" required><br><br>
-    <input type="password" name="password" placeholder="Contraseña" required><br><br>
-    <button type="submit">Registrarse</button>
-</form>
+        <h2>Registro de Usuario</h2>
 
-<a href="../auth/login.php">Ir al login</a>
+        <!-- MENSAJES -->
+        <?php if(!empty($mensaje_error)){ ?>
+
+            <div class="error">
+
+                <?php echo $mensaje_error; ?>
+
+            </div>
+
+        <?php } ?>
+
+        <?php if(!empty($mensaje_success)){ ?>
+
+            <div class="success">
+
+                <?php echo $mensaje_success; ?>
+
+            </div>
+
+        <?php } ?>
+
+        <!-- FORM -->
+        <form method="POST">
+
+            <!-- FILA -->
+            <div class="row">
+
+                <!-- NOMBRE -->
+                <div class="campo">
+
+                    <label>Nombre</label>
+
+                    <input
+                        type="text"
+                        name="nombre"
+                        placeholder="Ingrese Nombre"
+                        value="<?php echo $_POST['nombre'] ?? ''; ?>"
+                    >
+
+                </div>
+
+                <!-- TIPO DOCUMENTO -->
+                <div class="campo">
+
+                    <label>Tipo Documento</label>
+
+                    <input
+                        type="text"
+                        name="tipo_documento"
+                        placeholder="CC / TI / CE"
+                        value="<?php echo $_POST['tipo_documento'] ?? ''; ?>"
+                    >
+
+                </div>
+
+            </div>
+
+            <!-- FILA -->
+            <div class="row">
+
+                <!-- DOCUMENTO -->
+                <div class="campo">
+
+                    <label>Documento</label>
+
+                    <input
+                        type="text"
+                        name="documento"
+                        placeholder="Ingrese Documento"
+                        class="<?php if($error_documento){ echo 'border-error'; } ?>"
+                        value="<?php echo $_POST['documento'] ?? ''; ?>"
+                    >
+
+                </div>
+
+                <!-- TELEFONO -->
+                <div class="campo">
+
+                    <label>Teléfono</label>
+
+                    <input
+                        type="text"
+                        name="telefono"
+                        placeholder="Ingrese Teléfono"
+                        value="<?php echo $_POST['telefono'] ?? ''; ?>"
+                    >
+
+                </div>
+
+            </div>
+
+            <!-- FILA -->
+            <div class="row">
+
+                <!-- CORREO -->
+                <div class="campo">
+
+                    <label>Correo</label>
+
+                    <input
+                        type="email"
+                        name="correo"
+                        placeholder="Ingrese Correo"
+                        value="<?php echo $_POST['correo'] ?? ''; ?>"
+                    >
+
+                </div>
+
+                <!-- USUARIO -->
+                <div class="campo">
+
+                    <label>Usuario</label>
+
+                    <input
+                        type="text"
+                        name="usuario"
+                        placeholder="Ingrese Usuario"
+                        class="<?php if($error_usuario){ echo 'border-error'; } ?>"
+                        value="<?php echo $_POST['usuario'] ?? ''; ?>"
+                    >
+
+                </div>
+
+            </div>
+
+            <!-- FILA -->
+            <div class="row">
+
+                <!-- PASSWORD -->
+                <div class="campo">
+
+                    <label>Contraseña</label>
+
+                    <input
+                        type="password"
+                        name="password"
+                        placeholder="Ingrese Contraseña"
+                    >
+
+                </div>
+
+            </div>
+
+            <!-- BOTON -->
+            <button
+                type="submit"
+                class="btn"
+            >
+                Registrarse
+            </button>
+
+        </form>
+
+        <!-- LINK -->
+        <div class="link">
+
+            <a href="../auth/login.php">
+
+                Ir al Login
+
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
 
 </body>
 </html>
