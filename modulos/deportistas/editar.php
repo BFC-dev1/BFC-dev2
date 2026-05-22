@@ -253,28 +253,79 @@ if($_POST){
     // SUBIR MULTIPLES PDFs
     // =========================
 
-    if(isset($_FILES['documentos'])){
+// =========================
+// SUBIR MULTIPLES PDFs
+// CONSERVAR NOMBRE ORIGINAL
+// =========================
 
-        foreach($_FILES['documentos']['tmp_name'] as $key => $tmp_name){
+if(isset($_FILES['documentos'])){
 
-            if($_FILES['documentos']['error'][$key] == 0){
+    // carpeta
+    $carpetaDocs = "../../uploads/documentos/";
 
-                $archivoOriginal = $_FILES['documentos']['name'][$key];
+    // crear carpeta si no existe
+    if(!file_exists($carpetaDocs)){
 
-                $extension = strtolower(pathinfo($archivoOriginal, PATHINFO_EXTENSION));
+        mkdir($carpetaDocs, 0777, true);
 
-                // validar PDF
-                if($extension == "pdf"){
+    }
 
-                    $nuevoNombre = time() . "_" . uniqid() . ".pdf";
+    foreach($_FILES['documentos']['tmp_name'] as $key => $tmp_name){
 
-                    move_uploaded_file(
-                        $tmp_name,
-                        "../../uploads/documentos/" . $nuevoNombre
-                    );
+        // validar subida
+        if($_FILES['documentos']['error'][$key] == 0){
 
-                    // guardar BD
-                    $stmtInsert = $conexion->prepare("
+            // nombre original
+            $archivoOriginal = $_FILES['documentos']['name'][$key];
+
+            // limpiar caracteres raros
+            $archivoOriginal = preg_replace(
+                '/[^A-Za-z0-9_\-.]/',
+                '_',
+                $archivoOriginal
+            );
+
+            // extensión
+            $extension = strtolower(
+                pathinfo($archivoOriginal, PATHINFO_EXTENSION)
+            );
+
+            // validar PDF
+            if($extension == "pdf"){
+
+                // separar nombre y extensión
+                $nombreBase = pathinfo(
+                    $archivoOriginal,
+                    PATHINFO_FILENAME
+                );
+
+                // nombre final
+                $nuevoNombre = $archivoOriginal;
+
+                // ruta final
+                $rutaFinal = $carpetaDocs . $nuevoNombre;
+
+                // si ya existe agrega número
+                $contador = 1;
+
+                while(file_exists($rutaFinal)){
+
+                    $nuevoNombre = $nombreBase . "_" . $contador . ".pdf";
+
+                    $rutaFinal = $carpetaDocs . $nuevoNombre;
+
+                    $contador++;
+
+                }
+
+                // mover archivo
+                move_uploaded_file(
+                    $tmp_name,
+                    $rutaFinal
+                );
+
+                // guardar en BD
+                $stmtInsert = $conexion->prepare("
                     INSERT INTO deportista_documentos(
                         deportista_id,
                         archivo
@@ -283,20 +334,20 @@ if($_POST){
                         :deportista_id,
                         :archivo
                     )
-                    ");
+                ");
 
-                    $stmtInsert->execute([
-                        ":deportista_id"=>$txtid,
-                        ":archivo"=>$nuevoNombre
-                    ]);
-
-                }
+                $stmtInsert->execute([
+                    ":deportista_id"=>$txtid,
+                    ":archivo"=>$nuevoNombre
+                ]);
 
             }
 
         }
 
     }
+
+}
 
 
     header("location:index.php");

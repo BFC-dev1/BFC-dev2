@@ -225,12 +225,43 @@ if($_POST){
                         $extension == "png"
                     ){
 
-                        $nuevoNombre = time() . "_" . uniqid() . "." . $extension;
+                    // limpiar nombre
+                    $archivoOriginal = preg_replace(
+                        '/[^A-Za-z0-9_\-.]/',
+                        '_',
+                        $archivoOriginal
+                    );
 
-                        move_uploaded_file(
-                            $tmp_name,
-                            $carpeta_docs . $nuevoNombre
-                        );
+                    // nombre base
+                    $nombreBase = pathinfo(
+                        $archivoOriginal,
+                        PATHINFO_FILENAME
+                    );
+
+                    // nombre final
+                    $nuevoNombre = $archivoOriginal;
+
+                    // ruta final
+                    $rutaFinal = $carpeta_docs . $nuevoNombre;
+
+                    // evitar duplicados
+                    $contador = 1;
+
+                    while(file_exists($rutaFinal)){
+
+                        $nuevoNombre = $nombreBase . "_" . $contador . "." . $extension;
+
+                        $rutaFinal = $carpeta_docs . $nuevoNombre;
+
+                        $contador++;
+
+                    }
+
+                    // mover archivo
+                    move_uploaded_file(
+                        $tmp_name,
+                        $rutaFinal
+                    );
 
                         // ✅ guardar BD
                         $stmtInsert = $conexion->prepare("
