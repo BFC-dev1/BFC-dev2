@@ -4,6 +4,8 @@ session_start();
 // Conexión PDO
 include("../includes/conexion.php");
 
+/** @var PDO $conexion */
+
 $error = "";
 
 // Procesar login
