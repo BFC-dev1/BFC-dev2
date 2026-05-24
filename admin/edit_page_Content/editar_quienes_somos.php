@@ -1,5 +1,6 @@
 <?php
 session_start();
+
 include(__DIR__ . "/../../includes/conexion_BDcms.php");
 
 /*
@@ -85,11 +86,25 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 <html lang="es">
 
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Editar Quiénes Somos</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- BOOTSTRAP -->
+    <link 
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" 
+        rel="stylesheet"
+    >
+
+    <!-- FONT AWESOME -->
+    <link 
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
+
 </head>
 
 <body class="bg-light">
@@ -98,52 +113,165 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 
     <div class="card shadow p-4">
 
-        <h2 class="mb-4">ℹ️ Editar Quiénes Somos</h2>
+        <!-- TITULO -->
+        <h2 class="mb-4">
 
+            <i class="fa-solid fa-circle-info"></i>
+            Editar Quiénes Somos
+
+        </h2>
+
+        <!-- ALERTA -->
         <?php if(isset($_GET['ok'])){ ?>
+
             <div class="alert alert-success">
+
+                <i class="fa-solid fa-circle-check"></i>
                 Información actualizada correctamente
+
             </div>
+
         <?php } ?>
 
         <form method="POST">
 
             <!-- TITULO -->
             <div class="mb-3">
-                <label>Título</label>
-                <input type="text" name="titulo" class="form-control"
-                    value="<?php echo $quienes['titulo']; ?>">
+
+                <label class="form-label fw-bold">
+
+                    <i class="fa-solid fa-heading"></i>
+                    Título
+
+                </label>
+
+                <input 
+                    type="text" 
+                    name="titulo" 
+                    class="form-control"
+                    value="<?php echo $quienes['titulo']; ?>"
+                >
+
             </div>
 
-            <!-- DESCRIPCIÓN -->
-            <div class="mb-3">
-                <label>Descripción</label>
-                <textarea name="descripcion" class="form-control" rows="3"><?php echo $quienes['descripcion']; ?></textarea>
+            <!-- DESCRIPCION -->
+            <div class="mb-4">
+
+                <label class="form-label fw-bold">
+
+                    <i class="fa-solid fa-align-left"></i>
+                    Descripción
+
+                </label>
+
+                <textarea 
+                    name="descripcion" 
+                    class="form-control" 
+                    rows="4"
+                ><?php echo $quienes['descripcion']; ?></textarea>
+
             </div>
 
             <hr>
 
-            <!-- MISIÓN -->
-            <h5>Misión</h5>
+            <!-- MISION -->
+            <h5 class="mb-3">
 
-            <input type="text" name="mision_titulo" class="form-control mb-2"
-                value="<?php echo $quienes['mision_titulo']; ?>">
+                <i class="fa-solid fa-bullseye"></i>
+                Misión
 
-            <textarea name="mision" class="form-control mb-3" rows="3"><?php echo $quienes['mision']; ?></textarea>
+            </h5>
+
+            <!-- TITULO MISION -->
+            <div class="input-group mb-3">
+
+                <span class="input-group-text">
+
+                    <i class="fa-solid fa-flag"></i>
+
+                </span>
+
+                <input 
+                    type="text" 
+                    name="mision_titulo" 
+                    class="form-control"
+                    value="<?php echo $quienes['mision_titulo']; ?>"
+                    placeholder="Título misión"
+                >
+
+            </div>
+
+            <!-- TEXTO MISION -->
+            <div class="input-group mb-4">
+
+                <span class="input-group-text">
+
+                    <i class="fa-solid fa-file-lines"></i>
+
+                </span>
+
+                <textarea 
+                    name="mision" 
+                    class="form-control" 
+                    rows="4"
+                    placeholder="Descripción de la misión"
+                ><?php echo $quienes['mision']; ?></textarea>
+
+            </div>
 
             <hr>
 
-            <!-- VISIÓN -->
-            <h5>Visión</h5>
+            <!-- VISION -->
+            <h5 class="mb-3">
 
-            <input type="text" name="vision_titulo" class="form-control mb-2"
-                value="<?php echo $quienes['vision_titulo']; ?>">
+                <i class="fa-solid fa-eye"></i>
+                Visión
 
-            <textarea name="vision" class="form-control mb-3" rows="3"><?php echo $quienes['vision']; ?></textarea>
+            </h5>
 
-            <!-- BOTÓN -->
+            <!-- TITULO VISION -->
+            <div class="input-group mb-3">
+
+                <span class="input-group-text">
+
+                    <i class="fa-solid fa-lightbulb"></i>
+
+                </span>
+
+                <input 
+                    type="text" 
+                    name="vision_titulo" 
+                    class="form-control"
+                    value="<?php echo $quienes['vision_titulo']; ?>"
+                    placeholder="Título visión"
+                >
+
+            </div>
+
+            <!-- TEXTO VISION -->
+            <div class="input-group mb-4">
+
+                <span class="input-group-text">
+
+                    <i class="fa-solid fa-file-lines"></i>
+
+                </span>
+
+                <textarea 
+                    name="vision" 
+                    class="form-control" 
+                    rows="4"
+                    placeholder="Descripción de la visión"
+                ><?php echo $quienes['vision']; ?></textarea>
+
+            </div>
+
+            <!-- BOTON -->
             <button class="btn btn-primary">
+
+                <i class="fa-solid fa-floppy-disk"></i>
                 Guardar Cambios
+
             </button>
 
         </form>

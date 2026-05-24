@@ -6,145 +6,271 @@
 
 <?php
 $categoria_id = $_GET['categoria_id'] ?? "";
-$modo = $_GET['modo'] ?? "tomar"; // 🔥 NUEVO
+$modo = $_GET['modo'] ?? "tomar";
 ?>
 
-<div class="container">
+<div class="container py-4">
 
-    <h4 class="fw-bold mb-3">Asistencia</h4>
+    <!-- TITULO -->
+    <div class="mb-4">
 
-    <!-- 🔥 BOTONES -->
-    <div class="mb-3">
+        <h3 class="fw-bold mb-1">
+            <i class="fa-solid fa-calendar-check me-2 text-success"></i>
+            Gestión de Asistencia
+        </h3>
+
+        <p class="text-muted">
+            Control y seguimiento de asistencia de deportistas.
+        </p>
+
+    </div>
+
+    <!-- BOTONES -->
+    <div class="d-flex gap-2 mb-4 flex-wrap">
+
         <a href="?modo=tomar&categoria_id=<?php echo $categoria_id; ?>" 
-           class="btn btn-success <?php echo ($modo=="tomar") ? "active" : ""; ?>">
-            ✍️ Tomar asistencia
+           class="btn btn-success rounded-pill px-4 <?php echo ($modo=="tomar") ? "active" : ""; ?>">
+
+            <i class="fa-solid fa-pen me-2"></i>
+            Tomar asistencia
+
         </a>
 
         <a href="?modo=consultar&categoria_id=<?php echo $categoria_id; ?>" 
-           class="btn btn-primary <?php echo ($modo=="consultar") ? "active" : ""; ?>">
-            👀 Consultar asistencia
+           class="btn btn-primary rounded-pill px-4 <?php echo ($modo=="consultar") ? "active" : ""; ?>">
+
+            <i class="fa-solid fa-eye me-2"></i>
+            Consultar asistencia
+
         </a>
+
     </div>
 
-    <!-- CONTROLES -->
-    <div class="d-flex flex-column flex-md-row gap-2 mb-3">
+    <!-- FILTROS -->
+    <div class="card border-0 rounded-4 shadow-sm p-4 mb-4">
 
-        <input type="date" id="fecha" class="form-control"
-               value="<?php echo date('Y-m-d'); ?>"
-               onchange="cargarAsistencia()">
+        <div class="row g-3">
 
-        <form method="GET" class="d-flex gap-2">
-            
-            <!-- 🔥 MANTENER MODO -->
-            <input type="hidden" name="modo" value="<?php echo $modo; ?>">
+            <!-- FECHA -->
+            <div class="col-md-4">
 
-            <select name="categoria_id" class="form-control" onchange="this.form.submit()">
-                <option value="">Todas</option>
-                <?php
-                $stmt = $conexion->query("SELECT id, nombre FROM categoria");
-                while($cat = $stmt->fetch(PDO::FETCH_ASSOC)){
-                    $selected = ($categoria_id == $cat['id']) ? "selected" : "";
-                    echo "<option value='".$cat['id']."' $selected>".$cat['nombre']."</option>";
-                }
-                ?>
-            </select>
+                <label class="fw-semibold mb-2">
+                    <i class="fa-solid fa-calendar-day me-2 text-primary"></i>
+                    Fecha
+                </label>
 
-        </form>
+                <input 
+                    type="date" 
+                    id="fecha" 
+                    class="form-control rounded-3"
+                    value="<?php echo date('Y-m-d'); ?>"
+                    onchange="cargarAsistencia()"
+                >
+
+            </div>
+
+            <!-- CATEGORIA -->
+            <div class="col-md-4">
+
+                <form method="GET">
+
+                    <input type="hidden" name="modo" value="<?php echo $modo; ?>">
+
+                    <label class="fw-semibold mb-2">
+                        <i class="fa-solid fa-layer-group me-2 text-warning"></i>
+                        Categoría
+                    </label>
+
+                    <select 
+                        name="categoria_id" 
+                        class="form-control rounded-3"
+                        onchange="this.form.submit()"
+                    >
+
+                        <option value="">Todas</option>
+
+                        <?php
+                        $stmt = $conexion->query("SELECT id, nombre FROM categoria");
+
+                        while($cat = $stmt->fetch(PDO::FETCH_ASSOC)){
+
+                            $selected = ($categoria_id == $cat['id']) ? "selected" : "";
+
+                            echo "
+                                <option value='".$cat['id']."' $selected>
+                                    ".$cat['nombre']."
+                                </option>
+                            ";
+                        }
+                        ?>
+
+                    </select>
+
+                </form>
+
+            </div>
+
+        </div>
 
     </div>
 
     <!-- TABLA -->
-    <div class="table-responsive">
-        <table class="table table-bordered text-center align-middle">
+    <div class="card border-0 rounded-4 shadow-sm overflow-hidden">
 
-            <thead class="table-dark">
+        <div class="table-responsive">
+
+            <table class="table table-hover text-center align-middle mb-0">
+
+                <thead class="table-dark">
+
+                    <tr>
+
+                        <th>
+                            <i class="fa-solid fa-user me-2"></i>
+                            Deportista
+                        </th>
+
+                        <th>
+                            <i class="fa-solid fa-circle-check me-2 text-success"></i>
+                            Presente
+                        </th>
+
+                        <th>
+                            <i class="fa-solid fa-circle-xmark me-2 text-danger"></i>
+                            Ausente
+                        </th>
+
+                        <th>
+                            <i class="fa-solid fa-clock me-2 text-warning"></i>
+                            Tarde
+                        </th>
+
+                        <th>
+                            <i class="fa-solid fa-trash me-2"></i>
+                            Acción
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                <?php
+
+                if($categoria_id != ""){
+
+                    $stmt = $conexion->prepare("
+                        SELECT id, nombre 
+                        FROM deportista 
+                        WHERE estado='activo' 
+                        AND categoria_id = ?
+                    ");
+
+                    $stmt->execute([$categoria_id]);
+
+                } else {
+
+                    $stmt = $conexion->query("
+                        SELECT id, nombre 
+                        FROM deportista 
+                        WHERE estado='activo'
+                    ");
+                }
+
+                $deportistas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                foreach($deportistas as $row){
+                ?>
+
                 <tr>
-                    <th>Deportista</th>
-                    <th>✅ Presente</th>
-                    <th>❌ Ausente</th>
-                    <th>⏰ Tarde</th>
-                    <th>🧹</th>
+
+                    <td data-label="Deportista" class="text-start fw-semibold">
+
+                        <i class="fa-solid fa-user me-2 text-secondary"></i>
+
+                        <?php echo $row['nombre']; ?>
+
+                    </td>
+
+                    <!-- PRESENTE -->
+                    <td data-label="Presente">
+
+                        <input type="radio"
+                            class="form-check-input"
+                            name="estado_<?php echo $row['id']; ?>"
+                            value="presente"
+                            <?php echo ($modo=="consultar") ? "disabled" : ""; ?>
+                            onchange="guardar(<?php echo $row['id']; ?>, this.value)"
+                        >
+
+                    </td>
+
+                    <!-- AUSENTE -->
+                    <td data-label="Ausente">
+
+                        <input type="radio"
+                            class="form-check-input"
+                            name="estado_<?php echo $row['id']; ?>"
+                            value="ausente"
+                            <?php echo ($modo=="consultar") ? "disabled" : ""; ?>
+                            onchange="guardar(<?php echo $row['id']; ?>, this.value)"
+                        >
+
+                    </td>
+
+                    <!-- TARDE -->
+                    <td data-label="Tarde">
+
+                        <input type="radio"
+                            class="form-check-input"
+                            name="estado_<?php echo $row['id']; ?>"
+                            value="tarde"
+                            <?php echo ($modo=="consultar") ? "disabled" : ""; ?>
+                            onchange="guardar(<?php echo $row['id']; ?>, this.value)"
+                        >
+
+                    </td>
+
+                    <!-- ACCION -->
+                    <td data-label="Acción">
+
+                        <?php if($modo != "consultar"){ ?>
+
+                            <button 
+                                class="btn btn-sm btn-outline-danger rounded-circle"
+                                onclick="limpiar(<?php echo $row['id']; ?>)"
+                            >
+
+                                <i class="fa-solid fa-trash"></i>
+
+                            </button>
+
+                        <?php } ?>
+
+                    </td>
+
                 </tr>
-            </thead>
 
-            <tbody>
+                <?php } ?>
 
-            <?php
-            if($categoria_id != ""){
-                $stmt = $conexion->prepare("
-                    SELECT id, nombre 
-                    FROM deportista 
-                    WHERE estado='activo' AND categoria_id = ?
-                ");
-                $stmt->execute([$categoria_id]);
-            } else {
-                $stmt = $conexion->query("
-                    SELECT id, nombre 
-                    FROM deportista 
-                    WHERE estado='activo'
-                ");
-            }
+                </tbody>
 
-            $deportistas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            </table>
 
-            foreach($deportistas as $row){
-            ?>
+        </div>
 
-            <tr>
-
-                <td data-label="Deportista" class="text-start fw-bold">
-                    <?php echo $row['nombre']; ?>
-                </td>
-
-                <td data-label="Presente">
-                    <input type="radio"
-                        name="estado_<?php echo $row['id']; ?>"
-                        value="presente"
-                        <?php echo ($modo=="consultar") ? "disabled" : ""; ?>
-                        onchange="guardar(<?php echo $row['id']; ?>, this.value)">
-                </td>
-
-                <td data-label="Ausente">
-                    <input type="radio"
-                        name="estado_<?php echo $row['id']; ?>"
-                        value="ausente"
-                        <?php echo ($modo=="consultar") ? "disabled" : ""; ?>
-                        onchange="guardar(<?php echo $row['id']; ?>, this.value)">
-                </td>
-
-                <td data-label="Tarde">
-                    <input type="radio"
-                        name="estado_<?php echo $row['id']; ?>"
-                        value="tarde"
-                        <?php echo ($modo=="consultar") ? "disabled" : ""; ?>
-                        onchange="guardar(<?php echo $row['id']; ?>, this.value)">
-                </td>
-
-                <td data-label="Acción">
-                    <?php if($modo != "consultar"){ ?>
-                        <button class="btn btn-sm btn-outline-secondary"
-                            onclick="limpiar(<?php echo $row['id']; ?>)">
-                            ❌
-                        </button>
-                    <?php } ?>
-                </td>
-
-            </tr>
-
-            <?php } ?>
-
-            </tbody>
-        </table>
     </div>
 
 </div>
 
 <script>
 
-// 🔥 GUARDAR (bloquear en modo consulta)
+// GUARDAR
 function guardar(deportista_id, estado){
 
     let modo = "<?php echo $modo; ?>";
+
     if(modo === "consultar") return;
 
     let fecha = document.getElementById("fecha").value;
@@ -158,22 +284,27 @@ function guardar(deportista_id, estado){
     })
     .then(res => res.json())
     .then(res => {
+
         console.log("GUARDADO:", res);
 
         if(res.status !== "ok"){
             alert(res.mensaje);
         }
+
     });
+
 }
 
 
-// 🔥 ELIMINAR (bloquear en modo consulta)
+// ELIMINAR
 function limpiar(deportista_id){
 
     let modo = "<?php echo $modo; ?>";
+
     if(modo === "consultar") return;
 
     let confirmar = confirm("¿Seguro que deseas eliminar la asistencia?");
+
     if(!confirmar) return;
 
     let fecha = document.getElementById("fecha").value;
@@ -189,22 +320,27 @@ function limpiar(deportista_id){
     .then(res => {
 
         if(res.status === "ok"){
+
             document.querySelectorAll(`input[name="estado_${deportista_id}"]`)
                 .forEach(r => r.checked = false);
 
             alert("Registro eliminado correctamente");
         }
+
     });
+
 }
 
 
-// 🔥 CARGAR DATOS
+// CARGAR DATOS
 function cargarAsistencia(){
 
     let fecha = document.getElementById("fecha").value;
 
     fetch("obtener_asistencia.php?fecha=" + fecha)
+
     .then(res => res.json())
+
     .then(data => {
 
         document.querySelectorAll("input[type=radio]")
@@ -223,6 +359,7 @@ function cargarAsistencia(){
         });
 
     });
+
 }
 
 window.onload = cargarAsistencia;

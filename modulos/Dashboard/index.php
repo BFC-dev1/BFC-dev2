@@ -46,99 +46,192 @@ $deportistasInactivos = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
 <?php include("../../includes/header_dashboard.php") ?>
 <?php include("../../modulos/Dashboard/sidebar.php") ?>
 
-<style>
-.metric-card{
-    background:#fff;
-    border-radius:14px;
-    padding:18px;
-    box-shadow:0 6px 20px rgba(0,0,0,0.05);
-    transition:0.2s;
-    border-left:6px solid transparent;
-}
+<div class="main-content">
 
-.metric-card:hover{
-    transform:translateY(-3px);
-    box-shadow:0 10px 25px rgba(0,0,0,0.08);
-}
+    <div class="container py-4">
 
-.metric-title{
-    font-size:13px;
-    color:#6c757d;
-}
+        <!-- HEADER -->
+        <div class="mb-5">
 
-.metric-value{
-    font-size:28px;
-    font-weight:700;
-}
+            <h3 class="fw-bold mb-1">
 
-.section-title{
-    font-weight:700;
-    margin:25px 0 15px;
-    font-size:18px;
-}
-</style>
+                <i class="fa-solid fa-shield-halved me-2 text-primary"></i>
+                Panel de Administración
 
-<div class="mb-4">
-    <h3 class="fw-bold">Panel de Administración</h3>
-    <p class="text-muted">Resumen general del sistema</p>
-</div>
+            </h3>
 
-<!-- =========================
-USUARIOS
-========================= -->
-<div class="section-title">👤 Usuarios</div>
+            <p class="text-muted">
+                Resumen general y métricas del sistema Bellavista FC.
+            </p>
 
-<div class="row g-3">
-
-    <div class="col-md-3">
-        <div class="metric-card border-primary">
-            <div class="metric-title">Total usuarios</div>
-            <div class="metric-value"><?php echo $totalUsuarios; ?></div>
         </div>
-    </div>
 
-    <div class="col-md-3">
-        <div class="metric-card border-success">
-            <div class="metric-title">Activos</div>
-            <div class="metric-value text-success"><?php echo $usuariosActivos; ?></div>
+        <!-- =========================
+        USUARIOS
+        ========================= -->
+        <div class="section-title">
+
+            <i class="fa-solid fa-users text-primary"></i>
+            Usuarios
+
         </div>
-    </div>
 
-    <div class="col-md-3">
-        <div class="metric-card border-danger">
-            <div class="metric-title">Inactivos</div>
-            <div class="metric-value text-danger"><?php echo $usuariosInactivos; ?></div>
+        <div class="row g-4">
+
+            <!-- TOTAL -->
+            <div class="col-md-4">
+
+                <div class="metric-card">
+
+                    <div class="metric-icon bg-soft-primary text-primary">
+
+                        <i class="fa-solid fa-users"></i>
+
+                    </div>
+
+                    <div class="metric-title">
+                        Total usuarios
+                    </div>
+
+                    <div class="metric-value">
+                        <?php echo $totalUsuarios; ?>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- ACTIVOS -->
+            <div class="col-md-4">
+
+                <div class="metric-card">
+
+                    <div class="metric-icon bg-soft-success text-success">
+
+                        <i class="fa-solid fa-user-check"></i>
+
+                    </div>
+
+                    <div class="metric-title">
+                        Usuarios activos
+                    </div>
+
+                    <div class="metric-value text-success">
+                        <?php echo $usuariosActivos; ?>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- INACTIVOS -->
+            <div class="col-md-4">
+
+                <div class="metric-card">
+
+                    <div class="metric-icon bg-soft-danger text-danger">
+
+                        <i class="fa-solid fa-user-xmark"></i>
+
+                    </div>
+
+                    <div class="metric-title">
+                        Usuarios inactivos
+                    </div>
+
+                    <div class="metric-value text-danger">
+                        <?php echo $usuariosInactivos; ?>
+                    </div>
+
+                </div>
+
+            </div>
+
         </div>
-    </div>
 
-</div>
+        <!-- =========================
+        DEPORTISTAS
+        ========================= -->
+        <div class="section-title">
 
-<!-- =========================
-DEPORTISTAS
-========================= -->
-<div class="section-title">🏃 Deportistas</div>
+            <i class="fa-solid fa-person-running text-success"></i>
+            Deportistas
 
-<div class="row g-3">
-
-    <div class="col-md-3">
-        <div class="metric-card border-dark">
-            <div class="metric-title">Total deportistas</div>
-            <div class="metric-value"><?php echo $totalDeportistas; ?></div>
         </div>
-    </div>
 
-    <div class="col-md-3">
-        <div class="metric-card border-success">
-            <div class="metric-title">Activos</div>
-            <div class="metric-value text-success"><?php echo $deportistasActivos; ?></div>
-        </div>
-    </div>
+        <div class="row g-4">
 
-    <div class="col-md-3">
-        <div class="metric-card border-danger">
-            <div class="metric-title">Inactivos</div>
-            <div class="metric-value text-danger"><?php echo $deportistasInactivos; ?></div>
+            <!-- TOTAL -->
+            <div class="col-md-4">
+
+                <div class="metric-card">
+
+                    <div class="metric-icon bg-soft-dark text-dark">
+
+                        <i class="fa-solid fa-person-running"></i>
+
+                    </div>
+
+                    <div class="metric-title">
+                        Total deportistas
+                    </div>
+
+                    <div class="metric-value">
+                        <?php echo $totalDeportistas; ?>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- ACTIVOS -->
+            <div class="col-md-4">
+
+                <div class="metric-card">
+
+                    <div class="metric-icon bg-soft-success text-success">
+
+                        <i class="fa-solid fa-circle-check"></i>
+
+                    </div>
+
+                    <div class="metric-title">
+                        Deportistas activos
+                    </div>
+
+                    <div class="metric-value text-success">
+                        <?php echo $deportistasActivos; ?>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- INACTIVOS -->
+            <div class="col-md-4">
+
+                <div class="metric-card">
+
+                    <div class="metric-icon bg-soft-danger text-danger">
+
+                        <i class="fa-solid fa-circle-xmark"></i>
+
+                    </div>
+
+                    <div class="metric-title">
+                        Deportistas inactivos
+                    </div>
+
+                    <div class="metric-value text-danger">
+                        <?php echo $deportistasInactivos; ?>
+                    </div>
+
+                </div>
+
+            </div>
+
         </div>
+
     </div>
 
 </div>

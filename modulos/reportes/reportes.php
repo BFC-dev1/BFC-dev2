@@ -12,55 +12,132 @@ include(__DIR__ . "/../../modulos/conexion_modulos.php");
 <?php include("../../includes/header_dashboard.php"); ?>
 <?php include("../Dashboard/sidebar.php"); ?>
 
-<div class="container">
+<div class="container py-4">
 
-    <h3 class="fw-bold mb-4">📊 Centro de Reportes</h3>
+    <!-- TITULO -->
+    <div class="mb-4">
+
+        <h3 class="fw-bold mb-1">
+            <i class="fa-solid fa-chart-column me-2 text-primary"></i>
+            Centro de Reportes
+        </h3>
+
+        <p class="text-muted">
+            Exportación y gestión de información del sistema.
+        </p>
+
+    </div>
 
     <!-- ================= USUARIOS ================= -->
-    <div class="card p-3 mb-3 shadow-sm">
-        <h5>👤 Usuarios</h5>
-        <a href="export_usuarios.php" class="btn btn-dark mt-2">
-            📤 Exportar usuarios
+    <div class="card border-0 rounded-4 p-4 mb-4 shadow-sm">
+
+        <h5 class="fw-bold mb-3">
+            <i class="fa-solid fa-users me-2 text-dark"></i>
+            Usuarios
+        </h5>
+
+        <p class="text-muted mb-3">
+            Descarga el listado completo de usuarios registrados.
+        </p>
+
+        <a href="export_usuarios.php" class="btn btn-dark rounded-pill">
+
+            <i class="fa-solid fa-file-export me-2"></i>
+            Exportar usuarios
+
         </a>
+
     </div>
 
     <!-- ================= DEPORTISTAS ================= -->
-    <div class="card p-3 mb-3 shadow-sm">
-        <h5>🏃 Deportistas</h5>
-        <a href="export_deportistas.php" class="btn btn-dark mt-2">
-            📤 Exportar deportistas
+    <div class="card border-0 rounded-4 p-4 mb-4 shadow-sm">
+
+        <h5 class="fw-bold mb-3">
+            <i class="fa-solid fa-person-running me-2 text-success"></i>
+            Deportistas
+        </h5>
+
+        <p class="text-muted mb-3">
+            Exporta la información de todos los deportistas registrados.
+        </p>
+
+        <a href="export_deportistas.php" class="btn btn-dark rounded-pill">
+
+            <i class="fa-solid fa-file-export me-2"></i>
+            Exportar deportistas
+
         </a>
+
     </div>
 
     <!-- ================= ASISTENCIAS ================= -->
-    <div class="card p-3 shadow-sm">
-        <h5>📅 Asistencias</h5>
+    <div class="card border-0 rounded-4 p-4 shadow-sm">
 
-        <form method="GET" action="export_asistencias.php" class="row g-2 mt-2">
+        <h5 class="fw-bold mb-3">
+            <i class="fa-solid fa-calendar-check me-2 text-warning"></i>
+            Asistencias
+        </h5>
 
+        <p class="text-muted mb-4">
+            Genera reportes filtrados por fecha y categoría.
+        </p>
+
+        <form method="GET" action="export_asistencias.php" class="row g-3">
+
+            <!-- FECHA -->
             <div class="col-md-4">
-                <label>Fecha</label>
-                <input type="date" name="fecha" class="form-control" required>
+
+                <label class="fw-semibold mb-2">
+                    Fecha
+                </label>
+
+                <input 
+                    type="date" 
+                    name="fecha" 
+                    class="form-control rounded-3" 
+                    required
+                >
+
             </div>
 
+            <!-- CATEGORIA -->
             <div class="col-md-4">
-                <label>Categoría</label>
-                <select name="categoria_id" class="form-control">
+
+                <label class="fw-semibold mb-2">
+                    Categoría
+                </label>
+
+                <select name="categoria_id" class="form-control rounded-3">
+
                     <option value="">Todas</option>
 
                     <?php
                     $cats = $conexion->query("SELECT id, nombre FROM categoria");
+
                     while($c = $cats->fetch(PDO::FETCH_ASSOC)){
-                        echo "<option value='{$c['id']}'>{$c['nombre']}</option>";
+
+                        echo "
+                            <option value='{$c['id']}'>
+                                {$c['nombre']}
+                            </option>
+                        ";
                     }
                     ?>
+
                 </select>
+
             </div>
 
+            <!-- BOTON -->
             <div class="col-md-4 d-flex align-items-end">
-                <button class="btn btn-success w-100">
-                    📤 Exportar asistencias
+
+                <button class="btn btn-success w-100 rounded-pill">
+
+                    <i class="fa-solid fa-file-export me-2"></i>
+                    Exportar asistencias
+
                 </button>
+
             </div>
 
         </form>
