@@ -15,6 +15,9 @@ if($_POST){
     $fecha_nacimiento = $_POST['fecha_nacimiento'] ?? "";
     $categoria_id = $_POST['categoria_id'] ?? "";
 
+    // ✅ NUEVO ENTRENADOR
+    $entrenador = trim($_POST['entrenador'] ?? "");
+
     // ✅ ACUDIENTE MANUAL
     $acudiente = trim($_POST['acudiente'] ?? "");
     $parentesco = trim($_POST['parentesco'] ?? "");
@@ -175,26 +178,29 @@ if($_POST){
         $deportista_id = $conexion->lastInsertId();
 
         // =========================
-        // GUARDAR ACUDIENTE
+        // GUARDAR ACUDIENTE + ENTRENADOR
         // =========================
 
         $stmt_rel = $conexion->prepare("
         INSERT INTO usuario_deportista(
             deportista_id,
             acudiente,
-            parentesco
+            parentesco,
+            entrenador
         )
         VALUES(
             :deportista_id,
             :acudiente,
-            :parentesco
+            :parentesco,
+            :entrenador
         )
         ");
 
         $stmt_rel->execute([
             ":deportista_id"=>$deportista_id,
             ":acudiente"=>$acudiente,
-            ":parentesco"=>$parentesco
+            ":parentesco"=>$parentesco,
+            ":entrenador"=>$entrenador
         ]);
 
         // =========================
@@ -225,43 +231,43 @@ if($_POST){
                         $extension == "png"
                     ){
 
-                    // limpiar nombre
-                    $archivoOriginal = preg_replace(
-                        '/[^A-Za-z0-9_\-.]/',
-                        '_',
-                        $archivoOriginal
-                    );
+                        // limpiar nombre
+                        $archivoOriginal = preg_replace(
+                            '/[^A-Za-z0-9_\-.]/',
+                            '_',
+                            $archivoOriginal
+                        );
 
-                    // nombre base
-                    $nombreBase = pathinfo(
-                        $archivoOriginal,
-                        PATHINFO_FILENAME
-                    );
+                        // nombre base
+                        $nombreBase = pathinfo(
+                            $archivoOriginal,
+                            PATHINFO_FILENAME
+                        );
 
-                    // nombre final
-                    $nuevoNombre = $archivoOriginal;
+                        // nombre final
+                        $nuevoNombre = $archivoOriginal;
 
-                    // ruta final
-                    $rutaFinal = $carpeta_docs . $nuevoNombre;
-
-                    // evitar duplicados
-                    $contador = 1;
-
-                    while(file_exists($rutaFinal)){
-
-                        $nuevoNombre = $nombreBase . "_" . $contador . "." . $extension;
-
+                        // ruta final
                         $rutaFinal = $carpeta_docs . $nuevoNombre;
 
-                        $contador++;
+                        // evitar duplicados
+                        $contador = 1;
 
-                    }
+                        while(file_exists($rutaFinal)){
 
-                    // mover archivo
-                    move_uploaded_file(
-                        $tmp_name,
-                        $rutaFinal
-                    );
+                            $nuevoNombre = $nombreBase . "_" . $contador . "." . $extension;
+
+                            $rutaFinal = $carpeta_docs . $nuevoNombre;
+
+                            $contador++;
+
+                        }
+
+                        // mover archivo
+                        move_uploaded_file(
+                            $tmp_name,
+                            $rutaFinal
+                        );
 
                         // ✅ guardar BD
                         $stmtInsert = $conexion->prepare("
@@ -484,6 +490,52 @@ if($_POST){
                                             echo "
                                             <option value='".$row['id']."' $selected>
                                                 ".$row['nombre']."
+                                            </option>
+                                            ";
+                                        }
+
+                                        ?>
+
+                                    </select>
+
+                                </div>
+
+                                <!-- ENTRENADOR -->
+                                <div class="col-md-6 mb-3">
+
+                                    <label class="form-label">
+                                        Entrenador
+                                    </label>
+
+                                    <select 
+                                        name="entrenador"
+                                        class="form-control"
+                                    >
+
+                                        <option value="">
+                                            Seleccionar entrenador
+                                        </option>
+
+                                        <?php
+
+                                        $stmtEntrenador = $conexion->query("
+                                        SELECT id, nombre
+                                        FROM entrenador
+                                        WHERE estado='activo'
+                                        ORDER BY nombre ASC
+                                        ");
+
+                                        while($ent = $stmtEntrenador->fetch(PDO::FETCH_ASSOC)){
+
+                                            $selected = "";
+
+                                            if(($_POST['entrenador'] ?? '') == $ent['nombre']){
+                                                $selected = "selected";
+                                            }
+
+                                            echo "
+                                            <option value='".$ent['nombre']."' $selected>
+                                                ".$ent['nombre']."
                                             </option>
                                             ";
                                         }

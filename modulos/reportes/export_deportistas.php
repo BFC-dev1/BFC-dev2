@@ -1,28 +1,53 @@
 <?php
+
 include("../conexion_modulos.php");
 
 /*
-=========================
-QUERY
-=========================
+=================================================
+QUERY EXPORTAR DEPORTISTAS
+=================================================
 */
 $data = $conexion->query("
-    SELECT id, nombre, estado 
-    FROM deportista 
-    ORDER BY nombre ASC
+
+    SELECT 
+
+        d.id,
+        d.tipo_documento,
+        d.documento,
+        d.telefono,
+        d.nombre,
+        d.fecha_nacimiento,
+        d.entrenador,
+        d.estado,
+
+        c.nombre AS categoria,
+
+        ud.acudiente,
+        ud.parentesco
+
+    FROM deportista d
+
+    LEFT JOIN categoria c
+        ON d.categoria_id = c.id
+
+    LEFT JOIN usuario_deportista ud
+        ON ud.deportista_id = d.id
+
+    ORDER BY d.nombre ASC
+
 ");
 
 /*
-=========================
+=================================================
 NOMBRE ARCHIVO
-=========================
+=================================================
 */
-$filename = "deportistas.csv";
+$filename = "deportistas_" . date("Y-m-d_H-i-s") . ".csv";
 
 /*
-=========================
+=================================================
 HEADERS CSV
-=========================
+=================================================
 */
 header("Content-Type: text/csv; charset=UTF-8");
 header("Content-Disposition: attachment; filename=\"$filename\"");
@@ -30,27 +55,73 @@ header("Pragma: no-cache");
 header("Expires: 0");
 
 /*
-=========================
-OUTPUT CSV
-=========================
+=================================================
+ABRIR OUTPUT
+=================================================
 */
 $output = fopen("php://output", "w");
 
-/* BOM UTF-8 (evita problemas con tildes en Excel) */
+/*
+=================================================
+UTF-8 BOM
+EVITA PROBLEMAS CON TILDES EN EXCEL
+=================================================
+*/
 fwrite($output, "\xEF\xBB\xBF");
 
-/* Encabezados */
-fputcsv($output, ["ID", "Nombre", "Estado"]);
+/*
+=================================================
+ENCABEZADOS CSV
+=================================================
+*/
+fputcsv($output, [
 
-/* Data */
-while ($row = $data->fetch(PDO::FETCH_ASSOC)) {
+    
+    "Tipo Documento",
+    "Documento",
+    "Telefono",
+    "Nombre",
+    "Fecha Nacimiento",
+    "Categoria",
+    "Entrenador",
+    "Acudiente",
+    "Parentesco",
+    "Estado"
+
+]);
+
+/*
+=================================================
+RECORRER DATA
+=================================================
+*/
+while($row = $data->fetch(PDO::FETCH_ASSOC)){
 
     fputcsv($output, [
-        $row["id"],
+
+        
+        $row["tipo_documento"],
+        $row["documento"],
+        $row["telefono"],
         $row["nombre"],
+        $row["fecha_nacimiento"],
+        $row["categoria"],
+        $row["entrenador"],
+        $row["acudiente"],
+        $row["parentesco"],
         $row["estado"]
+
     ]);
+
 }
 
+/*
+=================================================
+CERRAR OUTPUT
+=================================================
+*/
 fclose($output);
+
 exit;
+
+?>

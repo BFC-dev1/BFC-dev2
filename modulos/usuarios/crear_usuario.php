@@ -6,7 +6,36 @@ $error_usuario = false;
 
 $mensaje_error = "";
 
-// ✅ GUARDAR USUARIO
+/*
+=================================================
+OBTENER ID ROL ENTRENADOR
+=================================================
+*/
+$rol_entrenador_id = 0;
+
+$stmtRolEntrenador = $conexion->prepare("
+SELECT id
+FROM rol
+WHERE LOWER(nombre) = 'entrenador'
+LIMIT 1
+");
+
+$stmtRolEntrenador->execute();
+
+$rolEntrenador = $stmtRolEntrenador->fetch(PDO::FETCH_ASSOC);
+
+if($rolEntrenador){
+
+    $rol_entrenador_id = $rolEntrenador['id'];
+
+}
+
+
+/*
+=================================================
+GUARDAR USUARIO
+=================================================
+*/
 if($_POST){
 
     $nombre = trim($_POST['nombre'] ?? "");
@@ -18,7 +47,11 @@ if($_POST){
     $password = trim($_POST['password'] ?? "");
     $rol_id = trim($_POST['rol_id'] ?? "");
 
-    // ✅ VALIDAR CAMPOS
+    /*
+    =============================================
+    VALIDAR CAMPOS
+    =============================================
+    */
     if(
         empty($nombre) ||
         empty($tipo_documento) ||
@@ -34,7 +67,12 @@ if($_POST){
 
     }
 
-    // ✅ VALIDAR DOCUMENTO
+
+    /*
+    =============================================
+    VALIDAR DOCUMENTO
+    =============================================
+    */
     if(empty($mensaje_error)){
 
         $stmt_doc = $conexion->prepare("
@@ -57,7 +95,12 @@ if($_POST){
 
     }
 
-    // ✅ VALIDAR USUARIO
+
+    /*
+    =============================================
+    VALIDAR USUARIO
+    =============================================
+    */
     if(empty($mensaje_error)){
 
         $stmt_user = $conexion->prepare("
@@ -80,7 +123,12 @@ if($_POST){
 
     }
 
-    // ✅ INSERTAR
+
+    /*
+    =============================================
+    INSERTAR USUARIO
+    =============================================
+    */
     if(empty($mensaje_error)){
 
         try{
@@ -121,6 +169,108 @@ if($_POST){
                 ":rol_id"=>$rol_id
             ]);
 
+
+            /*
+            =============================================
+            ID USUARIO CREADO
+            =============================================
+            */
+            $usuario_id = $conexion->lastInsertId();
+
+
+            /*
+            =============================================
+            SI EL ROL ES ENTRENADOR
+            GUARDAR TAMBIÉN EN TABLA entrenador
+            =============================================
+            */
+            if($rol_id == $rol_entrenador_id){
+
+                /*
+                =============================================
+                VALIDAR SI EXISTE COLUMNA usuario_id
+                =============================================
+                */
+                $checkColumn = $conexion->prepare("
+                SHOW COLUMNS 
+                FROM entrenador 
+                LIKE 'usuario_id'
+                ");
+
+                $checkColumn->execute();
+
+                $existeUsuarioId = $checkColumn->fetch();
+
+
+                /*
+                =============================================
+                INSERT CON usuario_id
+                =============================================
+                */
+                if($existeUsuarioId){
+
+                    $stmtEntrenador = $conexion->prepare("
+                    INSERT INTO entrenador(
+                        usuario_id,
+                        nombre,
+                        documento,
+                        telefono,
+                        correo,
+                        estado
+                    )
+                    VALUES(
+                        :usuario_id,
+                        :nombre,
+                        :documento,
+                        :telefono,
+                        :correo,
+                        'activo'
+                    )
+                    ");
+
+                    $stmtEntrenador->execute([
+                        ":usuario_id"=>$usuario_id,
+                        ":nombre"=>$nombre,
+                        ":documento"=>$documento,
+                        ":telefono"=>$telefono,
+                        ":correo"=>$correo
+                    ]);
+
+                }else{
+
+                    /*
+                    =============================================
+                    INSERT SIN usuario_id
+                    =============================================
+                    */
+                    $stmtEntrenador = $conexion->prepare("
+                    INSERT INTO entrenador(
+                        nombre,
+                        documento,
+                        telefono,
+                        correo,
+                        estado
+                    )
+                    VALUES(
+                        :nombre,
+                        :documento,
+                        :telefono,
+                        :correo,
+                        'activo'
+                    )
+                    ");
+
+                    $stmtEntrenador->execute([
+                        ":nombre"=>$nombre,
+                        ":documento"=>$documento,
+                        ":telefono"=>$telefono,
+                        ":correo"=>$correo
+                    ]);
+
+                }
+
+            }
+
             header("Location: index.php");
             exit;
 
@@ -135,7 +285,6 @@ if($_POST){
 }
 
 ?>
-
 
 <!-- ✅ MODAL CREAR -->
 
@@ -317,6 +466,7 @@ if($_POST){
                             <select
                                 name="rol_id"
                                 class="form-control"
+                                required
                             >
 
                                 <option value="">
@@ -328,6 +478,7 @@ if($_POST){
                                 $stmt = $conexion->query("
                                 SELECT id, nombre
                                 FROM rol
+                                ORDER BY nombre ASC
                                 ");
 
                                 while($row = $stmt->fetch(PDO::FETCH_ASSOC)){

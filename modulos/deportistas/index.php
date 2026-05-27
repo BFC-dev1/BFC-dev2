@@ -11,7 +11,7 @@ $stm = $conexion->prepare("
         d.*, 
         c.nombre AS categoria_nombre,
 
-        -- ✅ ACUDIENTE MANUAL
+        -- ✅ ACUDIENTE
         ud.acudiente AS acudiente_nombre
 
     FROM deportista d
@@ -130,7 +130,7 @@ if(isset($_GET['estado'])){
 </div> 
 
 
-<table class="table text-center align-middle">
+<table class="table table-bordered table-hover text-center align-middle">
 
     <thead class="table-dark">
 
@@ -142,6 +142,10 @@ if(isset($_GET['estado'])){
             <th>Nombre</th>
             <th>Fecha</th>
             <th>Categoría</th>
+
+            <!-- ✅ NUEVA COLUMNA -->
+            <th>Entrenador</th>
+
             <th>Acudiente</th>
             <th>Estado</th>
             <th>Acciones</th>
@@ -156,20 +160,39 @@ if(isset($_GET['estado'])){
 
         <tr>
 
-            <td><?php echo $deportista['tipo_documento']; ?></td>
+            <td>
+                <?php echo $deportista['tipo_documento']; ?>
+            </td>
 
-            <td><?php echo $deportista['documento']; ?></td>
+            <td>
+                <?php echo $deportista['documento']; ?>
+            </td>
 
-            <td><?php echo $deportista['telefono']; ?></td>
+            <td>
+                <?php echo $deportista['telefono']; ?>
+            </td>
 
-            <td><?php echo $deportista['nombre']; ?></td>
+            <td>
+                <?php echo $deportista['nombre']; ?>
+            </td>
 
-            <td><?php echo $deportista['fecha_nacimiento']; ?></td>
+            <td>
+                <?php echo $deportista['fecha_nacimiento']; ?>
+            </td>
 
-            <td><?php echo $deportista['categoria_nombre']; ?></td>
+            <td>
+                <?php echo $deportista['categoria_nombre']; ?>
+            </td>
+
+            <!-- ✅ MOSTRAR ENTRENADOR -->
+            <td>
+                <?php echo $deportista['entrenador']; ?>
+            </td>
 
             <!-- ✅ ACUDIENTE -->
-            <td><?php echo $deportista['acudiente_nombre']; ?></td>
+            <td>
+                <?php echo $deportista['acudiente_nombre']; ?>
+            </td>
 
             <!-- ✅ SWITCH ESTADO -->
             <td>

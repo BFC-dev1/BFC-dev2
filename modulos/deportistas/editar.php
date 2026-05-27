@@ -15,7 +15,8 @@ if($txtid != ""){
         SELECT 
             d.*, 
             ud.acudiente,
-            ud.parentesco
+            ud.parentesco,
+            ud.entrenador
 
         FROM deportista d
 
@@ -45,6 +46,9 @@ if($txtid != ""){
 
         $acudiente = $registro['acudiente'];
         $parentesco = $registro['parentesco'];
+
+        // ✅ ENTRENADOR
+        $entrenador = $registro['entrenador'] ?? "";
 
     }
 
@@ -119,6 +123,9 @@ if($_POST){
     $acudiente = trim($_POST['acudiente'] ?? "");
 
     $parentesco = $_POST['parentesco'] ?? "";
+
+    // ✅ ENTRENADOR
+    $entrenador = trim($_POST['entrenador'] ?? "");
 
 
     // =========================
@@ -209,6 +216,7 @@ if($_POST){
         nombre = :nombre,
         fecha_nacimiento = :fecha_nacimiento,
         categoria_id = :categoria_id,
+        entrenador = :entrenador,
         estado = :estado,
         foto = :foto
 
@@ -222,6 +230,7 @@ if($_POST){
         ":nombre"=>$nombre,
         ":fecha_nacimiento"=>$fecha_nacimiento,
         ":categoria_id"=>$categoria_id,
+        ":entrenador"=>$entrenador,
         ":estado"=>$estado,
         ":foto"=>$foto,
         ":id"=>$txtid
@@ -237,7 +246,8 @@ if($_POST){
 
     SET 
         acudiente = :acudiente,
-        parentesco = :parentesco
+        parentesco = :parentesco,
+        entrenador = :entrenador
 
     WHERE deportista_id = :deportista_id
     ");
@@ -245,6 +255,7 @@ if($_POST){
     $stmt_rel->execute([
         ":acudiente"=>$acudiente,
         ":parentesco"=>$parentesco,
+        ":entrenador"=>$entrenador,
         ":deportista_id"=>$txtid
     ]);
 
@@ -252,11 +263,6 @@ if($_POST){
     // =========================
     // SUBIR MULTIPLES PDFs
     // =========================
-
-// =========================
-// SUBIR MULTIPLES PDFs
-// CONSERVAR NOMBRE ORIGINAL
-// =========================
 
 if(isset($_FILES['documentos'])){
 
@@ -291,7 +297,12 @@ if(isset($_FILES['documentos'])){
             );
 
             // validar PDF
-            if($extension == "pdf"){
+            if(
+                $extension == "pdf" ||
+                $extension == "jpg" ||
+                $extension == "jpeg" ||
+                $extension == "png"
+            ){
 
                 // separar nombre y extensión
                 $nombreBase = pathinfo(
@@ -310,7 +321,7 @@ if(isset($_FILES['documentos'])){
 
                 while(file_exists($rutaFinal)){
 
-                    $nuevoNombre = $nombreBase . "_" . $contador . ".pdf";
+                    $nuevoNombre = $nombreBase . "_" . $contador . "." . $extension;
 
                     $rutaFinal = $carpetaDocs . $nuevoNombre;
 
@@ -438,14 +449,14 @@ if(isset($_FILES['documentos'])){
                     <div class="col-md-12 mb-4">
 
                         <label class="form-label fw-bold">
-                            Adjuntar Documentos PDF
+                            Adjuntar Documentos
                         </label>
 
                         <input 
                             type="file" 
                             name="documentos[]"
                             class="form-control"
-                            accept=".pdf"
+                            accept=".pdf,.jpg,.jpeg,.png"
                             multiple
                         >
 
@@ -488,7 +499,7 @@ if(isset($_FILES['documentos'])){
                                         <div>
 
                                             <span class="fw-bold text-danger">
-                                                📄 PDF
+                                                📄 Archivo
                                             </span>
 
                                             <br>
@@ -631,6 +642,53 @@ if(isset($_FILES['documentos'])){
                             name="fecha_nacimiento" 
                             value="<?php echo $fecha_nacimiento; ?>"
                         >
+
+                    </div>
+
+
+                    <!-- ENTRENADOR -->
+                    <div class="col-md-6 mb-3">
+
+                        <label class="form-label">
+                            Entrenador
+                        </label>
+
+                        <select 
+                            name="entrenador"
+                            class="form-control"
+                        >
+
+                            <option value="">
+                                Seleccionar entrenador
+                            </option>
+
+                            <?php
+
+                            $stmtEntrenador = $conexion->query("
+                            SELECT id, nombre
+                            FROM entrenador
+                            WHERE estado='activo'
+                            ORDER BY nombre ASC
+                            ");
+
+                            while($ent = $stmtEntrenador->fetch(PDO::FETCH_ASSOC)){
+
+                                $selected = "";
+
+                                if($entrenador == $ent['nombre']){
+                                    $selected = "selected";
+                                }
+
+                                echo "
+                                <option value='".$ent['nombre']."' $selected>
+                                    ".$ent['nombre']."
+                                </option>
+                                ";
+                            }
+
+                            ?>
+
+                        </select>
 
                     </div>
 

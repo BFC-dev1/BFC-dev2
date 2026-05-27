@@ -1,5 +1,6 @@
 <?php
 session_start();
+
 include("../conexion_modulos.php");
 
 /*
@@ -49,13 +50,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion'])) {
 
     $id = $_POST['id'];
 
+    /*
+    =============================================
+    AGREGAR
+    =============================================
+    */
     if ($_POST['accion'] === 'agregar') {
-        $_SESSION['convocados'][$id] = $_POST['nombre'];
+
+        $_SESSION['convocados'][$id] = [
+
+            'nombre' => $_POST['nombre'] ?? '',
+            'documento' => $_POST['documento'] ?? '',
+            'telefono' => $_POST['telefono'] ?? '',
+            'entrenador' => $_POST['entrenador'] ?? '',
+            'acudiente' => $_POST['acudiente'] ?? '',
+            'parentesco' => $_POST['parentesco'] ?? '',
+            'fecha_nacimiento' => $_POST['fecha_nacimiento'] ?? '',
+            'categoria' => $_POST['categoria'] ?? ''
+
+        ];
     }
 
+    /*
+    =============================================
+    QUITAR
+    =============================================
+    */
     if ($_POST['accion'] === 'quitar') {
+
         unset($_SESSION['convocados'][$id]);
     }
+
+    echo json_encode([
+        "success" => true
+    ]);
 
     exit;
 }
@@ -70,6 +98,7 @@ $stmtCat = $conexion->prepare("
     FROM categoria
     ORDER BY nombre ASC
 ");
+
 $stmtCat->execute();
 
 /*
@@ -86,12 +115,26 @@ if (!empty($categoria_id)) {
             d.id,
             d.nombre,
             d.documento,
+            d.telefono,
+            d.fecha_nacimiento,
+
+            ud.acudiente,
+            ud.parentesco,
+            ud.entrenador,
+
             c.nombre AS categoria
+
         FROM deportista d
+
         LEFT JOIN categoria c 
             ON c.id = d.categoria_id
+
+        LEFT JOIN usuario_deportista ud
+            ON ud.deportista_id = d.id
+
         WHERE d.estado = 'activo'
         AND d.categoria_id = :cat
+
         ORDER BY d.nombre ASC
     ");
 
@@ -109,15 +152,33 @@ if (!empty($categoria_id)) {
 <head>
 
 <meta charset="UTF-8">
+
 <title>Convocatoria</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
+<style>
+
+body{
+    background:#f4f6f9;
+}
+
+.card{
+    border:none;
+    border-radius:18px;
+}
+
+.table th{
+    white-space: nowrap;
+}
+
+</style>
+
 </head>
 
-<body class="bg-light">
+<body>
 
 <div class="container py-5">
 
@@ -133,7 +194,10 @@ FORM FILTRO
 ===================================== -->
 <form method="GET" id="formFiltro">
 
-<div class="mb-3">
+<div class="row">
+
+<div class="col-md-4 mb-3">
+
 <label class="form-label fw-bold">
 Fecha del partido
 </label>
@@ -145,9 +209,11 @@ id="fechaInput"
 class="form-control"
 value="<?php echo $fecha; ?>"
 required>
+
 </div>
 
-<div class="mb-3">
+<div class="col-md-4 mb-3">
+
 <label class="form-label fw-bold">
 Rival
 </label>
@@ -158,9 +224,11 @@ name="rival"
 class="form-control"
 value="<?php echo $rival; ?>"
 required>
+
 </div>
 
-<div class="mb-4">
+<div class="col-md-4 mb-3">
+
 <label class="form-label fw-bold">
 Categoría
 </label>
@@ -191,6 +259,8 @@ value="<?php echo $cat['id']; ?>"
 
 </div>
 
+</div>
+
 </form>
 
 <?php if (!empty($deportistas)) { ?>
@@ -198,22 +268,29 @@ value="<?php echo $cat['id']; ?>"
 <!-- =====================================
 TABLA JUGADORES
 ===================================== -->
-<h4 class="mb-3">
+<h4 class="mb-3 mt-4">
 <i class="fa-solid fa-users"></i>
 Seleccionar Convocados
 </h4>
 
 <div class="table-responsive">
 
-<table class="table table-bordered align-middle">
+<table class="table table-bordered table-hover align-middle">
 
 <thead class="table-dark">
 
 <tr>
-<th>#</th>
+
 <th>Jugador</th>
 <th>Documento</th>
+<th>Teléfono</th>
+<th>Entrenador</th>
+<th>Acudiente</th>
+<th>Parentesco</th>
+<th>Nacimiento</th>
+<th>Categoría</th>
 <th>Convocar</th>
+
 </tr>
 
 </thead>
@@ -230,25 +307,38 @@ $checked = isset($_SESSION['convocados'][$dep['id']])
 
 <tr>
 
-<td>
-<?php echo $dep['id']; ?>
-</td>
+<td><?php echo $dep['nombre']; ?></td>
 
-<td>
-<?php echo $dep['nombre']; ?>
-</td>
+<td><?php echo $dep['documento']; ?></td>
 
-<td>
-<?php echo $dep['documento']; ?>
-</td>
+<td><?php echo $dep['telefono']; ?></td>
+
+<td><?php echo $dep['entrenador'] ?? ''; ?></td>
+
+<td><?php echo $dep['acudiente'] ?? ''; ?></td>
+
+<td><?php echo $dep['parentesco'] ?? ''; ?></td>
+
+<td><?php echo $dep['fecha_nacimiento']; ?></td>
+
+<td><?php echo $dep['categoria']; ?></td>
 
 <td class="text-center">
 
 <input
 type="checkbox"
-class="jugador-check"
-value="<?php echo $dep['id']; ?>"
-data-nombre="<?php echo $dep['nombre']; ?>"
+class="form-check-input jugador-check"
+
+data-id="<?php echo $dep['id']; ?>"
+data-nombre="<?php echo htmlspecialchars($dep['nombre']); ?>"
+data-documento="<?php echo htmlspecialchars($dep['documento']); ?>"
+data-telefono="<?php echo htmlspecialchars($dep['telefono']); ?>"
+data-entrenador="<?php echo htmlspecialchars($dep['entrenador'] ?? ''); ?>"
+data-acudiente="<?php echo htmlspecialchars($dep['acudiente'] ?? ''); ?>"
+data-parentesco="<?php echo htmlspecialchars($dep['parentesco'] ?? ''); ?>"
+data-fecha="<?php echo htmlspecialchars($dep['fecha_nacimiento']); ?>"
+data-categoria="<?php echo htmlspecialchars($dep['categoria']); ?>"
+
 <?php echo $checked; ?>>
 
 </td>
@@ -263,40 +353,60 @@ data-nombre="<?php echo $dep['nombre']; ?>"
 
 </div>
 
+<?php } ?>
+
 <hr class="my-4">
 
 <!-- =====================================
 TABLA CONVOCADOS
 ===================================== -->
-<h4>
+<h4 class="mb-3">
 <i class="fa-solid fa-list"></i>
 Convocados
 </h4>
 
-<table class="table table-striped">
+<div class="table-responsive">
+
+<table class="table table-striped table-bordered">
 
 <thead class="table-dark">
 
 <tr>
-<th>ID</th>
+
 <th>Jugador</th>
+<th>Documento</th>
+<th>Teléfono</th>
+<th>Entrenador</th>
+<th>Acudiente</th>
+<th>Parentesco</th>
+<th>Nacimiento</th>
+<th>Categoría</th>
+
 </tr>
 
 </thead>
 
-<tbody id="tablaConvocados">
+<tbody>
 
-<?php foreach ($_SESSION['convocados'] as $id => $nombre): ?>
+<?php foreach ($_SESSION['convocados'] as $convocado): ?>
 
 <tr>
 
-<td>
-<?php echo $id; ?>
-</td>
+<td><?php echo $convocado['nombre'] ?? ''; ?></td>
 
-<td>
-<?php echo $nombre; ?>
-</td>
+<td><?php echo $convocado['documento'] ?? ''; ?></td>
+
+<td><?php echo $convocado['telefono'] ?? ''; ?></td>
+
+<td><?php echo $convocado['entrenador'] ?? ''; ?></td>
+
+<td><?php echo $convocado['acudiente'] ?? ''; ?></td>
+
+<td><?php echo $convocado['parentesco'] ?? ''; ?></td>
+
+<td><?php echo $convocado['fecha_nacimiento'] ?? ''; ?></td>
+
+<td><?php echo $convocado['categoria'] ?? ''; ?></td>
 
 </tr>
 
@@ -306,10 +416,12 @@ Convocados
 
 </table>
 
+</div>
+
 <!-- =====================================
 BOTÓN DESCARGAR
 ===================================== -->
-<div class="mt-3 text-end">
+<div class="mt-4 text-end">
 
 <form 
 method="POST"
@@ -341,18 +453,21 @@ Descargar Convocatoria
 
 </div>
 
-<?php } ?>
-
 </div>
 
 </div>
 
 <script>
+
 document.addEventListener("DOMContentLoaded", () => {
 
 const checks = document.querySelectorAll(".jugador-check");
-const categoriaSelect = document.getElementById("categoriaSelect");
-const fechaInput = document.getElementById("fechaInput");
+
+const categoriaSelect =
+document.getElementById("categoriaSelect");
+
+const fechaInput =
+document.getElementById("fechaInput");
 
 /*
 =====================================
@@ -397,7 +512,22 @@ let accion = c.checked
 ? "agregar"
 : "quitar";
 
-await fetch("", {
+const body = new URLSearchParams({
+
+accion: accion,
+id: c.dataset.id,
+nombre: c.dataset.nombre,
+documento: c.dataset.documento,
+telefono: c.dataset.telefono,
+entrenador: c.dataset.entrenador,
+acudiente: c.dataset.acudiente,
+parentesco: c.dataset.parentesco,
+fecha_nacimiento: c.dataset.fecha,
+categoria: c.dataset.categoria
+
+});
+
+await fetch(window.location.href, {
 
 method: "POST",
 
@@ -406,8 +536,7 @@ headers: {
 "application/x-www-form-urlencoded"
 },
 
-body:
-`accion=${accion}&id=${c.value}&nombre=${c.dataset.nombre}`
+body: body.toString()
 
 });
 
@@ -418,6 +547,7 @@ location.reload();
 });
 
 });
+
 </script>
 
 </body>
