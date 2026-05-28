@@ -3,26 +3,51 @@ session_start();
 
 /*
 =========================
-CONEXIÓN
+CONEXIÓN NUEVA BD CMS
 =========================
 */
-include("../includes/conexion.php");
+include(__DIR__ . "/../includes/conexion_BDcms.php");
 
 /*
 =========================
-CONSULTAR DATOS
+CONSULTAR DATOS CMS
 =========================
 */
-
 $stmt = $conexion->prepare("
     SELECT *
-    FROM pagina_inicio
+    FROM cms_inicio
     LIMIT 1
 ");
 
 $stmt->execute();
 
 $inicio = $stmt->fetch(PDO::FETCH_ASSOC);
+
+/*
+=========================
+EVITAR ERRORES
+=========================
+*/
+if(!$inicio){
+
+    $inicio = [
+
+        "titulo" => "",
+        "descripcion" => "",
+
+        "imagen_principal" => "",
+
+        "tarjeta1_texto" => "",
+        "tarjeta1_img" => "",
+
+        "tarjeta2_texto" => "",
+        "tarjeta2_img" => "",
+
+        "tarjeta3_texto" => "",
+        "tarjeta3_img" => ""
+
+    ];
+}
 
 ?>
 
@@ -38,12 +63,12 @@ $inicio = $stmt->fetch(PDO::FETCH_ASSOC);
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>BellavistaFC</title>
+    <title>Bellavista FC</title>
 
     <!-- CSS -->
     <link
         rel="stylesheet"
-        href="/BFC-dev1.github.io/assets/estilo.css"
+        href="/BFC-dev2/assets/estilo.css"
     >
 
 </head>
@@ -59,23 +84,25 @@ $inicio = $stmt->fetch(PDO::FETCH_ASSOC);
 <section class="principal">
 
     <!-- IMAGEN PRINCIPAL -->
-
     <div class="imagen-central">
 
-        <img
-            src="/BFC-dev1.github.io/assets/img/<?php echo $inicio['imagen_principal']; ?>"
-            alt="Image1"
-        >
+        <?php if(!empty($inicio['imagen_principal'])){ ?>
+
+            <img
+                src="/BFC-dev2/assets/img/<?php echo htmlspecialchars($inicio['imagen_principal']); ?>"
+                alt="Imagen Principal"
+            >
+
+        <?php } ?>
 
     </div>
 
     <!-- TEXTO -->
-
     <div class="texto-lateral">
 
         <p>
 
-            <?php echo $inicio['descripcion']; ?>
+            <?php echo nl2br(htmlspecialchars($inicio['descripcion'])); ?>
 
         </p>
 
@@ -90,18 +117,22 @@ $inicio = $stmt->fetch(PDO::FETCH_ASSOC);
 <section class="tarjetas">
 
     <!-- TARJETA 1 -->
-
     <div class="card">
 
-        <img
-            src="/BFC-dev1.github.io/assets/img/<?php echo $inicio['tarjeta1_img']; ?>"
-        >
+        <?php if(!empty($inicio['tarjeta1_img'])){ ?>
+
+            <img
+                src="/BFC-dev2/assets/img/<?php echo htmlspecialchars($inicio['tarjeta1_img']); ?>"
+                alt="Tarjeta 1"
+            >
+
+        <?php } ?>
 
         <div class="overlay">
 
             <p>
 
-                <?php echo $inicio['tarjeta1_texto']; ?>
+                <?php echo htmlspecialchars($inicio['tarjeta1_texto']); ?>
 
             </p>
 
@@ -110,18 +141,22 @@ $inicio = $stmt->fetch(PDO::FETCH_ASSOC);
     </div>
 
     <!-- TARJETA 2 -->
-
     <div class="card">
 
-        <img
-            src="/BFC-dev1.github.io/assets/img/<?php echo $inicio['tarjeta2_img']; ?>"
-        >
+        <?php if(!empty($inicio['tarjeta2_img'])){ ?>
+
+            <img
+                src="/BFC-dev2/assets/img/<?php echo htmlspecialchars($inicio['tarjeta2_img']); ?>"
+                alt="Tarjeta 2"
+            >
+
+        <?php } ?>
 
         <div class="overlay">
 
             <p>
 
-                <?php echo $inicio['tarjeta2_texto']; ?>
+                <?php echo htmlspecialchars($inicio['tarjeta2_texto']); ?>
 
             </p>
 
@@ -130,18 +165,22 @@ $inicio = $stmt->fetch(PDO::FETCH_ASSOC);
     </div>
 
     <!-- TARJETA 3 -->
-
     <div class="card">
 
-        <img
-            src="/BFC-dev1.github.io/assets/img/<?php echo $inicio['tarjeta3_img']; ?>"
-        >
+        <?php if(!empty($inicio['tarjeta3_img'])){ ?>
+
+            <img
+                src="/BFC-dev2/assets/img/<?php echo htmlspecialchars($inicio['tarjeta3_img']); ?>"
+                alt="Tarjeta 3"
+            >
+
+        <?php } ?>
 
         <div class="overlay">
 
             <p>
 
-                <?php echo $inicio['tarjeta3_texto']; ?>
+                <?php echo htmlspecialchars($inicio['tarjeta3_texto']); ?>
 
             </p>
 
