@@ -1,352 +1,352 @@
-<?php
-session_start();
+    <?php
+    session_start();
 
-include(__DIR__ . "/../../includes/conexion_BDcms.php");
+    include(__DIR__ . "/../../includes/conexion_BDcms.php");
 
-/*
-=========================
-CONSULTAR CONTACTO
-=========================
-*/
+    /*
+    =========================
+    CONSULTAR CONTACTO
+    =========================
+    */
 
-$stmt = $conexion->prepare("
-    SELECT *
-    FROM cms_contacto
-    LIMIT 1
-");
-
-$stmt->execute();
-
-$contacto = $stmt->fetch(PDO::FETCH_ASSOC);
-
-/* EVITAR ERRORES SI NO EXISTE REGISTRO */
-if(!$contacto){
-
-    $contacto = [
-        "titulo" => "",
-        "descripcion" => "",
-        "linea_unica" => "",
-        "servicio_cliente" => "",
-        "fijo" => "",
-        "whatsapp" => "",
-        "correo" => "",
-        "horario_lun_vie" => "",
-        "horario_sab" => ""
-    ];
-}
-
-/*
-=========================
-GUARDAR CAMBIOS
-=========================
-*/
-
-if($_SERVER["REQUEST_METHOD"] == "POST"){
-
-    $titulo = trim($_POST['titulo'] ?? "");
-    $descripcion = trim($_POST['descripcion'] ?? "");
-
-    $linea_unica = trim($_POST['linea_unica'] ?? "");
-    $servicio_cliente = trim($_POST['servicio_cliente'] ?? "");
-    $fijo = trim($_POST['fijo'] ?? "");
-    $whatsapp = trim($_POST['whatsapp'] ?? "");
-    $correo = trim($_POST['correo'] ?? "");
-
-    $horario_lun_vie = trim($_POST['horario_lun_vie'] ?? "");
-    $horario_sab = trim($_POST['horario_sab'] ?? "");
-
-    $stmtUpdate = $conexion->prepare("
-        UPDATE cms_contacto SET
-
-        titulo = :titulo,
-        descripcion = :descripcion,
-
-        linea_unica = :linea_unica,
-        servicio_cliente = :servicio_cliente,
-        fijo = :fijo,
-        whatsapp = :whatsapp,
-        correo = :correo,
-
-        horario_lun_vie = :horario_lun_vie,
-        horario_sab = :horario_sab
-
-        WHERE id = 1
+    $stmt = $conexion->prepare("
+        SELECT *
+        FROM cms_contacto
+        LIMIT 1
     ");
 
-    $stmtUpdate->execute([
+    $stmt->execute();
 
-        ":titulo" => $titulo,
-        ":descripcion" => $descripcion,
+    $contacto = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        ":linea_unica" => $linea_unica,
-        ":servicio_cliente" => $servicio_cliente,
-        ":fijo" => $fijo,
-        ":whatsapp" => $whatsapp,
-        ":correo" => $correo,
+    /* EVITAR ERRORES SI NO EXISTE REGISTRO */
+    if(!$contacto){
 
-        ":horario_lun_vie" => $horario_lun_vie,
-        ":horario_sab" => $horario_sab
-    ]);
+        $contacto = [
+            "titulo" => "",
+            "descripcion" => "",
+            "linea_unica" => "",
+            "servicio_cliente" => "",
+            "fijo" => "",
+            "whatsapp" => "",
+            "correo" => "",
+            "horario_lun_vie" => "",
+            "horario_sab" => ""
+        ];
+    }
 
-    header("Location: editar_contacto.php?ok=1");
-    exit;
-}
-?>
+    /*
+    =========================
+    GUARDAR CAMBIOS
+    =========================
+    */
 
-<!DOCTYPE html>
-<html lang="es">
+    if($_SERVER["REQUEST_METHOD"] == "POST"){
 
-<head>
+        $titulo = trim($_POST['titulo'] ?? "");
+        $descripcion = trim($_POST['descripcion'] ?? "");
 
-    <meta charset="UTF-8">
+        $linea_unica = trim($_POST['linea_unica'] ?? "");
+        $servicio_cliente = trim($_POST['servicio_cliente'] ?? "");
+        $fijo = trim($_POST['fijo'] ?? "");
+        $whatsapp = trim($_POST['whatsapp'] ?? "");
+        $correo = trim($_POST['correo'] ?? "");
 
-    <title>Editar Contacto</title>
+        $horario_lun_vie = trim($_POST['horario_lun_vie'] ?? "");
+        $horario_sab = trim($_POST['horario_sab'] ?? "");
 
-    <!-- BOOTSTRAP -->
-    <link 
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" 
-        rel="stylesheet"
-    >
+        $stmtUpdate = $conexion->prepare("
+            UPDATE cms_contacto SET
 
-    <!-- FONT AWESOME -->
-    <link 
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-    >
+            titulo = :titulo,
+            descripcion = :descripcion,
 
-</head>
+            linea_unica = :linea_unica,
+            servicio_cliente = :servicio_cliente,
+            fijo = :fijo,
+            whatsapp = :whatsapp,
+            correo = :correo,
 
-<body class="bg-light">
+            horario_lun_vie = :horario_lun_vie,
+            horario_sab = :horario_sab
 
-<div class="container py-5">
+            WHERE id = 1
+        ");
 
-    <div class="card shadow p-4">
+        $stmtUpdate->execute([
 
-        <!-- TITULO -->
-        <h2 class="mb-4">
+            ":titulo" => $titulo,
+            ":descripcion" => $descripcion,
 
-            <i class="fa-solid fa-phone"></i>
-            Editar Página de Contacto
+            ":linea_unica" => $linea_unica,
+            ":servicio_cliente" => $servicio_cliente,
+            ":fijo" => $fijo,
+            ":whatsapp" => $whatsapp,
+            ":correo" => $correo,
 
-        </h2>
+            ":horario_lun_vie" => $horario_lun_vie,
+            ":horario_sab" => $horario_sab
+        ]);
 
-        <!-- ALERTA -->
-        <?php if(isset($_GET['ok'])){ ?>
+        header("Location: editar_contacto.php?ok=1");
+        exit;
+    }
+    ?>
 
-            <div class="alert alert-success">
+    <!DOCTYPE html>
+    <html lang="es">
 
-                <i class="fa-solid fa-circle-check"></i>
-                Información de contacto actualizada correctamente
+    <head>
 
-            </div>
+        <meta charset="UTF-8">
 
-        <?php } ?>
+        <title>Editar Contacto</title>
 
-        <form method="POST">
+        <!-- BOOTSTRAP -->
+        <link 
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" 
+            rel="stylesheet"
+        >
+
+        <!-- FONT AWESOME -->
+        <link 
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        >
+
+    </head>
+
+    <body class="bg-light">
+
+    <div class="container py-5">
+
+        <div class="card shadow p-4">
 
             <!-- TITULO -->
-            <div class="mb-3">
+            <h2 class="mb-4">
 
-                <label class="form-label fw-bold">
+                <i class="fa-solid fa-phone"></i>
+                Editar Página de Contacto
 
-                    <i class="fa-solid fa-heading"></i>
-                    Título
+            </h2>
 
-                </label>
+            <!-- ALERTA -->
+            <?php if(isset($_GET['ok'])){ ?>
 
-                <input 
-                    type="text" 
-                    name="titulo" 
-                    class="form-control"
-                    value="<?php echo $contacto['titulo']; ?>"
-                >
+                <div class="alert alert-success">
 
-            </div>
+                    <i class="fa-solid fa-circle-check"></i>
+                    Información de contacto actualizada correctamente
 
-            <!-- DESCRIPCION -->
-            <div class="mb-3">
+                </div>
 
-                <label class="form-label fw-bold">
+            <?php } ?>
 
-                    <i class="fa-solid fa-align-left"></i>
-                    Descripción
+            <form method="POST">
 
-                </label>
+                <!-- TITULO -->
+                <div class="mb-3">
 
-                <textarea 
-                    name="descripcion" 
-                    class="form-control" 
-                    rows="3"
-                ><?php echo $contacto['descripcion']; ?></textarea>
+                    <label class="form-label fw-bold">
 
-            </div>
+                        <i class="fa-solid fa-heading"></i>
+                        Título
 
-            <hr>
+                    </label>
 
-            <!-- CONTACTO -->
-            <h5 class="mb-3">
+                    <input 
+                        type="text" 
+                        name="titulo" 
+                        class="form-control"
+                        value="<?php echo $contacto['titulo']; ?>"
+                    >
 
-                <i class="fa-solid fa-address-book"></i>
-                Información de contacto
+                </div>
 
-            </h5>
+                <!-- DESCRIPCION -->
+                <div class="mb-3">
 
-            <!-- LINEA UNICA -->
-            <div class="input-group mb-3">
+                    <label class="form-label fw-bold">
 
-                <span class="input-group-text">
+                        <i class="fa-solid fa-align-left"></i>
+                        Descripción
 
-                    <i class="fa-solid fa-phone-volume"></i>
+                    </label>
 
-                </span>
+                    <textarea 
+                        name="descripcion" 
+                        class="form-control" 
+                        rows="3"
+                    ><?php echo $contacto['descripcion']; ?></textarea>
 
-                <input 
-                    type="text" 
-                    name="linea_unica" 
-                    class="form-control"
-                    value="<?php echo $contacto['linea_unica']; ?>" 
-                    placeholder="Línea única"
-                >
+                </div>
 
-            </div>
+                <hr>
 
-            <!-- SERVICIO CLIENTE -->
-            <div class="input-group mb-3">
+                <!-- CONTACTO -->
+                <h5 class="mb-3">
 
-                <span class="input-group-text">
+                    <i class="fa-solid fa-address-book"></i>
+                    Información de contacto
 
-                    <i class="fa-solid fa-headset"></i>
+                </h5>
 
-                </span>
+                <!-- LINEA UNICA -->
+                <div class="input-group mb-3">
 
-                <input 
-                    type="text" 
-                    name="servicio_cliente" 
-                    class="form-control"
-                    value="<?php echo $contacto['servicio_cliente']; ?>" 
-                    placeholder="Servicio cliente"
-                >
+                    <span class="input-group-text">
 
-            </div>
+                        <i class="fa-solid fa-phone-volume"></i>
 
-            <!-- TELEFONO FIJO -->
-            <div class="input-group mb-3">
+                    </span>
 
-                <span class="input-group-text">
+                    <input 
+                        type="text" 
+                        name="linea_unica" 
+                        class="form-control"
+                        value="<?php echo $contacto['linea_unica']; ?>" 
+                        placeholder="Línea única"
+                    >
 
-                    <i class="fa-solid fa-phone"></i>
+                </div>
 
-                </span>
+                <!-- SERVICIO CLIENTE -->
+                <div class="input-group mb-3">
 
-                <input 
-                    type="text" 
-                    name="fijo" 
-                    class="form-control"
-                    value="<?php echo $contacto['fijo']; ?>" 
-                    placeholder="Fijo"
-                >
+                    <span class="input-group-text">
 
-            </div>
+                        <i class="fa-solid fa-headset"></i>
 
-            <!-- WHATSAPP -->
-            <div class="input-group mb-3">
+                    </span>
 
-                <span class="input-group-text">
+                    <input 
+                        type="text" 
+                        name="servicio_cliente" 
+                        class="form-control"
+                        value="<?php echo $contacto['servicio_cliente']; ?>" 
+                        placeholder="Servicio cliente"
+                    >
 
-                    <i class="fa-brands fa-whatsapp"></i>
+                </div>
 
-                </span>
+                <!-- TELEFONO FIJO -->
+                <div class="input-group mb-3">
 
-                <input 
-                    type="text" 
-                    name="whatsapp" 
-                    class="form-control"
-                    value="<?php echo $contacto['whatsapp']; ?>" 
-                    placeholder="WhatsApp"
-                >
+                    <span class="input-group-text">
 
-            </div>
+                        <i class="fa-solid fa-phone"></i>
 
-            <!-- CORREO -->
-            <div class="input-group mb-3">
+                    </span>
 
-                <span class="input-group-text">
+                    <input 
+                        type="text" 
+                        name="fijo" 
+                        class="form-control"
+                        value="<?php echo $contacto['fijo']; ?>" 
+                        placeholder="Fijo"
+                    >
 
-                    <i class="fa-solid fa-envelope"></i>
+                </div>
 
-                </span>
+                <!-- WHATSAPP -->
+                <div class="input-group mb-3">
 
-                <input 
-                    type="email" 
-                    name="correo" 
-                    class="form-control"
-                    value="<?php echo $contacto['correo']; ?>" 
-                    placeholder="Correo"
-                >
+                    <span class="input-group-text">
 
-            </div>
+                        <i class="fa-brands fa-whatsapp"></i>
 
-            <hr>
+                    </span>
 
-            <!-- HORARIOS -->
-            <h5 class="mb-3">
+                    <input 
+                        type="text" 
+                        name="whatsapp" 
+                        class="form-control"
+                        value="<?php echo $contacto['whatsapp']; ?>" 
+                        placeholder="WhatsApp"
+                    >
 
-                <i class="fa-solid fa-clock"></i>
-                Horarios
+                </div>
 
-            </h5>
+                <!-- CORREO -->
+                <div class="input-group mb-3">
 
-            <!-- LUNES A VIERNES -->
-            <div class="input-group mb-3">
+                    <span class="input-group-text">
 
-                <span class="input-group-text">
+                        <i class="fa-solid fa-envelope"></i>
 
-                    <i class="fa-solid fa-calendar-days"></i>
+                    </span>
 
-                </span>
+                    <input 
+                        type="email" 
+                        name="correo" 
+                        class="form-control"
+                        value="<?php echo $contacto['correo']; ?>" 
+                        placeholder="Correo"
+                    >
 
-                <input 
-                    type="text" 
-                    name="horario_lun_vie" 
-                    class="form-control"
-                    value="<?php echo $contacto['horario_lun_vie']; ?>"
-                    placeholder="Horario lunes a viernes"
-                >
+                </div>
 
-            </div>
+                <hr>
 
-            <!-- SABADO -->
-            <div class="input-group mb-4">
+                <!-- HORARIOS -->
+                <h5 class="mb-3">
 
-                <span class="input-group-text">
+                    <i class="fa-solid fa-clock"></i>
+                    Horarios
 
-                    <i class="fa-solid fa-calendar"></i>
+                </h5>
 
-                </span>
+                <!-- LUNES A VIERNES -->
+                <div class="input-group mb-3">
 
-                <input 
-                    type="text" 
-                    name="horario_sab" 
-                    class="form-control"
-                    value="<?php echo $contacto['horario_sab']; ?>"
-                    placeholder="Horario sábado"
-                >
+                    <span class="input-group-text">
 
-            </div>
+                        <i class="fa-solid fa-calendar-days"></i>
 
-            <!-- BOTON -->
-            <button class="btn btn-primary">
+                    </span>
 
-                <i class="fa-solid fa-floppy-disk"></i>
-                Guardar Cambios
+                    <input 
+                        type="text" 
+                        name="horario_lun_vie" 
+                        class="form-control"
+                        value="<?php echo $contacto['horario_lun_vie']; ?>"
+                        placeholder="Horario lunes a viernes"
+                    >
 
-            </button>
+                </div>
 
-        </form>
+                <!-- SABADO -->
+                <div class="input-group mb-4">
+
+                    <span class="input-group-text">
+
+                        <i class="fa-solid fa-calendar"></i>
+
+                    </span>
+
+                    <input 
+                        type="text" 
+                        name="horario_sab" 
+                        class="form-control"
+                        value="<?php echo $contacto['horario_sab']; ?>"
+                        placeholder="Horario sábado"
+                    >
+
+                </div>
+
+                <!-- BOTON -->
+                <button class="btn btn-primary">
+
+                    <i class="fa-solid fa-floppy-disk"></i>
+                    Guardar Cambios
+
+                </button>
+
+            </form>
+
+        </div>
 
     </div>
 
-</div>
-
-</body>
-</html>
+    </body>
+    </html>

@@ -57,52 +57,6 @@ if(isset($_GET['id'])){
 
 
 
-// ✅ CAMBIAR ESTADO
-if(isset($_GET['estado'])){
-
-    $id = $_GET['estado'];
-
-    $stm = $conexion->prepare("
-    SELECT estado
-    FROM deportista
-    WHERE id = :id
-    ");
-
-    $stm->execute([
-        ":id"=>$id
-    ]);
-
-    $deportista_estado = $stm->fetch(PDO::FETCH_ASSOC);
-
-    if($deportista_estado){
-
-        $nuevo_estado = ($deportista_estado['estado'] == 'activo')
-        ? 'inactivo'
-        : 'activo';
-
-        $update = $conexion->prepare("
-        UPDATE deportista
-        SET estado = :estado
-        WHERE id = :id
-        ");
-
-        $update->execute([
-            ":estado"=>$nuevo_estado,
-            ":id"=>$id
-        ]);
-
-    }
-
-    echo "
-    <script>
-        window.location='index.php';
-    </script>
-    ";
-
-    exit;
-
-}
-
 ?>
 
 
@@ -269,7 +223,14 @@ function confirmarEliminacion(id){
 // ✅ CAMBIAR ESTADO
 function cambiarEstado(id){
 
-    window.location = "index.php?estado=" + id;
+    fetch("cambiar_estado_deportista.php?id=" + id)
+    .then(response => response.text())
+    .then(data => {
+        console.log("Respuesta:", data);
+    })
+    .catch(error => {
+        console.error("Error:", error);
+    });
 
 }
 
