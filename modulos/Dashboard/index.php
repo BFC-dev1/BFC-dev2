@@ -79,7 +79,7 @@ $deportistasInactivos = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
         <div class="row g-4">
 
             <!-- TOTAL -->
-            <div class="col-md-4">
+            <div class="col-12 col-sm-6 col-md-4">
 
                 <div class="metric-card">
 
@@ -102,7 +102,7 @@ $deportistasInactivos = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
             </div>
 
             <!-- ACTIVOS -->
-            <div class="col-md-4">
+            <div class="col-12 col-sm-6 col-md-4">
 
                 <div class="metric-card">
 
@@ -125,7 +125,7 @@ $deportistasInactivos = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
             </div>
 
             <!-- INACTIVOS -->
-            <div class="col-md-4">
+            <div class="col-12 col-sm-6 col-md-4">
 
                 <div class="metric-card">
 
@@ -162,7 +162,7 @@ $deportistasInactivos = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
         <div class="row g-4">
 
             <!-- TOTAL -->
-            <div class="col-md-4">
+            <div class="col-12 col-sm-6 col-md-4">
 
                 <div class="metric-card">
 
@@ -185,7 +185,7 @@ $deportistasInactivos = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
             </div>
 
             <!-- ACTIVOS -->
-            <div class="col-md-4">
+            <div class="col-12 col-sm-6 col-md-4">
 
                 <div class="metric-card">
 
@@ -208,7 +208,7 @@ $deportistasInactivos = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
             </div>
 
             <!-- INACTIVOS -->
-            <div class="col-md-4">
+            <div class="col-12 col-sm-6 col-md-4">
 
                 <div class="metric-card">
 

@@ -361,7 +361,7 @@ if(isset($_FILES['documentos'])){
 }
 
 
-    header("location:index.php");
+    header("location:index.php?actualizado=1");
     exit;
 
 }

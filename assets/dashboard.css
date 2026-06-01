@@ -59,10 +59,10 @@ MAIN CONTENT
 ========================= */
 .main-content {
     margin-left: 250px;
-    width: calc(100% - 250px);
     min-height: 100vh;
     padding: 30px;
     background: #f4f6f9;
+    overflow-x: hidden;
 }
 
 /* =========================
@@ -238,8 +238,8 @@ RESPONSIVE
 
     .main-content {
         margin-left: 0;
-        width: 100%;
-        padding: 20px;
+        width: auto;
+        padding: 75px 15px 20px;
     }
 
     .menu-toggle {
@@ -260,4 +260,26 @@ RESPONSIVE
         font-size: 18px;
     }
 
+    .section-title {
+        font-size: 18px;
+    }
+
+    .metric-card {
+        text-align: center;
+    }
+
+    .metric-icon {
+        margin: 0 auto 15px;
+    }
+
+    .metric-value {
+        font-size: 28px;
+    }
+
+}
+
+html,
+body {
+    overflow-x: hidden;
+    max-width: 100%;
 }

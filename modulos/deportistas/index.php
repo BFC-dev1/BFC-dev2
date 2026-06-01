@@ -62,6 +62,59 @@ if(isset($_GET['id'])){
 
 <?php include("../../template/header_modulos.php") ?>
 
+<?php if(isset($_GET['actualizado'])){ ?>
+
+<div class="modal fade" id="modalExito" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    Operación Exitosa
+                </h5>
+            </div>
+
+            <div class="modal-body text-center">
+
+                <h4>Guardado con éxito</h4>
+
+                <p>
+                    Los datos del deportista fueron actualizados correctamente.
+                </p>
+
+            </div>
+
+            <div class="modal-footer justify-content-center">
+
+                <button
+                    type="button"
+                    class="btn text-white px-4"
+                    style="background:#0A4FA3;border:none;"
+                    onclick="location.href='index.php'"
+                >
+                    Aceptar
+                </button>
+
+            </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+
+    var modal = new bootstrap.Modal(
+        document.getElementById('modalExito')
+    );
+
+    modal.show();
+
+});
+</script>
+
+<?php } ?>
 
 <div class="d-flex align-items-center gap-2 mb-3">
 
