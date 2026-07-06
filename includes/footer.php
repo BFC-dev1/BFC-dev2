@@ -1,9 +1,6 @@
 <!-- ===== FOOTER ===== -->
 <footer class="footer">
-    © 2026 Bellavista FC. Todos los derechos reservados. Club de fútbol dedicado a la formación deportiva. 
-    La participación implica la aceptación de normas internas. 
-    No nos hacemos responsables por accidentes durante las actividades. 
-    Información sujeta a cambios.
+    © 2026 Bellavista FC. Todos los derechos reservados. | Reglamento Interno, Términos y Condiciones.
 </footer>
 
 <script>
