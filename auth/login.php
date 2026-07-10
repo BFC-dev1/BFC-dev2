@@ -33,17 +33,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $admin = $stmt->fetch(PDO::FETCH_ASSOC);
 
         // Verificar usuario
-        if ($admin) {
+        if (!$admin) {
 
-            // Verificar contraseña
-            if ($password == $admin['password']) {
+            $error = "Usuario no encontrado.";
+
+        } else {
+
+            // Verificar estado del usuario
+            if ($admin['estado'] != 'activo') {
+
+                $error = "Usuario inactivo. Contacte al administrador del sistema.";
+
+            } elseif ($password == $admin['password']) {
 
                 session_regenerate_id(true);
 
                 $_SESSION['usuario'] = $admin['usuario'];
                 $_SESSION['id_usuario'] = $admin['id'];
 
-                // Redireccionar
                 header("Location: /BFC-dev2/modulos/Dashboard/index.php");
                 exit;
 
@@ -52,14 +59,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $error = "Contraseña incorrecta.";
 
             }
-
-        } else {
-
-            $error = "Usuario no encontrado.";
-
         }
-    }
-}
+
+    }   // ← Cierra el else de "empty()"
+
+}       // ← ESTA LLAVE Cierra el if ($_SERVER["REQUEST_METHOD"] == "POST")
+
 ?>
 
 <!DOCTYPE html>
@@ -142,6 +147,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             Entrar
         </button>
 
+        <p style="text-align:center;margin-top:10px;">
+    <a href="recuperar.php">
+        ¿Olvidaste tu contraseña?
+    </a>
+</p>
         <p style="text-align:center; margin-top:10px;">
             <a href="../auth/registro.php">
                 Crear cuenta
