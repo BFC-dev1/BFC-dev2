@@ -476,13 +476,23 @@ name="tarjeta3_img"
 class="form-control mb-4">
 
 
-<!-- BOTÓN -->
-<button class="btn btn-primary">
+<!-- BOTONES -->
+<button type="submit" class="btn btn-primary">
 
-<i class="fa-solid fa-floppy-disk"></i>
-Guardar Cambios
+    <i class="fa-solid fa-floppy-disk me-2"></i>
+    Guardar Cambios
 
 </button>
+
+<a
+    href="/BFC-dev2/modulos/Dashboard/index.php"
+    class="btn btn-outline-secondary ms-2"
+>
+
+    <i class="fa-solid fa-arrow-left me-2"></i>
+    Cancelar
+
+</a>
 
 </form>
 

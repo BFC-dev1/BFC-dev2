@@ -1,57 +1,143 @@
-function QuienesSomos() {
-  return (
-    <>
-      {/* ===== BANNER ===== */}
-      <section className="banner-contacto">
-        QUIÉNES SOMOS
-      </section>
+<?php
+session_start();
 
-      {/* ===== CONTENIDO ===== */}
-      <section className="contenedor-contacto">
-        <div className="card-contacto">
+include(__DIR__ . "/../includes/conexion_BDcms.php");
 
-          <h2>Quiénes somos</h2>
+/*
+=========================
+CONSULTAR QUIÉNES SOMOS
+=========================
+*/
 
-          <p>
-            Bellavista FC es un club dedicado a la formación deportiva de niños y jóvenes,
-            enfocado en el desarrollo técnico, la disciplina y el trabajo en equipo.
-          </p>
+$stmt = $conexion->prepare("
+    SELECT *
+    FROM cms_quienes_somos
+    LIMIT 1
+");
 
-          <h3>Nuestra misión</h3>
+$stmt->execute();
 
-          <p>
-            Formar deportistas integrales con habilidades técnicas y valores sólidos.
-          </p>
+$quienes = $stmt->fetch(PDO::FETCH_ASSOC);
 
-          <h3>Nuestra visión</h3>
+/* EVITAR ERRORES SI NO EXISTE REGISTRO */
+if(!$quienes){
 
-          <p>
-            Ser un referente en formación deportiva y desarrollo humano.
-          </p>
+    $quienes = [
 
-        </div>
-      </section>
+        "titulo" => "Quiénes Somos",
+        "descripcion" => "",
 
-      {/* ===== REDES ===== */}
-      <section className="redes">
-        <p>SÍGUENOS:</p>
+        "mision_titulo" => "Nuestra misión",
+        "mision" => "",
 
-        <div className="iconos">
-          <span>📸</span>
-          <span>📘</span>
-          <span>▶</span>
-          <span>𝕏</span>
-          <span>🎵</span>
-          <span>in</span>
-        </div>
-      </section>
+        "vision_titulo" => "Nuestra visión",
+        "vision" => ""
 
-      {/* ===== FOOTER ===== */}
-      <footer className="footer">
-        © 2026 Bellavista FC. Todos los derechos reservados.
-      </footer>
-    </>
-  );
+    ];
+
 }
+?>
 
-export default QuienesSomos;
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title><?php echo $quienes['titulo']; ?> - Bellavista FC</title>
+
+    <link rel="stylesheet" href="/BFC-dev2/assets/estilo.css">
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+    />
+
+</head>
+
+<body>
+
+<?php include("../includes/header.php"); ?>
+
+<!-- ===== BANNER ===== -->
+<section class="banner-contacto">
+
+    <h1><?php echo $quienes['titulo']; ?></h1>
+
+</section>
+
+<!-- ===== CONTENIDO ===== -->
+<section class="contenedor-contacto">
+
+    <div class="card-contacto">
+
+        <h2><?php echo $quienes['titulo']; ?></h2>
+
+        <p>
+
+            <?php echo nl2br($quienes['descripcion']); ?>
+
+        </p>
+
+        <div class="info-contacto">
+
+            <h3><?php echo $quienes['mision_titulo']; ?></h3>
+
+            <p>
+
+                <?php echo nl2br($quienes['mision']); ?>
+
+            </p>
+
+            <h3><?php echo $quienes['vision_titulo']; ?></h3>
+
+            <p>
+
+                <?php echo nl2br($quienes['vision']); ?>
+
+            </p>
+
+        </div>
+
+    </div>
+
+</section>
+
+<section class="redes">
+
+    <h3>Síguenos</h3>
+
+    <div class="iconos">
+
+        <a
+            href="https://www.facebook.com/BellavistaFC"
+            target="_blank"
+            title="Facebook"
+        >
+            <i class="fa-brands fa-facebook-f"></i>
+        </a>
+
+        <a
+            href="https://wa.me/573001234567"
+            target="_blank"
+            title="WhatsApp"
+        >
+            <i class="fa-brands fa-whatsapp"></i>
+        </a>
+
+    </div>
+
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="footer">
+
+  <?php include("../includes/footer.php"); ?>
+
+</footer>
+
+</body>
+</html>

@@ -266,13 +266,23 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 
             </div>
 
-            <!-- BOTON -->
-            <button class="btn btn-primary">
+            <!-- BOTONES -->
+            <button type="submit" class="btn btn-primary">
 
-                <i class="fa-solid fa-floppy-disk"></i>
+                <i class="fa-solid fa-floppy-disk me-2"></i>
                 Guardar Cambios
 
             </button>
+
+            <a
+                href="/BFC-dev2/modulos/Dashboard/index.php"
+                class="btn btn-outline-secondary ms-2"
+            >
+
+                <i class="fa-solid fa-arrow-left me-2"></i>
+                Cancelar
+
+            </a>
 
         </form>
 
