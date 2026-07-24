@@ -10,6 +10,19 @@ $modo = $_GET['modo'] ?? "tomar";
 ?>
 
 <div class="container py-4">
+    
+    <!-- BOTON VOLVER -->
+    <div class="d-flex align-items-center mb-3">
+
+        <a
+            href="http://localhost/BFC-dev2/modulos/dashboard/index.php"
+            class="btn btn-outline-dark"
+        >
+            <i class="fa-solid fa-arrow-left me-2"></i>
+            Volver al Dashboard
+        </a>
+
+    </div>
 
     <!-- TITULO -->
     <div class="mb-4">
