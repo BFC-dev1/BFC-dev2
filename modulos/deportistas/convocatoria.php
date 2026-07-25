@@ -146,43 +146,14 @@ if (!empty($categoria_id)) {
 }
 ?>
 
-<!DOCTYPE html>
-<html lang="es">
+<?php include("../../includes/header_dashboard.php"); ?>
+<link rel="stylesheet" href="/BFC-dev2/assets/convocatoria.css">
+<?php include("../../modulos/Dashboard/sidebar.php"); ?>
 
-<head>
+<div class="main-content">
+    <div class="container-fluid py-4">
 
-<meta charset="UTF-8">
-
-<title>Convocatoria</title>
-
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-
-<style>
-
-body{
-    background:#f4f6f9;
-}
-
-.card{
-    border:none;
-    border-radius:18px;
-}
-
-.table th{
-    white-space: nowrap;
-}
-
-</style>
-
-</head>
-
-<body>
-
-<div class="container py-5">
-
-<div class="card shadow p-4">
+        <div class="card shadow p-4">
 
 <h2 class="mb-4">
 <i class="fa-solid fa-clipboard-list"></i>
@@ -453,8 +424,8 @@ Descargar Convocatoria
 
 </div>
 
-</div>
-
+        </div>
+    </div>
 </div>
 
 <script>
@@ -552,3 +523,5 @@ location.reload();
 
 </body>
 </html>
+
+<?php include("../../includes/footer_dashboard.php"); ?>

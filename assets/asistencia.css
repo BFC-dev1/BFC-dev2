@@ -88,24 +88,51 @@ input[type="radio"] {
     }
 }
 
-/* ===== SIDEBAR RESPONSIVE ===== */
-@media (max-width: 768px) {
+/* ===== AJUSTES MOVIL DASHBOARD ===== */
 
+@media (max-width:768px) {
+
+    body {
+        overflow-x: hidden;
+    }
+
+
+    /* Sidebar cerrado */
     .sidebar {
         position: fixed;
-        left: -250px;
         top: 0;
-        height: 100%;
-        z-index: 1000;
-        transition: 0.3s;
-    }
-
-    .sidebar.active {
         left: 0;
+        height: 100vh;
+        transform: translateX(-100%);
+        transition: .3s ease;
+        z-index: 1000;
     }
 
-    #contenido {
+
+    /* Sidebar abierto */
+    .sidebar.active {
+        transform: translateX(0);
+    }
+
+
+    /* Contenido ocupa toda la pantalla */
+    #contenido,
+    .main-content {
         width: 100% !important;
+        margin-left: 0 !important;
+        padding: 15px;
+    }
+
+
+    /* Tabla asistencia */
+    .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+
+    .table {
+        width: 100%;
     }
 
 }

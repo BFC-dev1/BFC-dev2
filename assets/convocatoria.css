@@ -1,0 +1,89 @@
+/* ===========================
+   CONVOCATORIA
+=========================== */
+
+.main-content {
+    padding: 20px;
+}
+
+.card {
+    border-radius: 12px;
+}
+
+.card h2 {
+    font-weight: 700;
+    margin-bottom: 25px;
+}
+
+.form-label {
+    font-weight: 600;
+}
+
+.table-responsive {
+    margin-top: 20px;
+}
+
+.table th {
+    white-space: nowrap;
+    text-align: center;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.jugador-check {
+    transform: scale(1.2);
+    cursor: pointer;
+}
+
+.btn-success {
+    min-width: 220px;
+}
+
+.text-end {
+    margin-top: 25px;
+}
+
+@media (max-width: 768px) {
+
+    .card {
+        padding: 15px !important;
+    }
+
+    h2 {
+        font-size: 1.4rem;
+    }
+
+    .table {
+        font-size: .85rem;
+    }
+
+    .btn-success {
+        width: 100%;
+    }
+
+}
+
+/* La tabla puede hacer scroll */
+.table-responsive {
+    overflow-x: auto;
+}
+
+/* Fijar la última columna (Convocar) */
+.table th:last-child,
+.table td:last-child {
+    position: sticky;
+    right: 0;
+    background: #fff;
+    z-index: 5;
+    min-width: 90px;
+    text-align: center;
+}
+
+/* Cabecera */
+.table thead th:last-child {
+    background: #212529;
+    color: #fff;
+    z-index: 10;
+}
