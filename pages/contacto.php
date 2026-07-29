@@ -83,10 +83,7 @@ $contacto = $stmt->fetch(PDO::FETCH_ASSOC);
     </div>
 </section>
 
-<!-- ===== FOOTER ===== -->
-<footer class="footer">
-    © 2026 Bellavista FC. Todos los derechos reservados.
-</footer>
+<?php include("../includes/footer.php"); ?>
 
 </body>
 </html>

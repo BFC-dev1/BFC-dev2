@@ -446,11 +446,13 @@ if($_POST){
                                         Fecha de nacimiento
                                     </label>
 
-                                    <input 
-                                        type="date" 
-                                        class="form-control" 
+                                    <input
+                                        type="date"
+                                        id="fecha_nacimiento"
                                         name="fecha_nacimiento"
+                                        class="form-control"
                                         value="<?php echo $_POST['fecha_nacimiento'] ?? ''; ?>"
+                                        required
                                     >
 
                                 </div>
@@ -462,8 +464,9 @@ if($_POST){
                                         Categoría
                                     </label>
 
-                                    <select 
-                                        name="categoria_id" 
+                                    <select
+                                        id="categoria_id"
+                                        name="categoria_id"
                                         class="form-control"
                                         required
                                     >
@@ -475,23 +478,29 @@ if($_POST){
                                         <?php
 
                                         $stmt = $conexion->query("
-                                        SELECT id, nombre 
+                                        SELECT id, nombre, anio_desde, anio_hasta
                                         FROM categoria
+                                        ORDER BY anio_desde DESC
                                         ");
 
                                         while($row = $stmt->fetch(PDO::FETCH_ASSOC)){
 
                                             $selected = "";
 
-                                            if(($_POST['categoria_id'] ?? '') == $row['id']){
+                                            if(isset($_POST['categoria_id']) && $_POST['categoria_id'] == $row['id']){
                                                 $selected = "selected";
                                             }
 
-                                            echo "
-                                            <option value='".$row['id']."' $selected>
-                                                ".$row['nombre']."
-                                            </option>
-                                            ";
+                                        echo "
+                                        <option 
+                                            value='".$row['id']."' 
+                                            data-desde='".$row['anio_desde']."'
+                                            data-hasta='".$row['anio_hasta']."'
+                                            $selected
+                                        >
+                                            ".$row['nombre']."
+                                        </option>
+                                        ";
                                         }
 
                                         ?>
@@ -650,3 +659,44 @@ if($_POST){
     </div>
 
 </div>
+
+
+<script>
+
+document.getElementById("fecha_nacimiento")
+.addEventListener("change", function(){
+
+    let fecha = this.value;
+
+    if(fecha == ""){
+        return;
+    }
+
+    let añoNacimiento = new Date(fecha).getFullYear();
+
+    let opciones = document.querySelectorAll(
+        "#categoria_id option"
+    );
+
+
+    opciones.forEach(function(opcion){
+
+        let desde = parseInt(opcion.dataset.desde);
+        let hasta = parseInt(opcion.dataset.hasta);
+
+
+        if(
+            añoNacimiento >= desde &&
+            añoNacimiento <= hasta
+        ){
+
+            document.getElementById("categoria_id").value = opcion.value;
+
+        }
+
+    });
+
+
+});
+
+</script>
