@@ -4,31 +4,71 @@ include("../../modulos/conexion_modulos.php");
 
 include("crear_deportista.php");
 
+$buscar = trim($_GET["buscar"] ?? "");
 
 // ✅ CONSULTAR DEPORTISTAS
-$stm = $conexion->prepare("
-    SELECT 
-        d.*, 
-        c.nombre AS categoria_nombre,
+if($buscar != ""){
 
-        -- ✅ ACUDIENTE
-        ud.acudiente AS acudiente_nombre
+    $stm = $conexion->prepare("
+        SELECT
+            d.*,
+            c.nombre AS categoria_nombre,
+            ud.entrenador,
+            ud.acudiente AS acudiente_nombre
 
-    FROM deportista d
+        FROM deportista d
 
-    LEFT JOIN categoria c 
-        ON d.categoria_id = c.id
+        LEFT JOIN categoria c
+            ON d.categoria_id = c.id
 
-    LEFT JOIN usuario_deportista ud
-        ON ud.deportista_id = d.id
+        LEFT JOIN usuario_deportista ud
+            ON ud.deportista_id = d.id
 
-    ORDER BY d.id DESC
-");
+        WHERE
 
-$stm->execute();
+            d.tipo_documento LIKE :buscar
+            OR d.documento LIKE :buscar
+            OR d.telefono LIKE :buscar
+            OR d.nombre LIKE :buscar
+            OR d.fecha_nacimiento LIKE :buscar
+            OR d.posicion LIKE :buscar
+            OR c.nombre LIKE :buscar
+            OR ud.entrenador LIKE :buscar
+            OR ud.acudiente LIKE :buscar
+            OR d.estado LIKE :buscar
+
+        ORDER BY d.id DESC
+    ");
+
+    $stm->execute([
+        ":buscar" => "%".$buscar."%"
+    ]);
+
+}else{
+
+    $stm = $conexion->prepare("
+        SELECT
+            d.*,
+            c.nombre AS categoria_nombre,
+            ud.entrenador,
+            ud.acudiente AS acudiente_nombre
+
+        FROM deportista d
+
+        LEFT JOIN categoria c
+            ON d.categoria_id = c.id
+
+        LEFT JOIN usuario_deportista ud
+            ON ud.deportista_id = d.id
+
+        ORDER BY d.id DESC
+    ");
+
+    $stm->execute();
+
+}
 
 $deportista = $stm->fetchAll(PDO::FETCH_ASSOC);
-
 
 
 // ✅ ELIMINAR
@@ -116,25 +156,57 @@ document.addEventListener("DOMContentLoaded", function(){
 
 <?php } ?>
 
-<div class="d-flex align-items-center gap-2 mb-3">
+<div class="d-flex justify-content-between align-items-center mb-3">
 
-    <a 
-        href="http://localhost/BFC-dev2/modulos/dashboard/index.php" 
-        class="btn btn-outline-dark"
-    >
-        ← Volver al Dashboard
-    </a>
+    <div class="d-flex gap-2">
 
-    <button 
-        type="button" 
-        class="btn btn-primary" 
-        data-bs-toggle="modal" 
-        data-bs-target="#create"
-    >
-        Crear Deportista
-    </button>
+        <a
+            href="http://localhost/BFC-dev2/modulos/dashboard/index.php"
+            class="btn btn-outline-dark"
+        >
+            ← Volver al Dashboard
+        </a>
 
-</div> 
+        <button
+            type="button"
+            class="btn btn-primary"
+            data-bs-toggle="modal"
+            data-bs-target="#create"
+        >
+            Crear Deportista
+        </button>
+
+        <a
+            href="importar_deportista.php"
+            class="btn btn-success"
+        >
+            Importar Deportistas
+        </a>
+
+    </div>
+
+    <form method="GET" class="d-flex gap-2">
+
+        <input
+            type="text"
+            name="buscar"
+            class="form-control"
+            style="width:300px;"
+            placeholder="Buscar deportista, documento..."
+            value="<?php echo htmlspecialchars($buscar); ?>"
+        >
+
+        <button class="btn btn-primary">
+            Buscar
+        </button>
+
+        <a href="index.php" class="btn btn-secondary">
+            Limpiar
+        </a>
+
+    </form>
+
+</div>
 
 
 <table class="table table-bordered table-hover text-center align-middle">
