@@ -35,6 +35,25 @@ if(isset($_FILES['archivo'])){
     // Limpiar espacios
     $fila = array_map("trim", $fila);
 
+/*
+=================================================
+VALIDAR CANTIDAD DE COLUMNAS DEL CSV
+Verifica que cada fila tenga las 7 columnas
+esperadas antes de acceder a sus posiciones.
+Si faltan datos, la fila se ignora y se registra
+como un error.
+=================================================
+*/
+if(count($fila) < 7){
+
+    echo "<span style='color:red'>
+            La fila no tiene el número de columnas esperado.
+          </span><br>";
+
+    $errores++;
+    continue;
+}
+
     $tipo_documento   = strtoupper(trim($fila[0]));
     $documento        = trim($fila[1]);
     $telefono         = trim($fila[2]);
@@ -127,7 +146,15 @@ if(isset($_FILES['archivo'])){
             continue;
         }
 
-// Convertir fecha
+/*
+=================================================
+VALIDAR Y CONVERTIR FECHA DE NACIMIENTO
+Convierte la fecha del formato d/m/Y a Y-m-d y
+verifica que sea una fecha válida.
+=================================================
+*/
+$fecha = DateTime::createFromFormat("d/m/Y", $fecha_nacimiento);
+
 $fecha = DateTime::createFromFormat("d/m/Y", $fecha_nacimiento);
 
 if(!$fecha){
@@ -139,6 +166,8 @@ if(!$fecha){
     $errores++;
     continue;
 }
+
+$fecha_nacimiento = $fecha->format("Y-m-d");
 
 $fecha_nacimiento = $fecha->format("Y-m-d");
 
@@ -172,6 +201,13 @@ $fecha_nacimiento = $fecha->format("Y-m-d");
 
         $categoria_id = $categoria["id"];
 
+        /*
+=================================================
+REGISTRAR DEPORTISTA
+Inicia una transacción para insertar el
+deportista y asociarlo con su entrenador.
+=================================================
+*/
         try{
 
             $conexion->beginTransaction();
@@ -257,7 +293,9 @@ $fecha_nacimiento = $fecha->format("Y-m-d");
 
         }catch(PDOException $e){
 
+            if($conexion->inTransaction()){
             $conexion->rollBack();
+        }
 
             $errores++;
 
@@ -268,36 +306,56 @@ $fecha_nacimiento = $fecha->format("Y-m-d");
 
     }
 
-    fclose($archivo);
+fclose($archivo);
 
-    echo "<hr>";
+echo "<hr>";
 
-    echo "<h2>Resumen de la importación</h2>";
+/*
+=================================================
+MENSAJE FINAL DE LA IMPORTACIÓN
+Indica si la importación terminó correctamente
+o si hubo errores o registros duplicados.
+=================================================
+*/
+if($errores == 0 && $duplicados == 0){
 
-    echo "
-    <table border='1' cellpadding='8' cellspacing='0'>
+    echo "<div class='alert alert-success'>
+            <strong>Importación finalizada correctamente.</strong>
+          </div>";
 
-        <tr style='background:#198754;color:white'>
-            <th>Concepto</th>
-            <th>Cantidad</th>
-        </tr>
+}else{
 
-        <tr>
-            <td>Importados</td>
-            <td>$importados</td>
-        </tr>
+    echo "<div class='alert alert-warning'>
+            <strong>La importación finalizó con novedades. Revise el resumen.</strong>
+          </div>";
+}
 
-        <tr>
-            <td>Duplicados</td>
-            <td>$duplicados</td>
-        </tr>
+echo "<h2>Resumen de la importación</h2>";
 
-        <tr>
-            <td>Errores</td>
-            <td>$errores</td>
-        </tr>
+echo "
+<table border='1' cellpadding='8' cellspacing='0'>
 
-    </table>";
+    <tr style='background:#198754;color:white'>
+        <th>Concepto</th>
+        <th>Cantidad</th>
+    </tr>
+
+    <tr>
+        <td>Importados</td>
+        <td>$importados</td>
+    </tr>
+
+    <tr>
+        <td>Duplicados</td>
+        <td>$duplicados</td>
+    </tr>
+
+    <tr>
+        <td>Errores</td>
+        <td>$errores</td>
+    </tr>
+
+</table>";
 
 }else{
 
@@ -305,6 +363,9 @@ $fecha_nacimiento = $fecha->format("Y-m-d");
 
 }
 
+
 echo "<br><br>";
 
-echo "<a href='index.php'>Volver al listado</a>";
+echo "<a href='index.php' class='btn btn-primary'>
+        ← Volver al listado
+      </a>";
