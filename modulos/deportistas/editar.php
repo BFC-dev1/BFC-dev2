@@ -1,5 +1,8 @@
 <?php  
 
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 include("../../modulos/conexion_modulos.php");
 
 // =========================
@@ -16,7 +19,7 @@ if($txtid != ""){
             d.*, 
             ud.acudiente,
             ud.parentesco,
-            ud.entrenador
+            ud.entrenador_id
 
         FROM deportista d
 
@@ -48,7 +51,7 @@ if($txtid != ""){
         $parentesco = $registro['parentesco'];
 
         // ✅ ENTRENADOR
-        $entrenador = $registro['entrenador'] ?? "";
+        $entrenador_id = $registro['entrenador_id'] ?? "";
 
     }
 
@@ -125,7 +128,9 @@ if($_POST){
     $parentesco = $_POST['parentesco'] ?? "";
 
     // ✅ ENTRENADOR
-    $entrenador = trim($_POST['entrenador'] ?? "");
+    $entrenador_id = !empty($_POST['entrenador_id']) 
+    ? $_POST['entrenador_id'] 
+    : null;
 
 
     // =========================
@@ -216,7 +221,6 @@ if($_POST){
         nombre = :nombre,
         fecha_nacimiento = :fecha_nacimiento,
         categoria_id = :categoria_id,
-        entrenador = :entrenador,
         estado = :estado,
         foto = :foto
 
@@ -230,7 +234,6 @@ if($_POST){
         ":nombre"=>$nombre,
         ":fecha_nacimiento"=>$fecha_nacimiento,
         ":categoria_id"=>$categoria_id,
-        ":entrenador"=>$entrenador,
         ":estado"=>$estado,
         ":foto"=>$foto,
         ":id"=>$txtid
@@ -247,17 +250,23 @@ if($_POST){
     SET 
         acudiente = :acudiente,
         parentesco = :parentesco,
-        entrenador = :entrenador
+        entrenador_id = :entrenador_id
 
     WHERE deportista_id = :deportista_id
     ");
 
-    $stmt_rel->execute([
-        ":acudiente"=>$acudiente,
-        ":parentesco"=>$parentesco,
-        ":entrenador"=>$entrenador,
-        ":deportista_id"=>$txtid
-    ]);
+$stmt_rel->bindValue(":acudiente", $acudiente);
+$stmt_rel->bindValue(":parentesco", $parentesco);
+
+if($entrenador_id == null){
+    $stmt_rel->bindValue(":entrenador_id", null, PDO::PARAM_NULL);
+}else{
+    $stmt_rel->bindValue(":entrenador_id", $entrenador_id, PDO::PARAM_INT);
+}
+
+$stmt_rel->bindValue(":deportista_id", $txtid, PDO::PARAM_INT);
+
+$stmt_rel->execute();
 
 
     // =========================
@@ -368,23 +377,23 @@ if(isset($_FILES['documentos'])){
 
 ?>
 
-<?php include("../../template/header_modulos.php") ?>
+<?php include("../../template/header_modulos_Usuarios.php") ?>
 
 
-<div class="container mt-4">
+<div class="container mt-4 mb-5">
 
-    <div class="card shadow border-0">
+    <div class="card shadow border-0 rounded-4">
 
         <!-- HEADER -->
-        <div class="card-header bg-primary text-white">
+<div class="card-header bg-primary text-white rounded-top-4">
 
-            <h4 class="mb-0">
-                Editar Deportista
-            </h4>
+    <h4 class="mb-0">
+        ⚽ Editar Deportista
+    </h4>
 
-        </div>
+</div>
 
-        <div class="card-body">
+        <div class="card-body p-4">
 
             <form action="" method="post" enctype="multipart/form-data">
 
@@ -637,60 +646,36 @@ if(isset($_FILES['documentos'])){
                         </label>
 
                         <input 
-                            type="date" 
-                            class="form-control" 
-                            name="fecha_nacimiento" 
-                            value="<?php echo $fecha_nacimiento; ?>"
+                        type="date" 
+                        id="fecha_nacimiento"
+                        class="form-control" 
+                        name="fecha_nacimiento" 
+                        value="<?php echo $fecha_nacimiento; ?>"
                         >
 
                     </div>
 
 
-                    <!-- ENTRENADOR -->
-                    <div class="col-md-6 mb-3">
+<!-- ENTRENADOR -->
+<div class="col-md-6 mb-3">
 
-                        <label class="form-label">
-                            Entrenador
-                        </label>
+<label class="form-label">
+    Entrenador
+</label>
 
-                        <select 
-                            name="entrenador"
-                            class="form-control"
-                        >
+<select 
+    id="entrenador_id"
+    name="entrenador_id"
+    class="form-control"
+>
 
-                            <option value="">
-                                Seleccionar entrenador
-                            </option>
+<option value="">
+    Seleccione entrenador
+</option>
 
-                            <?php
+</select>
 
-                            $stmtEntrenador = $conexion->query("
-                            SELECT id, nombre
-                            FROM entrenador
-                            WHERE estado='activo'
-                            ORDER BY nombre ASC
-                            ");
-
-                            while($ent = $stmtEntrenador->fetch(PDO::FETCH_ASSOC)){
-
-                                $selected = "";
-
-                                if($entrenador == $ent['nombre']){
-                                    $selected = "selected";
-                                }
-
-                                echo "
-                                <option value='".$ent['nombre']."' $selected>
-                                    ".$ent['nombre']."
-                                </option>
-                                ";
-                            }
-
-                            ?>
-
-                        </select>
-
-                    </div>
+</div>
 
 
                     <!-- ACUDIENTE -->
@@ -762,6 +747,7 @@ if(isset($_FILES['documentos'])){
                         </label>
 
                         <select 
+                            id="categoria_id"
                             name="categoria_id" 
                             class="form-control"
                             required
@@ -774,9 +760,9 @@ if(isset($_FILES['documentos'])){
                             <?php
 
                             $stmt = $conexion->query("
-                            SELECT id, nombre 
+                            SELECT id, nombre, anio_desde, anio_hasta
                             FROM categoria
-                            ORDER BY nombre ASC
+                            ORDER BY anio_desde DESC
                             ");
 
                             while($row = $stmt->fetch(PDO::FETCH_ASSOC)){
@@ -784,8 +770,14 @@ if(isset($_FILES['documentos'])){
                                 $selected = ($row['id'] == $categoria_id) ? "selected" : "";
 
                                 echo "
-                                <option value='".$row['id']."' $selected>
-                                    ".$row['nombre']."
+                                <option 
+                                value='".$row['id']."' 
+                                data-desde='".$row['anio_desde']."'
+                                data-hasta='".$row['anio_hasta']."'
+                                $selected>
+
+                                ".$row['nombre']."
+
                                 </option>
                                 ";
                             }
@@ -851,5 +843,152 @@ if(isset($_FILES['documentos'])){
     </div>
 
 </div>
+
+
+<script>
+
+document.addEventListener("DOMContentLoaded",function(){
+
+const categoria = document.getElementById("categoria_id");
+const entrenador = document.getElementById("entrenador_id");
+
+let entrenadorActual = "<?php echo $entrenador_id; ?>";
+
+
+
+function cargarEntrenadores(){
+
+
+    let categoria_id = categoria.value;
+
+
+    entrenador.innerHTML = `
+    <option value="">
+        Seleccione entrenador
+    </option>
+    `;
+
+
+    if(categoria_id==""){
+        return;
+    }
+
+
+
+    fetch("buscar_entrenadores.php?categoria_id="+categoria_id)
+
+    .then(response=>response.json())
+
+    .then(data=>{
+
+
+        data.forEach(function(ent){
+
+
+            let option=document.createElement("option");
+
+
+            option.value=ent.id;
+
+
+            option.textContent=ent.nombre;
+
+
+
+            // mantener entrenador actual
+            if(ent.id == entrenadorActual){
+
+                option.selected=true;
+
+            }
+
+
+            entrenador.appendChild(option);
+
+
+        });
+
+
+
+        // SI SOLO EXISTE UNO LO SELECCIONA
+        if(data.length == 1){
+
+            entrenador.value=data[0].id;
+
+        }
+
+
+
+    });
+
+
+}
+
+
+
+// cambio manual categoría
+categoria.addEventListener(
+"change",
+function(){
+
+    entrenadorActual="";
+
+    cargarEntrenadores();
+
+});
+
+
+// FECHA NACIMIENTO
+const fecha = document.getElementById("fecha_nacimiento");
+
+
+// CAMBIO FECHA NACIMIENTO
+fecha.addEventListener("change", function(){
+
+
+    if(this.value == ""){
+    return;
+}
+
+let añoNacimiento = new Date(this.value).getFullYear();
+
+
+    let opciones = categoria.querySelectorAll("option");
+
+
+    opciones.forEach(function(opcion){
+
+
+        let desde = parseInt(opcion.dataset.desde);
+        let hasta = parseInt(opcion.dataset.hasta);
+
+
+        if(
+            añoNacimiento >= desde &&
+            añoNacimiento <= hasta
+        ){
+
+            categoria.value = opcion.value;
+
+            entrenadorActual = "";
+
+            cargarEntrenadores();
+
+        }
+
+
+    });
+
+
+});
+
+
+// cargar al abrir editar
+cargarEntrenadores();
+
+
+}); // <-- CIERRA document.addEventListener
+
+</script>
 
 <?php include("../../template/footer_modulos.php") ?>

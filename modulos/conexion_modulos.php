@@ -1,14 +1,24 @@
 <?php 
 
-$servidor="localhost";
-$db="bellavistafc";
-$username="root";
-$password="";
+$servidor = "localhost";
+$db = "bellavistafc";
+$username = "root";
+$password = "";
 
 try {
-    $conexion=new PDO("mysql:host=$servidor;dbname=$db",$username,$password);
-        
+
+    $conexion = new PDO(
+        "mysql:host=$servidor;dbname=$db;charset=utf8",
+        $username,
+        $password
+    );
+
+    // Mostrar errores de PDO
+    $conexion->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
 } catch (Exception $e) {
-    echo $e->getMessage();    
+
+    die($e->getMessage());
+
 }
 ?>

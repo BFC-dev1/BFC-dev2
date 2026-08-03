@@ -7,9 +7,41 @@
     include("crear_usuario.php");
 
 
-    // ✅ CONSULTAR USUARIOS + ROL
+// ✅ BUSCADOR
+$buscar = trim($_GET["buscar"] ?? "");
+
+if($buscar != ""){
+
     $stm = $conexion->prepare("
-        SELECT 
+        SELECT
+            u.*,
+            r.nombre AS rol_nombre
+
+        FROM usuario u
+
+        LEFT JOIN rol r
+            ON u.rol_id = r.id
+
+        WHERE
+            u.nombre LIKE :buscar
+            OR u.tipo_documento LIKE :buscar
+            OR u.documento LIKE :buscar
+            OR u.telefono LIKE :buscar
+            OR u.correo LIKE :buscar
+            OR r.nombre LIKE :buscar
+            OR u.estado LIKE :buscar
+
+        ORDER BY u.id DESC
+    ");
+
+    $stm->execute([
+        ":buscar" => "%".$buscar."%"
+    ]);
+
+}else{
+
+    $stm = $conexion->prepare("
+        SELECT
             u.*,
             r.nombre AS rol_nombre
 
@@ -23,7 +55,9 @@
 
     $stm->execute();
 
-    $usuarios = $stm->fetchAll(PDO::FETCH_ASSOC);
+}
+
+$usuarios = $stm->fetchAll(PDO::FETCH_ASSOC);
 
 
     ?>
@@ -31,26 +65,66 @@
 
     <?php include("../../template/header_modulos_Usuarios.php") ?>
 
+<?php if(isset($_GET['actualizado'])){ ?>
 
-    <div class="d-flex align-items-center gap-2 mb-3">
+<script>
 
-        <a 
-            href="http://localhost/BFC-dev2/modulos/dashboard/index.php" 
+Swal.fire({
+    icon: "success",
+    title: "Operación Exitosa",
+    text: "Los datos fueron actualizados correctamente.",
+    confirmButtonText: "Aceptar"
+});
+
+</script>
+
+<?php } ?>
+
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+
+    <div class="d-flex gap-2">
+
+        <a
+            href="../dashboard/index.php"
             class="btn btn-outline-dark"
         >
             ← Volver al Dashboard
         </a>
 
-        <button 
-            type="button" 
-            class="btn btn-primary" 
-            data-bs-toggle="modal" 
+        <button
+            type="button"
+            class="btn btn-primary"
+            data-bs-toggle="modal"
             data-bs-target="#create"
         >
             Crear Usuario
         </button>
 
-    </div> 
+    </div>
+
+    <form method="GET" class="d-flex gap-2">
+
+        <input
+            type="text"
+            name="buscar"
+            class="form-control"
+            style="width:300px;"
+            placeholder="Buscar usuario, documento..."
+            value="<?php echo htmlspecialchars($buscar); ?>"
+        >
+
+        <button class="btn btn-primary">
+            Buscar
+        </button>
+
+        <a href="index.php" class="btn btn-secondary">
+            Limpiar
+        </a>
+
+    </form>
+
+</div>
 
 
     <table class="table table-bordered table-hover text-center align-middle">

@@ -16,7 +16,7 @@ if($_POST){
     $categoria_id = $_POST['categoria_id'] ?? "";
 
     // ✅ NUEVO ENTRENADOR
-    $entrenador = trim($_POST['entrenador'] ?? "");
+    $entrenador_id = $_POST['entrenador_id'] ?? null;
 
     // ✅ ACUDIENTE MANUAL
     $acudiente = trim($_POST['acudiente'] ?? "");
@@ -106,6 +106,29 @@ if($_POST){
 
     }
 
+    // 🔍 VALIDAR ENTRENADOR
+if(empty($mensaje_error) && !empty($entrenador_id)){
+
+    $stmt_ent = $conexion->prepare("
+    SELECT id 
+    FROM usuario
+    WHERE id = :id
+    AND rol_id = 3
+    AND estado='activo'
+    ");
+
+    $stmt_ent->execute([
+        ":id"=>$entrenador_id
+    ]);
+
+    if(!$stmt_ent->fetch()){
+
+        $mensaje_error = "El entrenador seleccionado no existe.";
+
+    }
+
+}
+
     // =========================
     // SUBIR FOTO
     // =========================
@@ -186,13 +209,13 @@ if($_POST){
             deportista_id,
             acudiente,
             parentesco,
-            entrenador
+            entrenador_id
         )
         VALUES(
             :deportista_id,
             :acudiente,
             :parentesco,
-            :entrenador
+            :entrenador_id
         )
         ");
 
@@ -200,7 +223,7 @@ if($_POST){
             ":deportista_id"=>$deportista_id,
             ":acudiente"=>$acudiente,
             ":parentesco"=>$parentesco,
-            ":entrenador"=>$entrenador
+            ":entrenador_id"=>$entrenador_id
         ]);
 
         // =========================
@@ -516,42 +539,17 @@ if($_POST){
                                         Entrenador
                                     </label>
 
-                                    <select 
-                                        name="entrenador"
-                                        class="form-control"
-                                    >
+                            <select 
+                                id="entrenador_id"
+                                name="entrenador_id"
+                                class="form-control"
+                            >
 
-                                        <option value="">
-                                            Seleccionar entrenador
-                                        </option>
+                                <option value="">
+                                    Seleccione entrenador
+                                </option>
 
-                                        <?php
-
-                                        $stmtEntrenador = $conexion->query("
-                                        SELECT id, nombre
-                                        FROM entrenador
-                                        WHERE estado='activo'
-                                        ORDER BY nombre ASC
-                                        ");
-
-                                        while($ent = $stmtEntrenador->fetch(PDO::FETCH_ASSOC)){
-
-                                            $selected = "";
-
-                                            if(($_POST['entrenador'] ?? '') == $ent['nombre']){
-                                                $selected = "selected";
-                                            }
-
-                                            echo "
-                                            <option value='".$ent['nombre']."' $selected>
-                                                ".$ent['nombre']."
-                                            </option>
-                                            ";
-                                        }
-
-                                        ?>
-
-                                    </select>
+                            </select>
 
                                 </div>
 
@@ -661,38 +659,111 @@ if($_POST){
 </div>
 
 
+
 <script>
 
-document.getElementById("fecha_nacimiento")
-.addEventListener("change", function(){
+document.addEventListener("DOMContentLoaded", function(){
 
-    let fecha = this.value;
+    const categoria = document.getElementById("categoria_id");
+    const entrenador = document.getElementById("entrenador_id");
+    const fecha = document.getElementById("fecha_nacimiento");
 
-    if(fecha == ""){
-        return;
+
+    function cargarEntrenadores(){
+
+        let categoria_id = categoria.value;
+
+
+        entrenador.innerHTML = `
+            <option value="">
+                Seleccione entrenador
+            </option>
+        `;
+
+
+        if(categoria_id == ""){
+            return;
+        }
+
+
+        fetch("buscar_entrenadores.php?categoria_id=" + categoria_id)
+
+        .then(response => response.json())
+
+        .then(data => {
+
+
+            console.log(data);
+
+
+data.forEach(function(ent){
+
+    let option = document.createElement("option");
+
+    option.value = ent.id;
+
+    option.textContent = ent.nombre;
+
+    entrenador.appendChild(option);
+
+});
+
+
+// ✅ Si solo existe un entrenador, seleccionarlo automáticamente
+if(data.length === 1){
+
+    entrenador.value = data[0].id;
+
+}
+
+
+        })
+
+        .catch(error => {
+
+            console.log("Error cargando entrenadores:", error);
+
+        });
+
+
     }
 
-    let añoNacimiento = new Date(fecha).getFullYear();
 
-    let opciones = document.querySelectorAll(
-        "#categoria_id option"
-    );
+    // Cambio de categoría manual
+    categoria.addEventListener("change", cargarEntrenadores);
 
 
-    opciones.forEach(function(opcion){
 
-        let desde = parseInt(opcion.dataset.desde);
-        let hasta = parseInt(opcion.dataset.hasta);
+    // Cambio de fecha nacimiento
+    fecha.addEventListener("change", function(){
+
+        let añoNacimiento = new Date(this.value).getFullYear();
 
 
-        if(
-            añoNacimiento >= desde &&
-            añoNacimiento <= hasta
-        ){
+        let opciones = categoria.querySelectorAll("option");
 
-            document.getElementById("categoria_id").value = opcion.value;
 
-        }
+        opciones.forEach(function(opcion){
+
+
+            let desde = parseInt(opcion.dataset.desde);
+            let hasta = parseInt(opcion.dataset.hasta);
+
+
+            if(
+                añoNacimiento >= desde &&
+                añoNacimiento <= hasta
+            ){
+
+                categoria.value = opcion.value;
+
+                cargarEntrenadores();
+
+            }
+
+
+        });
+
 
     });
 

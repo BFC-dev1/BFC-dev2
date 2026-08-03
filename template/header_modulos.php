@@ -23,11 +23,14 @@
         crossorigin="anonymous"
     />
 
-    <!-- CSS HEADER -->
-    <link 
-        rel="stylesheet" 
-        href="<?php echo $url_base; ?>assets/header_deportistas.css"
-    >
+<!-- CSS HEADER -->
+<link 
+    rel="stylesheet" 
+    href="<?php echo $url_base; ?>assets/header_deportistas.css"
+>
+
+<!-- SWEETALERT2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 </head>
 

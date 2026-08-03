@@ -186,93 +186,41 @@ if($_POST){
             */
             if($rol_id == $rol_entrenador_id){
 
-                /*
-                =============================================
-                VALIDAR SI EXISTE COLUMNA usuario_id
-                =============================================
+             /*
+                =========================================
+                GUARDAR CATEGORÍAS DEL ENTRENADOR
+                =========================================
                 */
-                $checkColumn = $conexion->prepare("
-                SHOW COLUMNS 
-                FROM entrenador 
-                LIKE 'usuario_id'
-                ");
+                if(!empty($_POST['categorias'])){
 
-                $checkColumn->execute();
+                    foreach($_POST['categorias'] as $categoria_id){
 
-                $existeUsuarioId = $checkColumn->fetch();
+                        $stmtCategoria = $conexion->prepare("
+                            INSERT INTO entrenador_categoria
+                            (
+                                usuario_id,
+                                categoria_id
+                            )
+                            VALUES
+                            (
+                                :usuario_id,
+                                :categoria_id
+                            )
+                        ");
 
+                        $stmtCategoria->execute([
+                            ":usuario_id"=>$usuario_id,
+                            ":categoria_id"=>$categoria_id
+                        ]);
 
-                /*
-                =============================================
-                INSERT CON usuario_id
-                =============================================
-                */
-                if($existeUsuarioId){
-
-                    $stmtEntrenador = $conexion->prepare("
-                    INSERT INTO entrenador(
-                        usuario_id,
-                        nombre,
-                        documento,
-                        telefono,
-                        correo,
-                        estado
-                    )
-                    VALUES(
-                        :usuario_id,
-                        :nombre,
-                        :documento,
-                        :telefono,
-                        :correo,
-                        'activo'
-                    )
-                    ");
-
-                    $stmtEntrenador->execute([
-                        ":usuario_id"=>$usuario_id,
-                        ":nombre"=>$nombre,
-                        ":documento"=>$documento,
-                        ":telefono"=>$telefono,
-                        ":correo"=>$correo
-                    ]);
-
-                }else{
-
-                    /*
-                    =============================================
-                    INSERT SIN usuario_id
-                    =============================================
-                    */
-                    $stmtEntrenador = $conexion->prepare("
-                    INSERT INTO entrenador(
-                        nombre,
-                        documento,
-                        telefono,
-                        correo,
-                        estado
-                    )
-                    VALUES(
-                        :nombre,
-                        :documento,
-                        :telefono,
-                        :correo,
-                        'activo'
-                    )
-                    ");
-
-                    $stmtEntrenador->execute([
-                        ":nombre"=>$nombre,
-                        ":documento"=>$documento,
-                        ":telefono"=>$telefono,
-                        ":correo"=>$correo
-                    ]);
+                    }
 
                 }
 
-            }
+            }   // <-- AQUÍ recién termina if($rol_id == $rol_entrenador_id)
 
-            header("Location: index.php");
-            exit;
+header("Location: index.php");
+exit;
 
         }catch(PDOException $e){
 
@@ -283,6 +231,26 @@ if($_POST){
     }
 
 }
+
+?>
+
+<?php
+
+/*
+=============================================
+CONSULTAR CATEGORÍAS
+=============================================
+*/
+
+$stmtCategorias = $conexion->prepare("
+SELECT id, nombre
+FROM categoria
+ORDER BY nombre
+");
+
+$stmtCategorias->execute();
+
+$categorias = $stmtCategorias->fetchAll(PDO::FETCH_ASSOC);
 
 ?>
 
@@ -461,13 +429,14 @@ if($_POST){
                         <!-- ROL -->
                         <div class="col-md-6 mb-3">
 
-                            <label>Seleccionar Rol</label>
+                        <label>Seleccionar Rol</label>
 
-                            <select
-                                name="rol_id"
-                                class="form-control"
-                                required
-                            >
+                        <select
+                            id="rol_id"
+                            name="rol_id"
+                            class="form-control"
+                            required
+                        >
 
                                 <option value="">
                                     Seleccionar Rol
@@ -502,6 +471,49 @@ if($_POST){
 
                         </div>
 
+                        <!-- CATEGORÍAS DEL ENTRENADOR -->
+
+<div
+    class="col-12 mb-3"
+    id="contenedorCategorias"
+    style="display:none;"
+>
+
+    <label>Categorías asignadas</label>
+
+    <div class="row">
+
+        <?php foreach($categorias as $categoria){ ?>
+
+            <div class="col-md-4">
+
+                <div class="form-check">
+
+                    <input
+                        class="form-check-input"
+                        type="checkbox"
+                        name="categorias[]"
+                        value="<?php echo $categoria['id']; ?>"
+                        id="cat<?php echo $categoria['id']; ?>"
+                    >
+
+                    <label
+                        class="form-check-label"
+                        for="cat<?php echo $categoria['id']; ?>"
+                    >
+                        <?php echo $categoria['nombre']; ?>
+                    </label>
+
+                </div>
+
+            </div>
+
+        <?php } ?>
+
+    </div>
+
+</div>
+
                     </div>
 
                 </div>
@@ -525,10 +537,36 @@ if($_POST){
 
                 </div>
 
-            </form>
+             </form>
 
         </div>
 
     </div>
 
 </div>
+
+<script>
+
+const rol = document.querySelector("select[name='rol_id']");
+const contenedor = document.getElementById("contenedorCategorias");
+
+function mostrarCategorias(){
+
+    if(rol.value == "<?php echo $rol_entrenador_id; ?>"){
+
+        contenedor.style.display = "block";
+
+    }else{
+
+        contenedor.style.display = "none";
+
+    }
+
+}
+
+rol.addEventListener("change", mostrarCategorias);
+
+// Ejecutar al abrir el modal
+mostrarCategorias();
+
+</script>

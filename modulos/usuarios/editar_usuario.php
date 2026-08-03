@@ -5,8 +5,8 @@ include("../conexion_modulos.php");
 // ✅ VALIDAR ID
 if(!isset($_GET['id'])){
 
-    header("Location: index.php");
-    exit;
+header("Location: index.php?actualizado=1");
+exit;
 
 }
 
@@ -26,12 +26,27 @@ $stmt->execute([
 
 $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
+// =============================================
+// OBTENER CATEGORÍAS ASIGNADAS AL ENTRENADOR
+// =============================================
+
+$stmtCatUsuario = $conexion->prepare("
+SELECT categoria_id
+FROM entrenador_categoria
+WHERE usuario_id = :usuario_id
+");
+
+$stmtCatUsuario->execute([
+    ":usuario_id"=>$id
+]);
+
+$categorias_usuario = $stmtCatUsuario->fetchAll(PDO::FETCH_COLUMN);
 
 // ✅ SI NO EXISTE
 if(!$usuario){
 
-    header("Location: index.php");
-    exit;
+header("Location: index.php?actualizado=1");
+exit;
 
 }
 
@@ -54,6 +69,7 @@ if($_POST){
     $usuario_input = trim($_POST['usuario'] ?? "");
     $password = trim($_POST['password'] ?? "");
     $rol_id = trim($_POST['rol_id'] ?? "");
+    $categorias = $_POST['categorias'] ?? [];
     $estado = trim($_POST['estado'] ?? "activo");
 
     // ✅ VALIDAR CAMPOS
@@ -189,8 +205,55 @@ if($_POST){
 
             }
 
-            header("Location: index.php");
-            exit;
+            // =============================================
+// ACTUALIZAR CATEGORÍAS DEL ENTRENADOR
+// =============================================
+
+if($rol_id == 3){
+
+
+    // borrar anteriores
+
+    $deleteCat = $conexion->prepare("
+    DELETE FROM entrenador_categoria
+    WHERE usuario_id = :usuario_id
+    ");
+
+    $deleteCat->execute([
+        ":usuario_id"=>$id
+    ]);
+
+
+    // insertar nuevas
+
+    foreach($categorias as $categoria_id){
+
+
+        $insertCat = $conexion->prepare("
+        INSERT INTO entrenador_categoria
+        (
+            usuario_id,
+            categoria_id
+        )
+        VALUES
+        (
+            :usuario_id,
+            :categoria_id
+        )
+        ");
+
+
+        $insertCat->execute([
+            ":usuario_id"=>$id,
+            ":categoria_id"=>$categoria_id
+        ]);
+
+    }
+
+}
+
+header("Location: index.php?actualizado=1");
+exit;
 
         }catch(PDOException $e){
 
@@ -424,6 +487,75 @@ if($_POST){
                     </div>
 
 
+                    <!-- CATEGORÍAS ENTRENADOR -->
+
+<div 
+class="col-12 mb-3"
+id="contenedorCategorias"
+>
+
+<label class="form-label">
+Categorías asignadas
+</label>
+
+
+<div class="row">
+
+<?php
+
+$stmtCategorias = $conexion->query("
+SELECT id,nombre
+FROM categoria
+ORDER BY nombre
+");
+
+
+while($cat = $stmtCategorias->fetch(PDO::FETCH_ASSOC)){
+
+
+$checked = "";
+
+
+if(in_array($cat['id'],$categorias_usuario)){
+
+    $checked = "checked";
+
+}
+
+
+?>
+
+<div class="col-md-4">
+
+<div class="form-check">
+
+<input
+class="form-check-input"
+type="checkbox"
+name="categorias[]"
+value="<?php echo $cat['id']; ?>"
+<?php echo $checked; ?>
+>
+
+<label class="form-check-label">
+
+<?php echo $cat['nombre']; ?>
+
+</label>
+
+
+</div>
+
+</div>
+
+
+<?php } ?>
+
+</div>
+
+</div>
+
+
                     <!-- ESTADO -->
                     <div class="col-md-3 mb-3">
 
@@ -490,3 +622,31 @@ if($_POST){
 
 
 <?php include("../../template/footer_modulos_Usuarios.php") ?>
+
+
+<script>
+
+let rol = document.querySelector("select[name='rol_id']");
+let contenedor = document.getElementById("contenedorCategorias");
+
+
+function mostrarCategorias(){
+
+    if(rol.value == "3"){
+
+        contenedor.style.display="block";
+
+    }else{
+
+        contenedor.style.display="none";
+
+    }
+
+}
+
+
+rol.addEventListener("change",mostrarCategorias);
+
+mostrarCategorias();
+
+</script>

@@ -13,7 +13,7 @@ if($buscar != ""){
         SELECT
             d.*,
             c.nombre AS categoria_nombre,
-            ud.entrenador,
+            u.nombre AS entrenador_nombre,
             ud.acudiente AS acudiente_nombre
 
         FROM deportista d
@@ -24,16 +24,17 @@ if($buscar != ""){
         LEFT JOIN usuario_deportista ud
             ON ud.deportista_id = d.id
 
-        WHERE
+        LEFT JOIN usuario u
+            ON u.id = ud.entrenador_id
 
+        WHERE
             d.tipo_documento LIKE :buscar
             OR d.documento LIKE :buscar
             OR d.telefono LIKE :buscar
             OR d.nombre LIKE :buscar
             OR d.fecha_nacimiento LIKE :buscar
-            OR d.posicion LIKE :buscar
             OR c.nombre LIKE :buscar
-            OR ud.entrenador LIKE :buscar
+            OR u.nombre LIKE :buscar
             OR ud.acudiente LIKE :buscar
             OR d.estado LIKE :buscar
 
@@ -50,7 +51,7 @@ if($buscar != ""){
         SELECT
             d.*,
             c.nombre AS categoria_nombre,
-            ud.entrenador,
+            u.nombre AS entrenador_nombre,
             ud.acudiente AS acudiente_nombre
 
         FROM deportista d
@@ -61,12 +62,16 @@ if($buscar != ""){
         LEFT JOIN usuario_deportista ud
             ON ud.deportista_id = d.id
 
+        LEFT JOIN usuario u
+            ON u.id = ud.entrenador_id
+
         ORDER BY d.id DESC
     ");
 
     $stm->execute();
 
 }
+
 
 $deportista = $stm->fetchAll(PDO::FETCH_ASSOC);
 
@@ -102,59 +107,22 @@ if(isset($_GET['id'])){
 
 <?php include("../../template/header_modulos.php") ?>
 
+
 <?php if(isset($_GET['actualizado'])){ ?>
 
-<div class="modal fade" id="modalExito" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-
-            <div class="modal-header bg-success text-white">
-                <h5 class="modal-title">
-                    Operación Exitosa
-                </h5>
-            </div>
-
-            <div class="modal-body text-center">
-
-                <h4>Guardado con éxito</h4>
-
-                <p>
-                    Los datos del deportista fueron actualizados correctamente.
-                </p>
-
-            </div>
-
-            <div class="modal-footer justify-content-center">
-
-                <button
-                    type="button"
-                    class="btn text-white px-4"
-                    style="background:#0A4FA3;border:none;"
-                    onclick="location.href='index.php'"
-                >
-                    Aceptar
-                </button>
-
-            </div>
-            </div>
-
-        </div>
-    </div>
-</div>
-
 <script>
-document.addEventListener("DOMContentLoaded", function(){
 
-    var modal = new bootstrap.Modal(
-        document.getElementById('modalExito')
-    );
-
-    modal.show();
-
+Swal.fire({
+    icon: "success",
+    title: "Operación Exitosa",
+    text: "Los datos fueron actualizados correctamente.",
+    confirmButtonText: "Aceptar"
 });
+
 </script>
 
 <?php } ?>
+
 
 <div class="d-flex justify-content-between align-items-center mb-3">
 
@@ -265,7 +233,7 @@ document.addEventListener("DOMContentLoaded", function(){
 
             <!-- ✅ MOSTRAR ENTRENADOR -->
             <td>
-                <?php echo $deportista['entrenador']; ?>
+                <?php echo $deportista['entrenador_nombre']; ?>
             </td>
 
             <!-- ✅ ACUDIENTE -->
@@ -332,17 +300,6 @@ document.addEventListener("DOMContentLoaded", function(){
 
 <script>
 
-function confirmarEliminacion(id){
-
-    let confirmar = confirm("¿Seguro que deseas eliminar este deportista?");
-
-    if(confirmar){
-
-        window.location = "index.php?id=" + id;
-
-    }
-
-}
 
 
 // ✅ CAMBIAR ESTADO
