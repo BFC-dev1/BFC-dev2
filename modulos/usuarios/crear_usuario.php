@@ -1,9 +1,17 @@
 <?php
 
-// ✅ VARIABLES ERROR
+session_start();
+
+// ✅ CARGAR FUNCIÓN DE AUDITORÍA
+// Permite usar registrarAuditoria() para guardar las acciones realizadas en el sistema.
+require_once(__DIR__ . "/../auditoria/funciones/registrar_auditoria.php");
+
+
+// ✅ VARIABLES PARA CONTROLAR ERRORES DEL FORMULARIO
 $error_documento = false;
 $error_usuario = false;
 
+// ✅ MENSAJE GENERAL DE ERROR
 $mensaje_error = "";
 
 /*
@@ -178,6 +186,62 @@ if($_POST){
             $usuario_id = $conexion->lastInsertId();
 
 
+            /*
+=============================================
+AUDITORÍA CREACIÓN USUARIO
+=============================================
+*/
+
+$cambios = [
+
+    "nombre" => [
+        "antes" => null,
+        "despues" => $nombre
+    ],
+
+    "usuario" => [
+        "antes" => null,
+        "despues" => $usuario
+    ],
+
+    "rol_id" => [
+        "antes" => null,
+        "despues" => $rol_id
+    ],
+
+    "estado" => [
+        "antes" => null,
+        "despues" => "activo"
+    ]
+
+];
+
+
+// =============================================
+// USUARIO QUE REALIZA LA ACCIÓN
+// =============================================
+
+
+
+// =============================================
+// REGISTRO AUDITORÍA CREAR USUARIO
+// =============================================
+
+registrarAuditoria(
+
+    $conexion,
+
+    "usuario",
+
+    $usuario_id,
+
+    "CREAR",
+
+    $cambios,
+
+    "Creación de usuario: ".$usuario
+
+);
             /*
             =============================================
             SI EL ROL ES ENTRENADOR

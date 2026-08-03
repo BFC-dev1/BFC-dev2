@@ -232,6 +232,20 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
 
         </li>
 
+
+        <!-- AUDITORIA -->
+<li class="nav-item mb-2">
+
+    <a 
+        href="/BFC-dev2/modulos/auditoria/index.php"
+        class="nav-link text-white"
+    >
+        <i class="fa-solid fa-file-shield"></i>
+        Auditoría
+    </a>
+
+</li>
+
         <!-- REPORTES -->
         <li class="nav-item mb-2">
 

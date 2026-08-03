@@ -1,5 +1,16 @@
-<?php $url_base="http://localhost/BFC-dev2/"; ?>
+<?php
 
+if($_SERVER['HTTP_HOST'] == "localhost"){
+
+    $url_base = "http://localhost/BFC-dev2/";
+
+}else{
+
+    $url_base = "https://bellavistafcdev.page.gd/";
+
+}
+
+?>
 
 
 

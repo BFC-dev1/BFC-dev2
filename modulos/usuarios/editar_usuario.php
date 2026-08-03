@@ -1,10 +1,16 @@
 <?php
 
+session_start();
+
 include("../conexion_modulos.php");
+
+// Incluye el archivo con la función registrarAuditoria() para almacenar el historial de cambios del sistema.
+require_once("../auditoria/funciones/registrar_auditoria.php");
 
 // ✅ VALIDAR ID
 if(!isset($_GET['id'])){
 
+   
 header("Location: index.php?actualizado=1");
 exit;
 
@@ -25,6 +31,22 @@ $stmt->execute([
 ]);
 
 $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
+
+/*
+=================================================
+GUARDAR DATOS ANTERIORES
+
+Se almacenan los datos originales del usuario
+antes de realizar la actualización.
+
+Estos datos se utilizarán posteriormente para
+comparar qué campos cambiaron y registrar la
+auditoría de edición.
+
+=================================================
+*/
+
+$datosAnteriores = $usuario;
 
 // =============================================
 // OBTENER CATEGORÍAS ASIGNADAS AL ENTRENADOR
@@ -209,25 +231,26 @@ if($_POST){
 // ACTUALIZAR CATEGORÍAS DEL ENTRENADOR
 // =============================================
 
+/*
+=================================================
+ACTUALIZAR CATEGORÍAS DEL ENTRENADOR
+=================================================
+*/
+
+// Eliminar siempre las categorías actuales
+$deleteCat = $conexion->prepare("
+DELETE FROM entrenador_categoria
+WHERE usuario_id = :usuario_id
+");
+
+$deleteCat->execute([
+    ":usuario_id"=>$id
+]);
+
+// Si el usuario es entrenador, asignar las nuevas categorías
 if($rol_id == 3){
 
-
-    // borrar anteriores
-
-    $deleteCat = $conexion->prepare("
-    DELETE FROM entrenador_categoria
-    WHERE usuario_id = :usuario_id
-    ");
-
-    $deleteCat->execute([
-        ":usuario_id"=>$id
-    ]);
-
-
-    // insertar nuevas
-
     foreach($categorias as $categoria_id){
-
 
         $insertCat = $conexion->prepare("
         INSERT INTO entrenador_categoria
@@ -242,13 +265,125 @@ if($rol_id == 3){
         )
         ");
 
-
         $insertCat->execute([
             ":usuario_id"=>$id,
             ":categoria_id"=>$categoria_id
         ]);
 
     }
+
+}
+/*
+=================================================
+OBTENER CAMBIOS REALIZADOS
+
+Se comparan los datos anteriores con los nuevos
+para registrar únicamente los campos que fueron
+modificados.
+
+=================================================
+*/
+
+$cambios = [];
+
+if($datosAnteriores["nombre"] != $nombre){
+
+    $cambios["nombre"] = [
+        "antes"=>$datosAnteriores["nombre"],
+        "despues"=>$nombre
+    ];
+
+}
+
+if($datosAnteriores["tipo_documento"] != $tipo_documento){
+
+    $cambios["tipo_documento"] = [
+        "antes"=>$datosAnteriores["tipo_documento"],
+        "despues"=>$tipo_documento
+    ];
+
+}
+
+if($datosAnteriores["documento"] != $documento){
+
+    $cambios["documento"] = [
+        "antes"=>$datosAnteriores["documento"],
+        "despues"=>$documento
+    ];
+
+}
+
+if($datosAnteriores["telefono"] != $telefono){
+
+    $cambios["telefono"] = [
+        "antes"=>$datosAnteriores["telefono"],
+        "despues"=>$telefono
+    ];
+
+}
+
+if($datosAnteriores["correo"] != $correo){
+
+    $cambios["correo"] = [
+        "antes"=>$datosAnteriores["correo"],
+        "despues"=>$correo
+    ];
+
+}
+
+if($datosAnteriores["usuario"] != $usuario_input){
+
+    $cambios["usuario"] = [
+        "antes"=>$datosAnteriores["usuario"],
+        "despues"=>$usuario_input
+    ];
+
+}
+
+if($datosAnteriores["rol_id"] != $rol_id){
+
+    $cambios["rol_id"] = [
+        "antes"=>$datosAnteriores["rol_id"],
+        "despues"=>$rol_id
+    ];
+
+}
+
+if($datosAnteriores["estado"] != $estado){
+
+    $cambios["estado"] = [
+        "antes"=>$datosAnteriores["estado"],
+        "despues"=>$estado
+    ];
+
+}
+
+/*
+=================================================
+REGISTRAR AUDITORÍA DE EDICIÓN
+
+Solo se registra si hubo cambios.
+
+=================================================
+*/
+
+if(!empty($cambios)){
+
+    registrarAuditoria(
+
+        $conexion,
+
+        "usuario",
+
+        $id,
+
+        "EDITAR",
+
+        $cambios,
+
+        "Actualización del usuario: ".$nombre
+
+    );
 
 }
 

@@ -1,6 +1,11 @@
 <?php
 
+session_start();
+
 include("../conexion_modulos.php");
+
+require_once(__DIR__ . "/../auditoria/funciones/registrar_auditoria.php");
+
 
 if(isset($_GET['id'])){
 
@@ -25,6 +30,28 @@ if(isset($_GET['id'])){
             ? 'inactivo'
             : 'activo';
 
+            /*
+=============================================
+PREPARAR CAMBIOS PARA AUDITORÍA
+
+Se almacenan el valor anterior y el nuevo
+valor del estado del usuario.
+
+=============================================
+*/
+
+$cambios = [
+
+    "estado"=>[
+
+        "antes"=>$usuario["estado"],
+
+        "despues"=>$nuevo_estado
+
+    ]
+
+];
+
         $update = $conexion->prepare("
             UPDATE usuario
             SET estado = :estado
@@ -36,7 +63,33 @@ if(isset($_GET['id'])){
             ":id" => $id
         ]);
 
-        echo "ok";
+        /*
+=============================================
+REGISTRAR AUDITORÍA
+
+Se registra el cambio de estado realizado
+sobre el usuario.
+
+=============================================
+*/
+
+registrarAuditoria(
+
+    $conexion,
+
+    "usuario",
+
+    $id,
+
+    "EDITAR",
+
+    $cambios,
+
+    "Cambio de estado del usuario"
+
+);
+
+    
     }
 
 }

@@ -200,6 +200,24 @@ if(empty($mensaje_error) && !empty($entrenador_id)){
         // ✅ ID DEPORTISTA
         $deportista_id = $conexion->lastInsertId();
 
+        /*
+=================================================
+GENERAR ID ÚNICO DE LA OPERACIÓN
+Todos los registros de esta creación compartirán
+el mismo identificador.
+=================================================
+*/
+
+$operacion_id = uniqid("", true);
+
+/*
+=================================================
+USUARIO QUE REALIZA LA ACCIÓN
+=================================================
+*/
+
+$usuario_id = $_SESSION['id_usuario'] ?? null;
+
         // =========================
         // GUARDAR ACUDIENTE + ENTRENADOR
         // =========================
@@ -225,6 +243,125 @@ if(empty($mensaje_error) && !empty($entrenador_id)){
             ":parentesco"=>$parentesco,
             ":entrenador_id"=>$entrenador_id
         ]);
+
+        /*
+=================================================
+REGISTRAR AUDITORÍA DE CREACIÓN
+Se registra un registro por cada dato creado.
+=================================================
+*/
+
+if($usuario_id){
+
+    registrarAuditoria(
+        $conexion,
+        $usuario_id,
+        $operacion_id,
+        "deportista",
+        $deportista_id,
+        "CREAR",
+        "tipo_documento",
+        null,
+        $tipo_documento
+    );
+
+    registrarAuditoria(
+        $conexion,
+        $usuario_id,
+        $operacion_id,
+        "deportista",
+        $deportista_id,
+        "CREAR",
+        "documento",
+        null,
+        $documento
+    );
+
+    registrarAuditoria(
+        $conexion,
+        $usuario_id,
+        $operacion_id,
+        "deportista",
+        $deportista_id,
+        "CREAR",
+        "telefono",
+        null,
+        $telefono
+    );
+
+    registrarAuditoria(
+        $conexion,
+        $usuario_id,
+        $operacion_id,
+        "deportista",
+        $deportista_id,
+        "CREAR",
+        "nombre",
+        null,
+        $nombre
+    );
+
+    registrarAuditoria(
+        $conexion,
+        $usuario_id,
+        $operacion_id,
+        "deportista",
+        $deportista_id,
+        "CREAR",
+        "fecha_nacimiento",
+        null,
+        $fecha_nacimiento
+    );
+
+    registrarAuditoria(
+        $conexion,
+        $usuario_id,
+        $operacion_id,
+        "deportista",
+        $deportista_id,
+        "CREAR",
+        "categoria_id",
+        null,
+        $categoria_id
+    );
+
+    registrarAuditoria(
+        $conexion,
+        $usuario_id,
+        $operacion_id,
+        "deportista",
+        $deportista_id,
+        "CREAR",
+        "entrenador_id",
+        null,
+        $entrenador_id
+    );
+
+    registrarAuditoria(
+        $conexion,
+        $usuario_id,
+        $operacion_id,
+        "deportista",
+        $deportista_id,
+        "CREAR",
+        "acudiente",
+        null,
+        $acudiente
+    );
+
+    registrarAuditoria(
+        $conexion,
+        $usuario_id,
+        $operacion_id,
+        "deportista",
+        $deportista_id,
+        "CREAR",
+        "parentesco",
+        null,
+        $parentesco
+    );
+
+}
 
         // =========================
         // SUBIR MULTIPLES DOCUMENTOS

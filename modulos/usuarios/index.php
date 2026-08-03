@@ -65,7 +65,44 @@ $usuarios = $stm->fetchAll(PDO::FETCH_ASSOC);
 
     <?php include("../../template/header_modulos_Usuarios.php") ?>
 
+    <?php
+
+/*
+=================================================
+MENSAJE DE ELIMINACIÓN EXITOSA
+
+Si la URL contiene el parámetro "eliminado",
+se muestra un mensaje indicando que el usuario
+fue eliminado correctamente.
+
+=================================================
+*/
+
+if(isset($_GET["eliminado"])){
+
+?>
+
+<script>
+
+Swal.fire({
+
+    icon: "success",
+
+    title: "Usuario eliminado",
+
+    text: "El usuario fue eliminado correctamente.",
+
+    confirmButtonText: "Aceptar"
+
+});
+
+</script>
+
+<?php } ?>
+
 <?php if(isset($_GET['actualizado'])){ ?>
+
+    
 
 <script>
 
@@ -240,7 +277,7 @@ Swal.fire({
 
         if(confirmar){
 
-            window.location = "index.php?id=" + id;
+            window.location = "eliminar_usuario.php?id=" + id;
 
         }
 
@@ -248,15 +285,33 @@ Swal.fire({
 
 
     // ✅ CAMBIAR ESTADO
-    function cambiarEstado(id){
+function cambiarEstado(id){
 
-        fetch("cambiar_estado_usuario.php?id=" + id)
-        .then(response => response.text())
-        .then(data => {
-            console.log(data);
-        });
+    fetch("cambiar_estado_usuario.php?id=" + id)
+    .then(response => {
 
-    }
+        if(!response.ok){
+            throw new Error("Error en la petición");
+        }
+
+        return response.text();
+
+    })
+    .then(data => {
+
+        console.log(data);
+
+        // Recargar tabla para mostrar nuevo estado
+        location.reload();
+
+    })
+    .catch(error => {
+
+        console.error(error);
+
+    });
+
+}
 
     </script>
 

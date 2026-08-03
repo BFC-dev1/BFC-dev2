@@ -1,4 +1,21 @@
-<?php  
+<?php
+
+// ======================================================
+// FUNCIÓN DE AUDITORÍA
+// ======================================================
+include("../auditoria/registrar_auditoria.php");
+
+// ✅ VARIABLES DE ERROR
+$error_documento = false;
+$error_nombre = false;
+
+// ======================================================
+// INICIAR SESIÓN
+// Necesario para identificar el usuario que realiza acciones.
+// ======================================================
+if(session_status() === PHP_SESSION_NONE){
+    session_start();
+}
 
 include("../../modulos/conexion_modulos.php");
 
