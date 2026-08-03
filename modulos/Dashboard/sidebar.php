@@ -233,16 +233,75 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
         </li>
 
 
-        <!-- AUDITORIA -->
+<!-- AUDITORIA -->
 <li class="nav-item mb-2">
 
     <a 
-        href="/BFC-dev2/modulos/auditoria/index.php"
-        class="nav-link text-white"
+        class="nav-link text-white d-flex justify-content-between align-items-center"
+        data-bs-toggle="collapse"
+        href="#submenuAuditoria"
     >
-        <i class="fa-solid fa-file-shield"></i>
-        Auditoría
+
+        <span>
+            <i class="fa-solid fa-file-shield"></i>
+            Auditoría
+        </span>
+
+        <span>▼</span>
+
     </a>
+
+
+    <div class="collapse ms-3" id="submenuAuditoria">
+
+        <ul class="nav flex-column">
+
+
+            <!-- AUDITORIA USUARIOS -->
+            <li class="nav-item">
+
+                <a 
+                    href="/BFC-dev2/modulos/auditoria/index.php"
+                    class="nav-link text-white"
+                >
+                    <i class="fa-solid fa-users"></i>
+                    Usuarios
+                </a>
+
+            </li>
+
+
+            <!-- AUDITORIA DEPORTISTAS -->
+            <li class="nav-item">
+
+                <a 
+                    href="/modulos/auditoria/deportistas.php"
+                    class="nav-link text-white"
+                >
+                    <i class="fa-solid fa-person-running"></i>
+                    Deportistas
+                </a>
+
+            </li>
+
+
+            <!-- AUDITORIA PAGOS -->
+            <li class="nav-item">
+
+                <a 
+                    href="/modulos/auditoria/pagos.php"
+                    class="nav-link text-white"
+                >
+                    <i class="fa-solid fa-money-bill-wave"></i>
+                    Pagos
+                </a>
+
+            </li>
+
+
+        </ul>
+
+    </div>
 
 </li>
 
