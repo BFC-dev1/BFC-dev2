@@ -128,80 +128,189 @@ $auditorias = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <!--
 =================================================
+MENSAJE DE ELIMINACIÓN EXITOSA
+=================================================
+-->
+
+<?php if(isset($_GET["eliminado"])){ ?>
+
+<div class="alert alert-success">
+
+    Los registros del rango fueron eliminados correctamente.
+
+</div>
+
+<?php } ?>
+
+<!--
+=================================================
 FILTROS POR FECHA
 =================================================
 -->
 
-<form method="GET" class="row g-3 mb-4">
+<!--
+=================================================
+FILTROS Y BOTONES DE AUDITORÍA
 
-    <div class="col-md-3">
+Contiene:
 
-        <label>Desde</label>
+1. Formulario para filtrar registros por fecha.
+2. Botones Filtrar y Limpiar.
+3. Formulario independiente para eliminar todos
+   los registros comprendidos dentro del rango
+   de fechas seleccionado.
 
-        <input
-            type="date"
-            name="fecha_desde"
-            class="form-control"
-            value="<?= htmlspecialchars($fecha_desde) ?>">
+Se utilizan dos formularios independientes para
+evitar formularios anidados, ya que HTML no
+permite tener un <form> dentro de otro <form>.
+=================================================
+-->
+
+<div class="row g-3 mb-4 align-items-end">
+
+    <!--
+    =============================================
+    FORMULARIO DE FILTROS
+    =============================================
+    -->
+    <div class="col-md-9">
+
+        <form method="GET">
+
+            <div class="row g-3">
+
+                <!-- FECHA DESDE -->
+                <div class="col-md-4">
+
+                    <label>Desde</label>
+
+                    <input
+                        type="date"
+                        name="fecha_desde"
+                        class="form-control"
+                        value="<?= htmlspecialchars($fecha_desde) ?>">
+
+                </div>
+
+                <!-- FECHA HASTA -->
+                <div class="col-md-4">
+
+                    <label>Hasta</label>
+
+                    <input
+                        type="date"
+                        name="fecha_hasta"
+                        class="form-control"
+                        value="<?= htmlspecialchars($fecha_hasta) ?>">
+
+                </div>
+
+                <!-- BOTONES FILTRAR Y LIMPIAR -->
+                <div class="col-md-4 d-flex align-items-end gap-2">
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary">
+
+                        Filtrar
+
+                    </button>
+
+                    <a
+                        href="index.php"
+                        class="btn btn-secondary">
+
+                        Limpiar
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </form>
 
     </div>
 
-    <div class="col-md-3">
+    <!--
+    =============================================
+    FORMULARIO ELIMINAR POR RANGO
 
-        <label>Hasta</label>
+    Este formulario solamente aparece cuando
+    el usuario ha seleccionado ambas fechas.
+    =============================================
+    -->
 
-        <input
-            type="date"
-            name="fecha_hasta"
-            class="form-control"
-            value="<?= htmlspecialchars($fecha_hasta) ?>">
+    <?php if($fecha_desde != "" && $fecha_hasta != ""){ ?>
+
+    <div class="col-md-3 d-flex justify-content-start">
+
+        <form
+            action="eliminar_rango.php"
+            method="POST"
+            onsubmit="return confirm('¿Eliminar TODOS los registros comprendidos entre estas fechas?\n\nEsta acción no se puede deshacer.');">
+
+            <!-- FECHA INICIAL -->
+            <input
+                type="hidden"
+                name="fecha_desde"
+                value="<?= htmlspecialchars($fecha_desde) ?>">
+
+            <!-- FECHA FINAL -->
+            <input
+                type="hidden"
+                name="fecha_hasta"
+                value="<?= htmlspecialchars($fecha_hasta) ?>">
+
+            <!-- BOTÓN ELIMINAR -->
+            <button
+                type="submit"
+                class="btn btn-danger">
+
+                Eliminar rango
+
+            </button>
+
+        </form>
 
     </div>
 
-    <div class="col-md-6 d-flex align-items-end gap-2">
+    <?php } ?>
 
-        <button class="btn btn-primary">
+</div>
 
-            Filtrar
+<!--
+=================================================
+TABLA DE AUDITORÍA
+=================================================
+-->
 
-        </button>
-
-        <a href="index.php" class="btn btn-secondary">
-
-            Limpiar
-
-        </a>
-
-    </div>
-
-</form>
+<table class="table table-bordered table-hover">
 
 
 <table class="table table-bordered table-hover">
 
-    <thead class="table-dark">
+<thead class="table-dark">
 
-        <tr>
+<tr>
 
-            <th>Fecha</th>
+    <th>Fecha</th>
 
-            <th>Usuario</th>
+    <th>Usuario</th>
 
-            <th>Tabla</th>
+    <th>Tabla</th>
 
-            <th>Acción</th>
+    <th>Acción</th>
 
-            <th>Cambios</th>
+    <th>Cambios</th>
 
-            <th>IP</th>
+    <th>IP</th>
 
-            <th>Detalle</th>
+    <th>Detalle</th>
 
-            <th>Eliminar</th>
+</tr>
 
-        </tr>
-
-    </thead>
+</thead>
 
     <tbody>
 
@@ -209,59 +318,29 @@ FILTROS POR FECHA
 
 <tr>
 
-    <td>
-        <?= htmlspecialchars($fila["fecha"]) ?>
-    </td>
+    <td><?= htmlspecialchars($fila["fecha"]) ?></td>
 
+    <td><?= htmlspecialchars($fila["usuario"] ?? "Sistema") ?></td>
 
-    <td>
-        <?= htmlspecialchars($fila["usuario"] ?? "Sistema") ?>
-    </td>
+    <td><?= htmlspecialchars($fila["tabla_afectada"]) ?></td>
 
+    <td><?= htmlspecialchars($fila["accion"]) ?></td>
 
-    <td>
-        <?= htmlspecialchars($fila["tabla_afectada"]) ?>
-    </td>
+    <td><?= htmlspecialchars($fila["cambios"]) ?></td>
 
-
-    <td>
-        <?= htmlspecialchars($fila["accion"]) ?>
-    </td>
-
-
-    <td>
-        <?= htmlspecialchars($fila["cambios"]) ?>
-    </td>
-
-
-    <td>
-        <?= htmlspecialchars($fila["ip"]) ?>
-    </td>
-
+    <td><?= htmlspecialchars($fila["ip"]) ?></td>
 
     <td>
 
         <a
             href="detalle.php?operacion=<?= urlencode($fila["operacion_id"]) ?>"
-            class="btn btn-primary btn-sm"
-        >
+            class="btn btn-primary btn-sm">
+
             Ver
+
         </a>
 
     </td>
-
-    <td>
-
-    <a
-        href="eliminar.php?operacion=<?= urlencode($fila["operacion_id"]) ?>"
-        class="btn btn-danger btn-sm"
-        onclick="return confirm('¿Eliminar esta operación?');">
-
-        Eliminar
-
-    </a>
-
-</td>
 
 </tr>
 
