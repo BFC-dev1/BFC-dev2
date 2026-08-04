@@ -3,7 +3,7 @@
 // ======================================================
 // FUNCIÓN DE AUDITORÍA
 // ======================================================
-include("../auditoria/registrar_auditoria.php");
+include("../auditoria/funciones/registrar_auditoria.php");
 
 // ✅ VARIABLES DE ERROR
 $error_documento = false;

@@ -273,6 +273,38 @@ if($rol_id == 3){
     }
 
 }
+
+/*
+=================================================
+OBTENER NOMBRE DEL ROL ANTERIOR Y NUEVO
+=================================================
+*/
+
+$stmtRolAnterior = $conexion->prepare("
+SELECT nombre
+FROM rol
+WHERE id = :id
+");
+
+$stmtRolAnterior->execute([
+    ":id" => $datosAnteriores["rol_id"]
+]);
+
+$rolAnterior = $stmtRolAnterior->fetchColumn();
+
+
+$stmtRolNuevo = $conexion->prepare("
+SELECT nombre
+FROM rol
+WHERE id = :id
+");
+
+$stmtRolNuevo->execute([
+    ":id" => $rol_id
+]);
+
+$rolNuevo = $stmtRolNuevo->fetchColumn();
+
 /*
 =================================================
 OBTENER CAMBIOS REALIZADOS
@@ -342,9 +374,9 @@ if($datosAnteriores["usuario"] != $usuario_input){
 
 if($datosAnteriores["rol_id"] != $rol_id){
 
-    $cambios["rol_id"] = [
-        "antes"=>$datosAnteriores["rol_id"],
-        "despues"=>$rol_id
+    $cambios["rol"] = [
+        "antes"   => $rolAnterior,
+        "despues" => $rolNuevo
     ];
 
 }

@@ -22,7 +22,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } else {
 
         // Buscar usuario
-        $sql = "SELECT * FROM usuario WHERE usuario = :usuario";
+        /*
+=================================================
+CONSULTAR USUARIO
+
+Se consulta el usuario que intenta iniciar sesión.
+
+Además de los datos del usuario, se obtiene el
+nombre del rol mediante una relación con la
+tabla "rol".
+=================================================
+*/
+
+$sql = "
+SELECT
+    u.*,
+    r.nombre AS rol_nombre
+
+FROM usuario u
+
+LEFT JOIN rol r
+    ON u.rol_id = r.id
+
+WHERE u.usuario = :usuario
+";
 
         $stmt = $conexion->prepare($sql);
 
@@ -46,14 +69,57 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             } elseif ($password == $admin['password']) {
 
-                session_regenerate_id(true);
+               
+                /*
+=================================================
+REGENERAR EL ID DE SESIÓN
 
-                $_SESSION['usuario'] = $admin['usuario'];
-                $_SESSION['id_usuario'] = $admin['id'];
+Se genera un nuevo identificador de sesión para
+evitar ataques de Session Fixation y mejorar la
+seguridad del inicio de sesión.
+=================================================
+*/
 
-                header("Location: /BFC-dev2/modulos/Dashboard/index.php");
-                exit;
+session_regenerate_id(true);
 
+
+/*
+=================================================
+GUARDAR DATOS DEL USUARIO EN LA SESIÓN
+
+Se almacenan los datos principales del usuario
+autenticado para utilizarlos durante toda la
+sesión sin realizar consultas repetitivas a la
+base de datos.
+
+id_usuario : Identificador del usuario.
+usuario    : Nombre de usuario.
+nombre     : Nombre completo.
+rol_id     : Id del rol.
+rol         : Nombre del rol.
+=================================================
+*/
+
+$_SESSION['id_usuario'] = $admin['id'];
+$_SESSION['usuario'] = $admin['usuario'];
+$_SESSION['nombre'] = $admin['nombre'];
+$_SESSION['rol_id'] = $admin['rol_id'];
+$_SESSION['rol'] = $admin['rol_nombre'];
+
+
+/*
+=================================================
+REDIRECCIONAR AL DASHBOARD
+
+Una vez autenticado correctamente el usuario,
+se redirecciona al panel principal del sistema.
+=================================================
+*/
+
+header("Location: /BFC-dev2/modulos/Dashboard/index.php");
+exit;
+
+            
             } else {
 
                 $error = "Contraseña incorrecta.";

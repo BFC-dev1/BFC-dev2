@@ -75,3 +75,28 @@
     }
 
 }
+
+/* ==========================================
+CONTENIDO PRINCIPAL
+========================================== */
+
+.main-content {
+    margin-left: 280px;
+    width: calc(100% - 280px);
+    min-height: 100vh;
+    padding: 30px;
+}
+
+/* ==========================================
+RESPONSIVE
+========================================== */
+
+@media(max-width:768px) {
+
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+        padding: 70px 20px 20px;
+    }
+
+}

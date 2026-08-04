@@ -1,3 +1,12 @@
+<?php
+
+if(session_status() === PHP_SESSION_NONE){
+    session_start();
+}
+
+?>
+
+
 <!-- FONT AWESOME -->
 <link rel="stylesheet"
 href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
@@ -320,19 +329,70 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
 
         <hr>
 
-        <!-- LOGOUT -->
-        <li class="nav-item">
 
-            <a 
-                href="/BFC-dev2/auth/logout.php"
-                class="nav-link text-danger"
-            >
-                <i class="fa-solid fa-right-from-bracket"></i>
-                Cerrar sesión
-            </a>
+        <hr>
 
-        </li>
+<!-- ==========================================
+USUARIO AUTENTICADO
+========================================== -->
 
-    </ul>
+<div class="text-center text-white mb-3">
+
+    <i class="fa-solid fa-circle-user fa-3x mb-2"></i>
+
+<div class="fw-bold">
+
+    <?php echo htmlspecialchars($_SESSION["nombre"] ?? $_SESSION["usuario"] ?? "Usuario"); ?>
+
+</div>
+
+<small class="text-warning">
+
+    <?php echo htmlspecialchars($_SESSION["rol"] ?? ""); ?>
+
+</small>
+
+</div>
+
+
+<!-- ==========================================
+CAMBIAR CONTRASEÑA
+========================================== -->
+
+<li class="nav-item">
+
+    <a
+        href="/BFC-dev2/modulos/usuarios/cambiar_password.php"
+        class="nav-link text-white"
+    >
+
+        <i class="fa-solid fa-key"></i>
+
+        Cambiar contraseña
+
+    </a>
+
+</li>
+
+   <!-- ==========================================
+CERRAR SESIÓN
+========================================== -->
+
+<li class="nav-item">
+
+    <a
+        href="/BFC-dev2/auth/logout.php"
+        class="nav-link text-danger"
+    >
+
+        <i class="fa-solid fa-right-from-bracket"></i>
+
+        Cerrar sesión
+
+    </a>
+
+</li>
+
+</ul>
 
 </div>

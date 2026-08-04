@@ -92,6 +92,21 @@ $detalles = $stmtDetalle->fetchAll(PDO::FETCH_ASSOC);
 
 <?php include("../../template/header_modulos.php"); ?>
 
+<div class="d-flex justify-content-between align-items-center mb-3">
+
+    <div class="d-flex gap-2">
+
+        <a
+            href="../dashboard/index.php"
+            class="btn btn-outline-dark"
+        >
+            ← Volver al Dashboard
+        </a>
+
+    </div>
+
+</div>
+
 <h2>Detalle Auditoría</h2>
 
 
