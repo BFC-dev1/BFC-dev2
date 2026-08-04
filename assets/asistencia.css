@@ -27,12 +27,6 @@
     height: 40px;
 }
 
-/* ===== RADIOS MÁS GRANDES ===== */
-input[type="radio"] {
-    transform: scale(1.2);
-    cursor: pointer;
-}
-
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
 
@@ -76,9 +70,6 @@ input[type="radio"] {
         padding: 10px;
     }
 
-    input[type="radio"] {
-        transform: scale(1.4);
-    }
 }
 
 /* ===== CONTROLES ===== */
@@ -134,5 +125,88 @@ input[type="radio"] {
     .table {
         width: 100%;
     }
+
+}
+
+/* =================================
+   ICONOS ESTADO ASISTENCIA
+================================= */
+
+.estado-icono {
+    cursor: pointer;
+}
+
+
+.estado-icono input {
+    display: none;
+}
+
+
+.estado-icono i {
+
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    transition: .3s;
+
+}
+
+
+/* PRESENTE */
+
+.estado-presente {
+
+    color: #198754;
+    border: 2px solid #198754;
+
+}
+
+
+.estado-icono input:checked+.estado-presente {
+
+    background: #198754;
+    color: white;
+
+}
+
+
+
+/* AUSENTE */
+
+.estado-ausente {
+
+    color: #dc3545;
+    border: 2px solid #dc3545;
+
+}
+
+
+.estado-icono input:checked+.estado-ausente {
+
+    background: #dc3545;
+    color: white;
+
+}
+
+
+
+/* TARDE */
+
+.estado-tarde {
+
+    color: #ffc107;
+    border: 2px solid #ffc107;
+
+}
+
+
+.estado-icono input:checked+.estado-tarde {
+
+    background: #ffc107;
+    color: #111;
 
 }

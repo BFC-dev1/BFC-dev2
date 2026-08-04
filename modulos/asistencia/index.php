@@ -209,44 +209,62 @@ $modo = $_GET['modo'] ?? "tomar";
                     <!-- PRESENTE -->
                     <td data-label="Presente">
 
-                        <input type="radio"
-                            class="form-check-input"
-                            name="estado_<?php echo $row['id']; ?>"
-                            value="presente"
-                            <?php echo ($modo=="consultar") ? "disabled" : ""; ?>
-                            onchange="guardar(<?php echo $row['id']; ?>, this.value)"
-                        >
+                    <label class="estado-icono">
+
+                    <input type="radio"
+                    name="estado_<?php echo $row['id']; ?>"
+                    value="presente"
+                    <?php echo ($modo=="consultar") ? "disabled" : ""; ?>
+                    onchange="guardar(<?php echo $row['id']; ?>, this.value)"
+                    >
+
+                    <i class="fa-solid fa-check estado-presente"></i>
+
+                    </label>
 
                     </td>
 
-                    <!-- AUSENTE -->
-                    <td data-label="Ausente">
+                
+<!-- AUSENTE -->
+<td data-label="Ausente">
 
-                        <input type="radio"
-                            class="form-check-input"
-                            name="estado_<?php echo $row['id']; ?>"
-                            value="ausente"
-                            <?php echo ($modo=="consultar") ? "disabled" : ""; ?>
-                            onchange="guardar(<?php echo $row['id']; ?>, this.value)"
-                        >
+    <label class="estado-icono">
 
-                    </td>
+        <input type="radio"
+        name="estado_<?php echo $row['id']; ?>"
+        value="ausente"
+        <?php echo ($modo=="consultar") ? "disabled" : ""; ?>
+        onchange="guardar(<?php echo $row['id']; ?>, this.value)"
+        >
 
-                    <!-- TARDE -->
-                    <td data-label="Tarde">
+        <i class="fa-solid fa-xmark estado-ausente"></i>
 
-                        <input type="radio"
-                            class="form-check-input"
-                            name="estado_<?php echo $row['id']; ?>"
-                            value="tarde"
-                            <?php echo ($modo=="consultar") ? "disabled" : ""; ?>
-                            onchange="guardar(<?php echo $row['id']; ?>, this.value)"
-                        >
+    </label>
 
-                    </td>
+</td>
 
-                    <!-- ACCION -->
-                    <td data-label="Acción">
+
+<!-- TARDE -->
+<td data-label="Tarde">
+
+    <label class="estado-icono">
+
+        <input type="radio"
+        name="estado_<?php echo $row['id']; ?>"
+        value="tarde"
+        <?php echo ($modo=="consultar") ? "disabled" : ""; ?>
+        onchange="guardar(<?php echo $row['id']; ?>, this.value)"
+        >
+
+        <i class="fa-solid fa-clock estado-tarde"></i>
+
+    </label>
+
+</td>
+
+
+<!-- ACCION -->
+<td data-label="Acción">
 
                         <?php if($modo != "consultar"){ ?>
 
