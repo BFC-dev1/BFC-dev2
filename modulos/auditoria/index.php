@@ -16,13 +16,48 @@ CONEXIÓN
 */
 include("../../modulos/conexion_modulos.php");
 
+
 /*
 =================================================
-CONSULTAR OPERACIONES DE AUDITORÍA
+RECIBIR FILTROS DE FECHA
 =================================================
 */
 
-$stmt = $conexion->query("
+$fecha_desde = $_GET["fecha_desde"] ?? "";
+$fecha_hasta = $_GET["fecha_hasta"] ?? "";
+
+/*
+=================================================
+CONSTRUIR FILTRO SQL
+=================================================
+*/
+
+$where = [];
+$parametros = [];
+
+if($fecha_desde != ""){
+
+    $where[] = "DATE(fecha) >= :desde";
+    $parametros[":desde"] = $fecha_desde;
+
+}
+
+if($fecha_hasta != ""){
+
+    $where[] = "DATE(fecha) <= :hasta";
+    $parametros[":hasta"] = $fecha_hasta;
+
+}
+
+
+/*
+=================================================
+CONSULTAR AUDITORÍA
+=================================================
+*/
+
+$sql = "
+
 SELECT
 
     operacion_id,
@@ -44,10 +79,25 @@ FROM auditoria
 LEFT JOIN usuario
 ON auditoria.usuario_id = usuario.id
 
+";
+
+if(count($where) > 0){
+
+    $sql .= " WHERE " . implode(" AND ", $where);
+
+}
+
+$sql .= "
+
 GROUP BY operacion_id
 
 ORDER BY fecha DESC
-");
+
+";
+
+$stmt = $conexion->prepare($sql);
+
+$stmt->execute($parametros);
 
 $auditorias = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -76,6 +126,57 @@ $auditorias = $stmt->fetchAll(PDO::FETCH_ASSOC);
     Auditoría del Sistema
 </h2>
 
+<!--
+=================================================
+FILTROS POR FECHA
+=================================================
+-->
+
+<form method="GET" class="row g-3 mb-4">
+
+    <div class="col-md-3">
+
+        <label>Desde</label>
+
+        <input
+            type="date"
+            name="fecha_desde"
+            class="form-control"
+            value="<?= htmlspecialchars($fecha_desde) ?>">
+
+    </div>
+
+    <div class="col-md-3">
+
+        <label>Hasta</label>
+
+        <input
+            type="date"
+            name="fecha_hasta"
+            class="form-control"
+            value="<?= htmlspecialchars($fecha_hasta) ?>">
+
+    </div>
+
+    <div class="col-md-6 d-flex align-items-end gap-2">
+
+        <button class="btn btn-primary">
+
+            Filtrar
+
+        </button>
+
+        <a href="index.php" class="btn btn-secondary">
+
+            Limpiar
+
+        </a>
+
+    </div>
+
+</form>
+
+
 <table class="table table-bordered table-hover">
 
     <thead class="table-dark">
@@ -95,6 +196,8 @@ $auditorias = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <th>IP</th>
 
             <th>Detalle</th>
+
+            <th>Eliminar</th>
 
         </tr>
 
@@ -146,6 +249,19 @@ $auditorias = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </a>
 
     </td>
+
+    <td>
+
+    <a
+        href="eliminar.php?operacion=<?= urlencode($fila["operacion_id"]) ?>"
+        class="btn btn-danger btn-sm"
+        onclick="return confirm('¿Eliminar esta operación?');">
+
+        Eliminar
+
+    </a>
+
+</td>
 
 </tr>
 
