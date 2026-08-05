@@ -1,8 +1,15 @@
+
 <?php
 
 session_start();
 
 include(__DIR__ . "/../conexion_modulos.php");
+
+if($_SERVER['HTTP_HOST'] == "localhost"){
+    $url_base = "http://localhost/BFC-dev2/";
+}else{
+    $url_base = "https://bellavistafcdev.page.gd/";
+}
 
 
 // =====================================
@@ -90,7 +97,7 @@ $detalles = $stmtDetalle->fetchAll(PDO::FETCH_ASSOC);
 
 ?>
 
-<?php include("../../template/header_modulos.php"); ?>
+<?php include("../../template/header_modulos_auditoria.php"); ?>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
 

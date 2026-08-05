@@ -103,7 +103,7 @@ $auditorias = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 ?>
 
-<?php include("../../template/header_modulos.php"); ?>
+<?php include("../../template/header_modulos_auditoria.php"); ?>
 
 
 <div class="d-flex justify-content-between align-items-center mb-3">
