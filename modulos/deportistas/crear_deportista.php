@@ -216,7 +216,7 @@ USUARIO QUE REALIZA LA ACCIÓN
 =================================================
 */
 
-$usuario_id = $_SESSION['id_usuario'] ?? null;
+$usuario_id = $_SESSION['usuario_id'] ?? null;
 
         // =========================
         // GUARDAR ACUDIENTE + ENTRENADOR
@@ -251,117 +251,76 @@ Se registra un registro por cada dato creado.
 =================================================
 */
 
-if($usuario_id){
+/*
+=================================================
+REGISTRAR AUDITORÍA DE CREACIÓN
+=================================================
+*/
 
-    registrarAuditoria(
-        $conexion,
-        $usuario_id,
-        $operacion_id,
-        "deportista",
-        $deportista_id,
-        "CREAR",
-        "tipo_documento",
-        null,
-        $tipo_documento
-    );
+$cambios = [
 
-    registrarAuditoria(
-        $conexion,
-        $usuario_id,
-        $operacion_id,
-        "deportista",
-        $deportista_id,
-        "CREAR",
-        "documento",
-        null,
-        $documento
-    );
+    "tipo_documento" => [
+        "antes"   => null,
+        "despues" => $tipo_documento
+    ],
 
-    registrarAuditoria(
-        $conexion,
-        $usuario_id,
-        $operacion_id,
-        "deportista",
-        $deportista_id,
-        "CREAR",
-        "telefono",
-        null,
-        $telefono
-    );
+    "documento" => [
+        "antes"   => null,
+        "despues" => $documento
+    ],
 
-    registrarAuditoria(
-        $conexion,
-        $usuario_id,
-        $operacion_id,
-        "deportista",
-        $deportista_id,
-        "CREAR",
-        "nombre",
-        null,
-        $nombre
-    );
+    "telefono" => [
+        "antes"   => null,
+        "despues" => $telefono
+    ],
 
-    registrarAuditoria(
-        $conexion,
-        $usuario_id,
-        $operacion_id,
-        "deportista",
-        $deportista_id,
-        "CREAR",
-        "fecha_nacimiento",
-        null,
-        $fecha_nacimiento
-    );
+    "nombre" => [
+        "antes"   => null,
+        "despues" => $nombre
+    ],
 
-    registrarAuditoria(
-        $conexion,
-        $usuario_id,
-        $operacion_id,
-        "deportista",
-        $deportista_id,
-        "CREAR",
-        "categoria_id",
-        null,
-        $categoria_id
-    );
+    "fecha_nacimiento" => [
+        "antes"   => null,
+        "despues" => $fecha_nacimiento
+    ],
 
-    registrarAuditoria(
-        $conexion,
-        $usuario_id,
-        $operacion_id,
-        "deportista",
-        $deportista_id,
-        "CREAR",
-        "entrenador_id",
-        null,
-        $entrenador_id
-    );
+    "categoria_id" => [
+        "antes"   => null,
+        "despues" => $categoria_id
+    ],
 
-    registrarAuditoria(
-        $conexion,
-        $usuario_id,
-        $operacion_id,
-        "deportista",
-        $deportista_id,
-        "CREAR",
-        "acudiente",
-        null,
-        $acudiente
-    );
+    "entrenador_id" => [
+        "antes"   => null,
+        "despues" => $entrenador_id
+    ],
 
-    registrarAuditoria(
-        $conexion,
-        $usuario_id,
-        $operacion_id,
-        "deportista",
-        $deportista_id,
-        "CREAR",
-        "parentesco",
-        null,
-        $parentesco
-    );
+    "acudiente" => [
+        "antes"   => null,
+        "despues" => $acudiente
+    ],
 
-}
+    "parentesco" => [
+        "antes"   => null,
+        "despues" => $parentesco
+    ]
+
+];
+
+registrarAuditoria(
+
+    $conexion,
+
+    "deportista",
+
+    $deportista_id,
+
+    "CREAR",
+
+    $cambios,
+
+    "Se creó un deportista"
+
+);
 
         // =========================
         // SUBIR MULTIPLES DOCUMENTOS

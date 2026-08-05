@@ -1,10 +1,47 @@
 <?php
 
+/*
+=================================================
+INICIAR SESIÓN
+=================================================
+*/
+
+if(session_status() === PHP_SESSION_NONE){
+    session_start();
+}
+
+/*
+=================================================
+CONEXIÓN
+=================================================
+*/
+
 include("../../modulos/conexion_modulos.php");
+
+/*
+=================================================
+FUNCIÓN DE AUDITORÍA
+=================================================
+*/
+
+require_once("../../modulos/auditoria/funciones/registrar_auditoria.php");
+
+
+/*
+=================================================
+CAMBIAR ESTADO DEL DEPORTISTA
+=================================================
+*/
 
 if(isset($_GET['id'])){
 
     $id = $_GET['id'];
+
+    /*
+    =============================================
+    OBTENER ESTADO ACTUAL
+    =============================================
+    */
 
     $stm = $conexion->prepare("
         SELECT estado
@@ -13,17 +50,31 @@ if(isset($_GET['id'])){
     ");
 
     $stm->execute([
-        ":id" => $id
+        ":id"=>$id
     ]);
 
     $deportista = $stm->fetch(PDO::FETCH_ASSOC);
 
     if($deportista){
 
-        $nuevo_estado =
-            ($deportista['estado'] == 'activo')
-            ? 'inactivo'
-            : 'activo';
+        /*
+        =============================================
+        CALCULAR NUEVO ESTADO
+        =============================================
+        */
+
+        $estadoAnterior = $deportista["estado"];
+
+        $nuevoEstado =
+            ($estadoAnterior == "activo")
+            ? "inactivo"
+            : "activo";
+
+        /*
+        =============================================
+        ACTUALIZAR ESTADO
+        =============================================
+        */
 
         $update = $conexion->prepare("
             UPDATE deportista
@@ -32,11 +83,47 @@ if(isset($_GET['id'])){
         ");
 
         $update->execute([
-            ":estado" => $nuevo_estado,
-            ":id" => $id
+
+            ":estado"=>$nuevoEstado,
+            ":id"=>$id
+
         ]);
 
+        /*
+        =============================================
+        REGISTRAR AUDITORÍA
+        =============================================
+        */
+
+        $cambios = [
+
+            "estado"=>[
+
+                "antes"=>$estadoAnterior,
+                "despues"=>$nuevoEstado
+
+            ]
+
+        ];
+
+        registrarAuditoria(
+
+            $conexion,
+
+            "deportista",
+
+            $id,
+
+            "CAMBIAR_ESTADO",
+
+            $cambios,
+
+            "Cambio de estado del deportista"
+
+        );
+
         echo "ok";
+
     }
 
 }

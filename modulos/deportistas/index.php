@@ -93,19 +93,201 @@ if($buscar != ""){
 $deportista = $stm->fetchAll(PDO::FETCH_ASSOC);
 
 
-// ✅ ELIMINAR
+/*
+=================================================
+ELIMINAR DEPORTISTA CON AUDITORÍA
+=================================================
+*/
+
 if(isset($_GET['id'])){
 
-    $txtid = (isset($_GET['id']) ? $_GET['id'] : "");
+    $txtid = $_GET['id'];
 
-    $stm = $conexion->prepare("
-    DELETE FROM deportista 
+    /*
+    =============================================
+    OBTENER DATOS DEL DEPORTISTA
+    =============================================
+    */
+
+    $stmt = $conexion->prepare("
+    SELECT
+        d.*,
+        ud.acudiente,
+        ud.parentesco,
+        ud.entrenador_id
+    FROM deportista d
+    LEFT JOIN usuario_deportista ud
+        ON d.id = ud.deportista_id
+    WHERE d.id = :id
+    ");
+
+    $stmt->execute([
+        ":id"=>$txtid
+    ]);
+
+    $deportistaEliminar = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    /*
+    =============================================
+    REGISTRAR AUDITORÍA
+    =============================================
+    */
+
+    if($deportistaEliminar){
+
+        $cambios = [
+
+            "tipo_documento"=>[
+                "antes"=>$deportistaEliminar["tipo_documento"],
+                "despues"=>null
+            ],
+
+            "documento"=>[
+                "antes"=>$deportistaEliminar["documento"],
+                "despues"=>null
+            ],
+
+            "telefono"=>[
+                "antes"=>$deportistaEliminar["telefono"],
+                "despues"=>null
+            ],
+
+            "nombre"=>[
+                "antes"=>$deportistaEliminar["nombre"],
+                "despues"=>null
+            ],
+
+            "fecha_nacimiento"=>[
+                "antes"=>$deportistaEliminar["fecha_nacimiento"],
+                "despues"=>null
+            ],
+
+            "categoria_id"=>[
+                "antes"=>$deportistaEliminar["categoria_id"],
+                "despues"=>null
+            ],
+
+            "estado"=>[
+                "antes"=>$deportistaEliminar["estado"],
+                "despues"=>null
+            ],
+
+            "acudiente"=>[
+                "antes"=>$deportistaEliminar["acudiente"],
+                "despues"=>null
+            ],
+
+            "parentesco"=>[
+                "antes"=>$deportistaEliminar["parentesco"],
+                "despues"=>null
+            ],
+
+            "entrenador_id"=>[
+                "antes"=>$deportistaEliminar["entrenador_id"],
+                "despues"=>null
+            ]
+
+        ];
+
+        registrarAuditoria(
+
+            $conexion,
+            "deportista",
+            $txtid,
+            "ELIMINAR",
+            $cambios,
+            "Eliminación de deportista"
+
+        );
+
+    }
+
+/*
+=================================================
+ELIMINAR DOCUMENTOS DEL DEPORTISTA
+=================================================
+*/
+
+/*
+=============================================
+OBTENER DOCUMENTOS
+=============================================
+*/
+
+$stmtDocs = $conexion->prepare("
+SELECT archivo
+FROM deportista_documentos
+WHERE deportista_id = :id
+");
+
+$stmtDocs->execute([
+    ":id"=>$txtid
+]);
+
+$documentos = $stmtDocs->fetchAll(PDO::FETCH_ASSOC);
+
+/*
+=============================================
+ELIMINAR ARCHIVOS FÍSICOS
+=============================================
+*/
+
+foreach($documentos as $doc){
+
+    $ruta = "../../uploads/documentos/" . $doc["archivo"];
+
+    if(file_exists($ruta)){
+
+        unlink($ruta);
+
+    }
+
+}
+
+/*
+=============================================
+ELIMINAR REGISTROS DE LA BD
+=============================================
+*/
+
+$stmtDocs = $conexion->prepare("
+DELETE FROM deportista_documentos
+WHERE deportista_id = :id
+");
+
+$stmtDocs->execute([
+    ":id"=>$txtid
+]);
+
+    /*
+    =============================================
+    ELIMINAR RELACIÓN
+    =============================================
+    */
+
+    $stmt = $conexion->prepare("
+    DELETE FROM usuario_deportista
+    WHERE deportista_id = :id
+    ");
+
+    $stmt->execute([
+        ":id"=>$txtid
+    ]);
+
+    /*
+    =============================================
+    ELIMINAR DEPORTISTA
+    =============================================
+    */
+
+    $stmt = $conexion->prepare("
+    DELETE FROM deportista
     WHERE id = :id
     ");
 
-    $stm->bindParam(":id", $txtid);
-
-    $stm->execute();
+    $stmt->execute([
+        ":id"=>$txtid
+    ]);
 
     echo "
     <script>
@@ -319,7 +501,9 @@ Swal.fire({
 
 
 
-// ✅ CAMBIAR ESTADO
+// =========================
+// CAMBIAR ESTADO
+// =========================
 function cambiarEstado(id){
 
     fetch("cambiar_estado_deportista.php?id=" + id)
@@ -329,6 +513,41 @@ function cambiarEstado(id){
     })
     .catch(error => {
         console.error("Error:", error);
+    });
+
+}
+
+
+/*
+=================================================
+CONFIRMAR ELIMINACIÓN
+=================================================
+*/
+
+function confirmarEliminacion(id){
+
+    Swal.fire({
+
+        title: "¿Eliminar deportista?",
+        text: "Esta acción no se puede deshacer.",
+        icon: "warning",
+
+        showCancelButton: true,
+
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+
+        confirmButtonText: "Sí, eliminar",
+        cancelButtonText: "Cancelar"
+
+    }).then((result)=>{
+
+        if(result.isConfirmed){
+
+            window.location = "index.php?id=" + id;
+
+        }
+
     });
 
 }

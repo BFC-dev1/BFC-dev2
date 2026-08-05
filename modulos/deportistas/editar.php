@@ -3,7 +3,24 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+/*
+=================================================
+INICIAR SESIÓN
+=================================================
+*/
+
+if(session_status() === PHP_SESSION_NONE){
+    session_start();
+}
+
 include("../../modulos/conexion_modulos.php");
+/*
+=================================================
+FUNCIÓN DE AUDITORÍA
+=================================================
+*/
+
+require_once("../../modulos/auditoria/funciones/registrar_auditoria.php");
 
 // =========================
 // OBTENER DATOS
@@ -208,6 +225,46 @@ if($_POST){
     }
 
 
+/*
+=================================================
+OBTENER DATOS ANTERIORES PARA AUDITORÍA
+=================================================
+*/
+
+$stmtAnterior = $conexion->prepare("
+SELECT
+    d.*,
+    ud.acudiente,
+    ud.parentesco,
+    ud.entrenador_id
+FROM deportista d
+LEFT JOIN usuario_deportista ud
+ON d.id = ud.deportista_id
+WHERE d.id = :id
+");
+
+$stmtAnterior->execute([
+    ":id" => $txtid
+]);
+
+$anterior = $stmtAnterior->fetch(PDO::FETCH_ASSOC);
+
+/*
+=================================================
+GENERAR OPERACIÓN
+=================================================
+*/
+
+$operacion_id = uniqid("", true);
+
+/*
+=================================================
+USUARIO EN SESIÓN
+=================================================
+*/
+
+$usuario_id = $_SESSION["usuario_id"] ?? null;
+
     // =========================
     // ACTUALIZAR DEPORTISTA
     // =========================
@@ -268,6 +325,73 @@ $stmt_rel->bindValue(":deportista_id", $txtid, PDO::PARAM_INT);
 
 $stmt_rel->execute();
 
+
+/*
+=================================================
+REGISTRAR AUDITORÍA DE EDICIÓN
+=================================================
+*/
+
+$cambios = [];
+
+/*
+=================================================
+COMPARAR CADA CAMPO
+=================================================
+*/
+
+$campos = [
+
+    "tipo_documento"   => $tipo_documento,
+    "documento"        => $documento,
+    "telefono"         => $telefono,
+    "nombre"           => $nombre,
+    "fecha_nacimiento" => $fecha_nacimiento,
+    "categoria_id"     => $categoria_id,
+    "estado"           => $estado,
+    "acudiente"        => $acudiente,
+    "parentesco"       => $parentesco,
+    "entrenador_id"    => $entrenador_id
+
+];
+
+foreach($campos as $campo => $nuevo){
+
+    $anteriorValor = $anterior[$campo] ?? null;
+
+    if((string)$anteriorValor !== (string)$nuevo){
+
+        $cambios[$campo] = [
+
+            "antes"   => $anteriorValor,
+            "despues" => $nuevo
+
+        ];
+
+    }
+
+}
+
+/*
+=================================================
+GUARDAR AUDITORÍA SOLO SI HUBO CAMBIOS
+=================================================
+*/
+
+if(!empty($cambios)){
+
+    registrarAuditoria(
+
+        $conexion,
+        "deportista",
+        $txtid,
+        "EDITAR",
+        $cambios,
+        "Edición de deportista"
+
+    );
+
+}
 
     // =========================
     // SUBIR MULTIPLES PDFs
