@@ -1,5 +1,43 @@
+
 <?php
-session_start();
+
+require_once("../../includes/verificar_roles.php");
+/*
+=================================================
+CARGAR CONFIGURACIÓN GENERAL
+
+Importa la variable:
+
+$url_base
+
+para que las rutas funcionen tanto en
+localhost como en el servidor web.
+=================================================
+*/
+require_once("../../includes/config.php");
+
+permitirRoles([
+    "admin"
+]);
+
+/*
+=================================================
+NO ES NECESARIO LLAMAR session_start()
+
+El archivo:
+
+includes/verificar_roles.php
+
+ya inicia la sesión automáticamente si aún
+no existe.
+
+Esto evita el aviso:
+
+Notice:
+session_start(): Ignoring session_start()
+because a session is already active.
+=================================================
+*/
 
 /*
 =================================================
@@ -485,7 +523,7 @@ class="form-control mb-4">
 </button>
 
 <a
-    href="/BFC-dev2/modulos/Dashboard/index.php"
+    href="<?= $url_base ?>/modulos/Dashboard/index.php"
     class="btn btn-outline-secondary ms-2"
 >
 

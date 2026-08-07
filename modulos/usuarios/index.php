@@ -1,10 +1,66 @@
-    <?php  
+<?php
 
-    // ✅ CONEXIÓN
-    include("../conexion_modulos.php");
 
-    // ✅ MODAL CREAR
-    include("crear_usuario.php");
+/*
+=================================================
+VERIFICAR PERMISOS DEL MÓDULO USUARIOS
+
+Este archivo controla el acceso a la administración
+de usuarios.
+
+Permite:
+
+- Crear usuarios.
+- Editar usuarios.
+- Eliminar usuarios.
+- Cambiar estados.
+
+Solamente el rol "admin" puede ingresar.
+
+Si otro rol intenta entrar:
+será enviado al Dashboard.
+=================================================
+*/
+
+
+require_once("../../includes/verificar_roles.php");
+
+
+
+permitirRoles([
+
+    "admin"
+
+]);
+
+
+
+/*
+=================================================
+CONEXIÓN DEL MÓDULO
+
+La conexión se carga después de validar
+los permisos.
+
+Así evitamos ejecutar consultas antes de
+comprobar el acceso.
+=================================================
+*/
+
+include("../conexion_modulos.php");
+
+
+
+/*
+=================================================
+MODAL CREAR USUARIO
+
+Se carga después del control de permisos.
+=================================================
+*/
+
+include("crear_usuario.php");
+
 
 
 // ✅ BUSCADOR

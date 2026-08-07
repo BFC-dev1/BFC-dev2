@@ -1,20 +1,61 @@
 <?php
 
-/*
-=================================================
-INICIAR SESIÓN
-=================================================
-*/
-if(session_status() === PHP_SESSION_NONE){
-    session_start();
-}
 
 /*
 =================================================
-CONEXIÓN
+VERIFICAR PERMISOS DEL MÓDULO AUDITORÍA
+
+Este módulo permite consultar el historial de
+acciones realizadas dentro del sistema.
+
+Usuarios permitidos:
+
+admin:
+- Puede consultar la auditoría completa.
+
+auditor:
+- Puede revisar los registros de auditoría.
+
+Usuarios sin permiso:
+
+- entrenador
+- administrativo
+- usuario
+
+Si un usuario sin permiso intenta entrar,
+será enviado al Dashboard.
+
 =================================================
 */
+
+
+require_once("../../includes/verificar_roles.php");
+
+
+
+permitirRoles([
+
+    "admin",
+    "auditor"
+
+]);
+
+
+
+/*
+=================================================
+CONEXIÓN BASE DE DATOS
+
+La conexión se carga después de validar
+los permisos.
+
+Así evitamos ejecutar consultas si el usuario
+no tiene autorización.
+=================================================
+*/
+
 include("../../modulos/conexion_modulos.php");
+
 
 
 /*

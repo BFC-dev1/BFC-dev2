@@ -61,7 +61,7 @@ SELECT
 
     ud.acudiente,
     ud.parentesco,
-    ud.entrenador
+    u.nombre AS entrenador
 
 FROM deportista d
 
@@ -70,6 +70,9 @@ LEFT JOIN categoria c
 
 LEFT JOIN usuario_deportista ud
     ON ud.deportista_id = d.id
+
+LEFT JOIN usuario u
+    ON u.id = ud.entrenador_id
 
 WHERE d.id IN ($placeholders)
 

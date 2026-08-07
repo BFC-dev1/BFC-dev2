@@ -1,25 +1,103 @@
 <?php
 
-// ======================================================
-// FUNCIÓN DE AUDITORÍA
-// ======================================================
+
+/*
+=================================================
+VERIFICAR PERMISOS DEL MÓDULO DEPORTISTAS
+
+Este archivo controla el acceso al módulo
+de gestión de deportistas.
+
+Permisos:
+
+admin:
+- Administración completa del sistema.
+
+administrativo:
+- Gestión administrativa de deportistas.
+
+entrenador:
+- Gestión deportiva.
+
+Los demás roles no pueden ingresar.
+=================================================
+*/
+
+
+require_once("../../includes/verificar_roles.php");
+
+
+
+permitirRoles([
+
+    "admin",
+    "administrativo",
+    "entrenador"
+
+]);
+
+
+
+/*
+=================================================
+CARGAR FUNCIÓN DE AUDITORÍA
+
+Se carga después de validar permisos.
+
+Permite registrar acciones como:
+
+- Crear deportista.
+- Editar deportista.
+- Eliminar deportista.
+- Cambios de estado.
+
+=================================================
+*/
+
 include("../auditoria/funciones/registrar_auditoria.php");
 
-// ✅ VARIABLES DE ERROR
+
+
+/*
+=================================================
+VARIABLES DE CONTROL DE ERRORES
+
+Se utilizan en los formularios del módulo.
+=================================================
+*/
+
 $error_documento = false;
+
 $error_nombre = false;
 
-// ======================================================
-// INICIAR SESIÓN
-// Necesario para identificar el usuario que realiza acciones.
-// ======================================================
-if(session_status() === PHP_SESSION_NONE){
-    session_start();
-}
+
+
+/*
+=================================================
+CONEXIÓN A BASE DE DATOS
+
+La conexión se carga después de validar
+que el usuario tiene permisos.
+
+Así evitamos ejecutar consultas si no tiene
+acceso al módulo.
+=================================================
+*/
 
 include("../../modulos/conexion_modulos.php");
 
+
+
+/*
+=================================================
+FORMULARIO CREAR DEPORTISTA
+
+Se carga después del control de acceso.
+=================================================
+*/
+
 include("crear_deportista.php");
+
 
 $buscar = trim($_GET["buscar"] ?? "");
 
@@ -327,12 +405,33 @@ Swal.fire({
 
     <div class="d-flex gap-2">
 
-        <a
-            href="http://localhost/BFC-dev2/modulos/dashboard/index.php"
-            class="btn btn-outline-dark"
-        >
-            ← Volver al Dashboard
-        </a>
+<!--
+=================================================
+VOLVER AL DASHBOARD
+
+Se carga la configuración general del sistema
+para obtener la URL base dinámica.
+
+Funciona en:
+
+LOCAL:
+http://localhost/BFC-dev2/
+
+WEB:
+https://bellavistafcdev.page.gd/
+
+Sin modificar rutas manualmente.
+=================================================
+-->
+
+<?php require_once("../../includes/config.php"); ?>
+
+<a
+    href="<?= $url_base ?>/modulos/dashboard/index.php"
+    class="btn btn-outline-dark"
+>
+    ← Volver al Dashboard
+</a>
 
         <button
             type="button"

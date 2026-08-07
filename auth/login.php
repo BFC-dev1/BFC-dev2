@@ -112,11 +112,27 @@ $_SESSION['rol'] = $admin['rol_nombre'];
 REDIRECCIONAR AL DASHBOARD
 
 Una vez autenticado correctamente el usuario,
-se redirecciona al panel principal del sistema.
+se redirecciona al panel principal.
+
+La ruta usa la configuración general del sistema
+para funcionar en:
+
+LOCAL:
+http://localhost/BFC-dev2/
+
+WEB:
+https://bellavistafcdev.page.gd/
+
+sin cambiar código.
 =================================================
 */
 
-header("Location: /BFC-dev2/modulos/Dashboard/index.php");
+
+require_once("../includes/config.php");
+
+
+header("Location: ".$url_base."/modulos/dashboard/index.php");
+
 exit;
 
             

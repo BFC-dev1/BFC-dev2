@@ -1,5 +1,29 @@
-<?php 
-$url_base="http://localhost/BFC-dev2/"; 
+<?php
+
+/*
+=================================================
+CARGAR CONFIGURACIÓN GENERAL
+
+Importa la variable $url_base definida en:
+
+includes/config.php
+
+Con esto todos los recursos del Dashboard
+(CSS, imágenes, JavaScript, etc.) funcionarán
+automáticamente tanto en:
+
+LOCAL:
+http://localhost/BFC-dev2/
+
+WEB:
+https://bellavistafcdev.page.gd/
+
+sin modificar el código.
+=================================================
+*/
+
+require_once(__DIR__ . "/config.php");
+
 ?>
 
 <!doctype html>
@@ -18,11 +42,25 @@ $url_base="http://localhost/BFC-dev2/";
         rel="stylesheet"
     >
 
-    <!-- CSS Dashboard -->
-    <link 
-        rel="stylesheet" 
-        href="<?php echo $url_base; ?>assets/dashboard.css"
-    >
+<!--
+=================================================
+HOJA DE ESTILOS DEL DASHBOARD
+
+La carpeta de estilos se obtiene desde la
+configuración general del sistema.
+
+LOCAL:
+assets/dashboard.css
+
+WEB:
+style/dashboard.css
+=================================================
+-->
+
+<link
+    rel="stylesheet"
+    href="<?= $url_base ?>/<?= $css_base ?>/dashboard.css"
+>
 
     <!-- Bootstrap Icons -->
     <link 

@@ -2,11 +2,22 @@
 session_start();
 
 /*
-=========================
-CONEXIÓN NUEVA BD CMS
-=========================
+=================================================
+CONFIGURACIÓN GENERAL
+
+Carga las rutas base del sistema para que
+funcione correctamente tanto en localhost
+como en el servidor web.
+=================================================
 */
-include(__DIR__ . "/../includes/conexion_BDcms.php");
+require_once(__DIR__ . "/includes/config.php");
+
+/*
+=================================================
+CONEXIÓN BASE DE DATOS CMS
+=================================================
+*/
+require_once(__DIR__ . "/includes/conexion_BDcms.php");
 
 /*
 =========================
@@ -66,16 +77,16 @@ if(!$inicio){
     <title>Bellavista FC</title>
 
     <!-- CSS -->
-    <link
-        rel="stylesheet"
-        href="/BFC-dev2/assets/estilo.css"
-    >
+<link
+    rel="stylesheet"
+    href="<?= $url_base ?>/<?= $css_base ?>/estilo.css"
+>
 
 </head>
 
 <body>
 
-<?php include("../includes/header.php"); ?>
+<?php include(__DIR__ . "/includes/header.php"); ?>
 
 <!-- ===================================== -->
 <!-- SECCIÓN PRINCIPAL -->
@@ -83,19 +94,19 @@ if(!$inicio){
 
 <section class="principal">
 
-    <!-- IMAGEN PRINCIPAL -->
-    <div class="imagen-central">
+<!-- IMAGEN PRINCIPAL -->
+<div class="imagen-central">
 
-        <?php if(!empty($inicio['imagen_principal'])){ ?>
+    <?php if(!empty($inicio['imagen_principal'])){ ?>
 
-            <img
-                src="/BFC-dev2/assets/img/<?php echo htmlspecialchars($inicio['imagen_principal']); ?>"
-                alt="Imagen Principal"
-            >
+        <img
+            src="<?= $url_base ?>/<?= $img_base ?>/<?php echo htmlspecialchars($inicio['imagen_principal']); ?>"
+            alt="Imagen Principal"
+        >
 
-        <?php } ?>
+    <?php } ?>
 
-    </div>
+</div>
 
     <!-- TEXTO -->
     <div class="texto-lateral">
@@ -122,7 +133,7 @@ if(!$inicio){
         <?php if(!empty($inicio['tarjeta1_img'])){ ?>
 
             <img
-                src="/BFC-dev2/assets/img/<?php echo htmlspecialchars($inicio['tarjeta1_img']); ?>"
+                src="<?= $url_base ?>/<?= $img_base ?>/<?php echo htmlspecialchars($inicio['tarjeta1_img']); ?>"
                 alt="Tarjeta 1"
             >
 
@@ -145,10 +156,10 @@ if(!$inicio){
 
         <?php if(!empty($inicio['tarjeta2_img'])){ ?>
 
-            <img
-                src="/BFC-dev2/assets/img/<?php echo htmlspecialchars($inicio['tarjeta2_img']); ?>"
-                alt="Tarjeta 2"
-            >
+<img
+    src="<?= $url_base ?>/<?= $img_base ?>/<?php echo htmlspecialchars($inicio['tarjeta2_img']); ?>"
+    alt="Tarjeta 2"
+>
 
         <?php } ?>
 
@@ -169,10 +180,10 @@ if(!$inicio){
 
         <?php if(!empty($inicio['tarjeta3_img'])){ ?>
 
-            <img
-                src="/BFC-dev2/assets/img/<?php echo htmlspecialchars($inicio['tarjeta3_img']); ?>"
-                alt="Tarjeta 3"
-            >
+<img
+    src="<?= $url_base ?>/<?= $img_base ?>/<?php echo htmlspecialchars($inicio['tarjeta3_img']); ?>"
+    alt="Tarjeta 3"
+>
 
         <?php } ?>
 
@@ -190,7 +201,7 @@ if(!$inicio){
 
 </section>
 
-<?php include("../includes/footer.php"); ?>
+<?php include(__DIR__ . "/includes/footer.php"); ?>
 
 </body>
 </html>

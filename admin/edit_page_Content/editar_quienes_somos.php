@@ -1,5 +1,24 @@
 <?php
-session_start();
+
+require_once("../../includes/verificar_roles.php");
+
+permitirRoles([
+    "admin"
+]);
+
+/*
+=================================================
+CARGAR CONFIGURACIÓN GENERAL
+
+Importa la variable:
+
+$url_base
+
+para construir rutas compatibles con
+el entorno local y el servidor web.
+=================================================
+*/
+require_once("../../includes/config.php");
 
 include(__DIR__ . "/../../includes/conexion_BDcms.php");
 
@@ -274,10 +293,28 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 
             </button>
 
-            <a
-                href="/BFC-dev2/modulos/Dashboard/index.php"
-                class="btn btn-outline-secondary ms-2"
-            >
+<!--
+=================================================
+VOLVER AL DASHBOARD
+
+Se utiliza la ruta base definida en:
+
+includes/config.php
+
+para que funcione tanto en:
+
+LOCAL:
+http://localhost/BFC-dev2/
+
+WEB:
+https://bellavistafcdev.page.gd/
+=================================================
+-->
+
+<a
+    href="<?= $url_base ?>/modulos/Dashboard/index.php"
+    class="btn btn-outline-secondary ms-2"
+>
 
                 <i class="fa-solid fa-arrow-left me-2"></i>
                 Cancelar

@@ -1,8 +1,38 @@
 <?php
 
+/*
+=================================================
+INICIAR SESIÓN
+
+Si la sesión aún no existe, se inicia para
+poder acceder a la información del usuario.
+=================================================
+*/
 if(session_status() === PHP_SESSION_NONE){
     session_start();
 }
+
+
+/*
+=================================================
+CARGAR CONFIGURACIÓN GENERAL
+
+Importa:
+
+- $url_base
+- $css_base
+
+Con esto todas las rutas del Sidebar funcionarán
+automáticamente tanto en:
+
+LOCAL:
+http://localhost/BFC-dev2/
+
+WEB:
+https://bellavistafcdev.page.gd/
+=================================================
+*/
+require_once(__DIR__ . "/../../includes/config.php");
 
 ?>
 
@@ -11,8 +41,19 @@ if(session_status() === PHP_SESSION_NONE){
 <link rel="stylesheet"
 href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-<!-- SIDEBAR CSS -->
-<link rel="stylesheet" href="/BFC-dev2/assets/sidebar.css">
+<!--
+=================================================
+CSS DEL SIDEBAR
+
+La carpeta de estilos cambia automáticamente
+según el entorno (local o web).
+=================================================
+-->
+
+<link
+    rel="stylesheet"
+    href="<?= $url_base ?>/<?= $css_base ?>/sidebar.css"
+>
 
 <!-- BOTON MOBILE -->
 <button class="menu-toggle d-md-none" id="menuToggle">
@@ -44,7 +85,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
         <li class="nav-item mb-2">
 
             <a 
-                href="/BFC-dev2/modulos/Dashboard/index.php" 
+                href="<?= $url_base ?>/modulos/Dashboard/index.php"
                 class="nav-link text-white"
             >
                 <i class="fa-solid fa-house"></i>
@@ -77,10 +118,10 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
 
                     <li class="nav-item">
 
-                        <a 
-                            href="/BFC-dev2/modulos/usuarios/" 
-                            class="nav-link text-white"
-                        >
+<a
+    href="<?= $url_base ?>/modulos/usuarios/index.php"
+    class="nav-link text-white"
+>
                             <i class="fa-solid fa-list"></i>
                             Listado
                         </a>
@@ -123,7 +164,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
                     <li class="nav-item">
 
                         <a 
-                            href="/BFC-dev2/modulos/deportistas/" 
+                            href="<?= $url_base ?>/modulos/deportistas/"
                             class="nav-link text-white"
                         >
                             <i class="fa-solid fa-list"></i>
@@ -135,7 +176,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
                     <li class="nav-item">
 
                         <a 
-                            href="/BFC-dev2/modulos/pagos/" 
+                            href="<?= $url_base ?>/modulos/pagos/"
                             class="nav-link text-white"
                         >
                             <i class="fa-solid fa-money-bill-wave"></i>
@@ -147,7 +188,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
                     <li class="nav-item">
 
                         <a 
-                            href="/BFC-dev2/modulos/asistencia/" 
+                            href="<?= $url_base ?>/modulos/asistencia/"
                             class="nav-link text-white"
                         >
                             <i class="fa-solid fa-calendar-check"></i>
@@ -159,10 +200,19 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
 
                     <li class="nav-item">
 
-                    <a 
-                        href="/BFC-dev2/modulos/deportistas/convocatoria.php"
-                        class="nav-link text-white"
-                    >
+<!--
+=================================================
+CONVOCATORIA
+
+Se utiliza la ruta base del sistema para que
+funcione tanto en Local como en el servidor.
+=================================================
+-->
+
+<a
+    href="<?= $url_base ?>/modulos/deportistas/convocatoria.php"
+    class="nav-link text-white"
+>
 
                         <i class="fa-solid fa-clipboard-list"></i>
                         Convocatoria
@@ -202,7 +252,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
                     <li class="nav-item">
 
                         <a 
-                            href="/BFC-dev2/admin/edit_page_Content/editar_inicio.php"
+                            href="<?= $url_base ?>/admin/edit_page_Content/editar_inicio.php"
                             class="nav-link text-white"
                         >
                             <i class="fa-solid fa-house"></i>
@@ -213,10 +263,18 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
 
                     <li class="nav-item">
 
-                        <a 
-                            href="/BFC-dev2/admin/edit_page_Content/editar_contacto.php"
-                            class="nav-link text-white"
-                        >
+<!--
+=================================================
+EDITAR CONTACTO
+
+Ruta dinámica compatible con Local y Web.
+=================================================
+-->
+
+<a
+    href="<?= $url_base ?>/admin/edit_page_Content/editar_contacto.php"
+    class="nav-link text-white"
+>
                             <i class="fa-solid fa-phone"></i>
                             Contacto
                         </a>
@@ -225,10 +283,18 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
 
                     <li class="nav-item">
 
-                        <a 
-                            href="/BFC-dev2/admin/edit_page_Content/editar_quienes_somos.php"
-                            class="nav-link text-white"
-                        >
+<!--
+=================================================
+EDITAR QUIÉNES SOMOS
+
+Ruta dinámica compatible con Local y Web.
+=================================================
+-->
+
+<a
+    href="<?= $url_base ?>/admin/edit_page_Content/editar_quienes_somos.php"
+    class="nav-link text-white"
+>
                             <i class="fa-solid fa-circle-info"></i>
                             Quiénes somos
                         </a>
@@ -270,7 +336,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
             <li class="nav-item">
 
                 <a 
-                    href="/BFC-dev2/modulos/auditoria/index.php"
+                    href="<?= $url_base ?>/modulos/auditoria/index.php"
                     class="nav-link text-white"
                 >
                     <i class="fa-solid fa-users"></i>
@@ -284,7 +350,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
             <li class="nav-item">
 
                 <a 
-                    href="/modulos/auditoria/deportistas.php"
+                    href="<?= $url_base ?>/modulos/auditoria/deportistas.php"
                     class="nav-link text-white"
                 >
                     <i class="fa-solid fa-person-running"></i>
@@ -298,7 +364,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
             <li class="nav-item">
 
                 <a 
-                    href="/modulos/auditoria/pagos.php"
+                    href="<?= $url_base ?>/modulos/auditoria/pagos.php"
                     class="nav-link text-white"
                 >
                     <i class="fa-solid fa-money-bill-wave"></i>
@@ -317,10 +383,18 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
         <!-- REPORTES -->
         <li class="nav-item mb-2">
 
-            <a 
-                href="/BFC-dev2/modulos/reportes/reportes.php"
-                class="nav-link text-white"
-            >
+<!--
+=================================================
+REPORTES
+
+Ruta dinámica compatible con Local y Web.
+=================================================
+-->
+
+<a
+    href="<?= $url_base ?>/modulos/reportes/reportes.php"
+    class="nav-link text-white"
+>
                 <i class="fa-solid fa-chart-column"></i>
                 Reportes
             </a>
@@ -361,10 +435,18 @@ CAMBIAR CONTRASEÑA
 
 <li class="nav-item">
 
-    <a
-        href="/BFC-dev2/modulos/usuarios/cambiar_password.php"
-        class="nav-link text-white"
-    >
+<!--
+=================================================
+CAMBIAR CONTRASEÑA
+
+Ruta dinámica compatible con Local y Web.
+=================================================
+-->
+
+<a
+    href="<?= $url_base ?>/modulos/usuarios/cambiar_password.php"
+    class="nav-link text-white"
+>
 
         <i class="fa-solid fa-key"></i>
 
@@ -380,10 +462,18 @@ CERRAR SESIÓN
 
 <li class="nav-item">
 
-    <a
-        href="/BFC-dev2/auth/logout.php"
-        class="nav-link text-danger"
-    >
+<!--
+=================================================
+CERRAR SESIÓN
+
+Ruta dinámica compatible con Local y Web.
+=================================================
+-->
+
+<a
+    href="<?= $url_base ?>/auth/logout.php"
+    class="nav-link text-danger"
+>
 
         <i class="fa-solid fa-right-from-bracket"></i>
 

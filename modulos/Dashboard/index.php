@@ -1,12 +1,36 @@
 <?php
-session_start();
 
-if(!isset($_SESSION['usuario'])){
-    header("Location: /BFC-dev2/auth/login.php");
-    exit;
-}
+/*
+=================================================
+VERIFICAR SESIÓN DEL USUARIO
+
+Este archivo valida:
+
+- Que el usuario haya iniciado sesión.
+- Que exista la variable de sesión id_usuario.
+- Si no existe sesión, envía al login.
+
+IMPORTANTE:
+No se usa permitirRoles() aquí porque el Dashboard
+es accesible para todos los usuarios autenticados.
+=================================================
+*/
+
+require_once(__DIR__ . "/../../includes/verificar_roles.php");
+
+
+
+/*
+=================================================
+CONEXIÓN A BASE DE DATOS
+
+Se carga después de validar que existe una
+sesión activa.
+=================================================
+*/
 
 include(__DIR__ . "/../../modulos/conexion_modulos.php");
+
 
 /*
 =========================
@@ -44,7 +68,7 @@ $deportistasInactivos = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
 ?>
 
 <?php include("../../includes/header_dashboard.php") ?>
-<?php include("../../modulos/Dashboard/sidebar.php") ?>
+<?php include(__DIR__ . "/sidebar.php"); ?>
 
 <div class="main-content">
 
@@ -236,4 +260,4 @@ $deportistasInactivos = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
 
 </div>
 
-<?php include("../../includes/footer_dashboard.php") ?>
+<?php include(__DIR__ . "/../../includes/footer_dashboard.php"); ?>

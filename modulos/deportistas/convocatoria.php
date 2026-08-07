@@ -110,33 +110,37 @@ $deportistas = [];
 
 if (!empty($categoria_id)) {
 
-    $stmtDep = $conexion->prepare("
-        SELECT 
-            d.id,
-            d.nombre,
-            d.documento,
-            d.telefono,
-            d.fecha_nacimiento,
+$stmtDep = $conexion->prepare("
+    SELECT 
+        d.id,
+        d.nombre,
+        d.documento,
+        d.telefono,
+        d.fecha_nacimiento,
 
-            ud.acudiente,
-            ud.parentesco,
-            ud.entrenador,
+        ud.acudiente,
+        ud.parentesco,
 
-            c.nombre AS categoria
+        u.nombre AS entrenador,
 
-        FROM deportista d
+        c.nombre AS categoria
 
-        LEFT JOIN categoria c 
-            ON c.id = d.categoria_id
+    FROM deportista d
 
-        LEFT JOIN usuario_deportista ud
-            ON ud.deportista_id = d.id
+    LEFT JOIN categoria c 
+        ON c.id = d.categoria_id
 
-        WHERE d.estado = 'activo'
-        AND d.categoria_id = :cat
+    LEFT JOIN usuario_deportista ud
+        ON ud.deportista_id = d.id
 
-        ORDER BY d.nombre ASC
-    ");
+    LEFT JOIN usuario u
+        ON u.id = ud.entrenador_id
+
+    WHERE d.estado = 'activo'
+    AND d.categoria_id = :cat
+
+    ORDER BY d.nombre ASC
+");
 
     $stmtDep->execute([
         ":cat" => $categoria_id

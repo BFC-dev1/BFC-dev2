@@ -1,6 +1,24 @@
 <?php
 
-session_start();
+
+/*
+=================================================
+INICIAR SESIÓN DE FORMA SEGURA
+
+Este archivo puede ser cargado desde otros módulos
+que ya tienen una sesión iniciada.
+
+Se verifica primero para evitar errores
+por iniciar la sesión dos veces.
+=================================================
+*/
+
+if(session_status() === PHP_SESSION_NONE){
+
+    session_start();
+
+}
+
 
 // ✅ CARGAR FUNCIÓN DE AUDITORÍA
 // Permite usar registrarAuditoria() para guardar las acciones realizadas en el sistema.
@@ -337,11 +355,11 @@ $categorias = $stmtCategorias->fetchAll(PDO::FETCH_ASSOC);
                     Crear Usuario
                 </h5>
 
-                <button 
-                    type="button" 
-                    class="btn-close"
-                    data-bs-dismiss="modal"
-                ></button>
+<button
+    type="button"
+    class="btn-close"
+    onclick="location.href='index.php';"
+></button>
 
             </div>
 
@@ -584,13 +602,13 @@ $categorias = $stmtCategorias->fetchAll(PDO::FETCH_ASSOC);
 
                 <div class="modal-footer">
 
-                    <button
-                        type="button"
-                        class="btn btn-danger"
-                        data-bs-dismiss="modal"
-                    >
-                        Cancelar
-                    </button>
+<button
+    type="button"
+    class="btn btn-danger"
+    onclick="location.href='index.php';"
+>
+    Cancelar
+</button>
 
                     <button
                         type="submit"
