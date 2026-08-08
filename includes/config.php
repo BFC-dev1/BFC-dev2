@@ -95,3 +95,20 @@ if(
     $img_base = "public/img";
 
 }
+
+/*
+=================================================
+VERIFICAR PERMISOS DEL USUARIO
+=================================================
+*/
+if (!function_exists('tiene_permiso')) {
+    function tiene_permiso($modulo) {
+        // Si el usuario es administrador, tiene acceso total
+        if (isset($_SESSION['rol']) && strtolower($_SESSION['rol']) === 'administrador') {
+            return true;
+        }
+        
+        // Verifica si el módulo está en la lista guardada en la sesión
+        return isset($_SESSION['permisos']) && is_array($_SESSION['permisos']) && in_array($modulo, $_SESSION['permisos']);
+    }
+}

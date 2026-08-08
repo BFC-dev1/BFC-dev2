@@ -2,12 +2,21 @@
 
 /*
 =================================================
-INICIAR SESIÓN
+INICIAR SESIÓN Y VERIFICAR PERMISOS
 =================================================
 */
 
 if(session_status() === PHP_SESSION_NONE){
     session_start();
+}
+
+require_once("../../includes/verificar_roles.php");
+require_once("../../includes/config.php");
+
+// ✅ BLOQUEO DE SEGURIDAD
+if (!tiene_permiso('deportistas')) {
+    http_response_code(403);
+    exit("No tienes permisos para realizar esta acción.");
 }
 
 /*

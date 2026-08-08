@@ -178,12 +178,18 @@ Swal.fire({
 
     <div class="d-flex gap-2">
 
-        <a
-            href="../dashboard/index.php"
-            class="btn btn-outline-dark"
-        >
-            ← Volver al Dashboard
-        </a>
+<!-- BOTÓN VOLVER AL DASHBOARD -->
+<div class="mb-3">
+
+    <a
+        href="<?= $url_base ?>/modulos/dashboard/index.php"
+        class="btn btn-outline-dark"
+    >
+        <i class="fa-solid fa-arrow-left"></i>
+        Volver al Dashboard
+    </a>
+
+</div>
 
         <button
             type="button"

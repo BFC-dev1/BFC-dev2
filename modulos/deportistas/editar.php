@@ -3,1116 +3,474 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-/*
-=================================================
-INICIAR SESIÓN
-=================================================
-*/
-
-if(session_status() === PHP_SESSION_NONE){
+/* =================================================
+   INICIAR SESIÓN Y CONEXIÓN
+================================================= */
+if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
 include("../../modulos/conexion_modulos.php");
-/*
-=================================================
-FUNCIÓN DE AUDITORÍA
-=================================================
-*/
-
 require_once("../../modulos/auditoria/funciones/registrar_auditoria.php");
 
-// =========================
-// OBTENER DATOS
-// =========================
+$mensajeError = "";
+$txtid = isset($_GET['id']) ? (int)$_GET['id'] : (isset($_POST['id']) ? (int)$_POST['id'] : 0);
 
-$txtid = $_GET['id'] ?? "";
+/* =================================================
+   ELIMINAR DOCUMENTO
+================================================= */
+if (isset($_GET['eliminar_doc'])) {
+    $doc_id = (int)$_GET['eliminar_doc'];
 
-if($txtid != ""){
-
-    // ✅ TRAER DEPORTISTA
-    $stm = $conexion->prepare("
-        SELECT 
-            d.*, 
-            ud.acudiente,
-            ud.parentesco,
-            ud.entrenador_id
-
-        FROM deportista d
-
-        LEFT JOIN usuario_deportista ud 
-            ON d.id = ud.deportista_id
-
-        WHERE d.id = :id
-    ");
-
-    $stm->bindParam(":id", $txtid);
-    $stm->execute();
-
-    $registro = $stm->fetch(PDO::FETCH_ASSOC);
-
-    if($registro){
-
-        $tipo_documento = $registro['tipo_documento'];
-        $documento = $registro['documento'];
-        $telefono = $registro['telefono'];
-        $nombre = $registro['nombre'];
-        $fecha_nacimiento = $registro['fecha_nacimiento'];
-        $categoria_id = $registro['categoria_id'];
-
-        $estado = $registro['estado'];
-
-        $foto = $registro['foto'] ?? "";
-
-        $acudiente = $registro['acudiente'];
-        $parentesco = $registro['parentesco'];
-
-        // ✅ ENTRENADOR
-        $entrenador_id = $registro['entrenador_id'] ?? "";
-
-    }
-
-}
-
-
-// =========================
-// ELIMINAR DOCUMENTO
-// =========================
-
-if(isset($_GET['eliminar_doc'])){
-
-    $doc_id = $_GET['eliminar_doc'];
-
-    // buscar documento
-    $stmtDoc = $conexion->prepare("
-    SELECT archivo
-    FROM deportista_documentos
-    WHERE id = :id
-    ");
-
-    $stmtDoc->execute([
-        ":id"=>$doc_id
-    ]);
-
+    $stmtDoc = $conexion->prepare("SELECT archivo FROM deportista_documentos WHERE id = :id");
+    $stmtDoc->execute([":id" => $doc_id]);
     $doc = $stmtDoc->fetch(PDO::FETCH_ASSOC);
 
-    if($doc){
-
+    if ($doc) {
         $ruta = "../../uploads/documentos/" . $doc['archivo'];
-
-        // eliminar archivo físico
-        if(file_exists($ruta)){
+        if (file_exists($ruta)) {
             unlink($ruta);
         }
 
-        // eliminar registro BD
-        $stmtDelete = $conexion->prepare("
-        DELETE FROM deportista_documentos
-        WHERE id = :id
-        ");
-
-        $stmtDelete->execute([
-            ":id"=>$doc_id
-        ]);
-
+        $stmtDelete = $conexion->prepare("DELETE FROM deportista_documentos WHERE id = :id");
+        $stmtDelete->execute([":id" => $doc_id]);
     }
 
-    header("Location: editar.php?id=".$txtid);
+    header("Location: editar.php?id=" . $txtid);
     exit;
-
 }
 
+/* =================================================
+   PROCESAR FORMULARIO (POST)
+================================================= */
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-// =========================
-// ACTUALIZAR
-// =========================
-
-if($_POST){
-
-    $txtid = $_POST['id'] ?? "";
-
-    $tipo_documento = $_POST['tipo_documento'] ?? "";
-    $documento = $_POST['documento'] ?? "";
-    $telefono = $_POST['telefono'] ?? "";
-    $nombre = $_POST['nombre'] ?? "";
+    $tipo_documento   = $_POST['tipo_documento'] ?? "";
+    $documento        = trim($_POST['documento'] ?? "");
+    $telefono         = $_POST['telefono'] ?? "";
+    $nombre           = trim($_POST['nombre'] ?? "");
     $fecha_nacimiento = $_POST['fecha_nacimiento'] ?? "";
-    $categoria_id = $_POST['categoria_id'] ?? "";
+    $categoria_id     = $_POST['categoria_id'] ?? "";
+    $estado           = $_POST['estado'] ?? "activo";
+    $acudiente        = trim($_POST['acudiente'] ?? "");
+    $parentesco       = $_POST['parentesco'] ?? "";
+    $entrenador_id    = !empty($_POST['entrenador_id']) ? $_POST['entrenador_id'] : null;
 
-    $estado = $_POST['estado'] ?? "activo";
+    // VALIDACIONES BASICAS
+    if (empty($acudiente)) {
+        $mensajeError = "Ingresa un acudiente.";
+    } elseif (empty($categoria_id)) {
+        $mensajeError = "Selecciona una categoría.";
+    } else {
+        // VALIDAR SI EL DOCUMENTO YA EXISTE EN OTRO DEPORTISTA
+        $stmt_check = $conexion->prepare("SELECT id FROM deportista WHERE documento = :documento AND id != :id");
+        $stmt_check->execute([":documento" => $documento, ":id" => $txtid]);
 
-    $acudiente = trim($_POST['acudiente'] ?? "");
-
-    $parentesco = $_POST['parentesco'] ?? "";
-
-    // ✅ ENTRENADOR
-    $entrenador_id = !empty($_POST['entrenador_id']) 
-    ? $_POST['entrenador_id'] 
-    : null;
-
-
-    // =========================
-    // VALIDACIONES
-    // =========================
-
-    if(empty($acudiente)){
-        echo "<script>alert('Ingresa un acudiente');</script>";
-        exit;
+        if ($stmt_check->fetch()) {
+            $mensajeError = "Este número de documento ya está registrado en otro deportista.";
+        }
     }
 
-    if(empty($categoria_id)){
-        echo "<script>alert('Selecciona una categoría');</script>";
-        exit;
-    }
-
-
-    // =========================
-    // VALIDAR DOCUMENTO
-    // =========================
-
-    $stmt_check = $conexion->prepare("
-    SELECT id 
-    FROM deportista 
-    WHERE documento = :documento 
-    AND id != :id
-    ");
-
-    $stmt_check->execute([
-        ":documento"=>$documento,
-        ":id"=>$txtid
-    ]);
-
-    if($stmt_check->fetch()){
-
-        echo "<script>alert('Este documento ya está registrado');</script>";
-        exit;
-
-    }
-
-
-    // =========================
-    // FOTO ACTUAL
-    // =========================
-
-    $stmt_actual = $conexion->prepare("
-    SELECT foto
-    FROM deportista
-    WHERE id = :id
-    ");
-
-    $stmt_actual->execute([
-        ":id"=>$txtid
-    ]);
-
-    $actual = $stmt_actual->fetch(PDO::FETCH_ASSOC);
-
-    $foto = $actual['foto'] ?? "";
-
-
-    // =========================
-    // SUBIR FOTO
-    // =========================
-
-    if(isset($_FILES['foto']) && $_FILES['foto']['error'] == 0){
-
-        $nombreFoto = time() . "_" . $_FILES['foto']['name'];
-
-        move_uploaded_file(
-            $_FILES['foto']['tmp_name'],
-            "../../uploads/fotos/" . $nombreFoto
-        );
-
-        $foto = $nombreFoto;
-    }
-
-
-/*
-=================================================
-OBTENER DATOS ANTERIORES PARA AUDITORÍA
-=================================================
-*/
-
-$stmtAnterior = $conexion->prepare("
-SELECT
-    d.*,
-    ud.acudiente,
-    ud.parentesco,
-    ud.entrenador_id
-FROM deportista d
-LEFT JOIN usuario_deportista ud
-ON d.id = ud.deportista_id
-WHERE d.id = :id
-");
-
-$stmtAnterior->execute([
-    ":id" => $txtid
-]);
-
-$anterior = $stmtAnterior->fetch(PDO::FETCH_ASSOC);
-
-/*
-=================================================
-GENERAR OPERACIÓN
-=================================================
-*/
-
-$operacion_id = uniqid("", true);
-
-/*
-=================================================
-USUARIO EN SESIÓN
-=================================================
-*/
-
-$usuario_id = $_SESSION["usuario_id"] ?? null;
-
-    // =========================
-    // ACTUALIZAR DEPORTISTA
-    // =========================
-
-    $stm = $conexion->prepare("
-    UPDATE deportista 
-    SET 
-        tipo_documento = :tipo_documento,
-        documento = :documento,
-        telefono = :telefono,
-        nombre = :nombre,
-        fecha_nacimiento = :fecha_nacimiento,
-        categoria_id = :categoria_id,
-        estado = :estado,
-        foto = :foto
-
-    WHERE id = :id
-    ");
-
-    $stm->execute([
-        ":tipo_documento"=>$tipo_documento,
-        ":documento"=>$documento,
-        ":telefono"=>$telefono,
-        ":nombre"=>$nombre,
-        ":fecha_nacimiento"=>$fecha_nacimiento,
-        ":categoria_id"=>$categoria_id,
-        ":estado"=>$estado,
-        ":foto"=>$foto,
-        ":id"=>$txtid
-    ]);
-
-
-    // =========================
-    // ACTUALIZAR ACUDIENTE
-    // =========================
-
-    $stmt_rel = $conexion->prepare("
-    UPDATE usuario_deportista 
-
-    SET 
-        acudiente = :acudiente,
-        parentesco = :parentesco,
-        entrenador_id = :entrenador_id
-
-    WHERE deportista_id = :deportista_id
-    ");
-
-$stmt_rel->bindValue(":acudiente", $acudiente);
-$stmt_rel->bindValue(":parentesco", $parentesco);
-
-if($entrenador_id == null){
-    $stmt_rel->bindValue(":entrenador_id", null, PDO::PARAM_NULL);
-}else{
-    $stmt_rel->bindValue(":entrenador_id", $entrenador_id, PDO::PARAM_INT);
-}
-
-$stmt_rel->bindValue(":deportista_id", $txtid, PDO::PARAM_INT);
-
-$stmt_rel->execute();
-
-
-/*
-=================================================
-REGISTRAR AUDITORÍA DE EDICIÓN
-=================================================
-*/
-
-$cambios = [];
-
-/*
-=================================================
-COMPARAR CADA CAMPO
-=================================================
-*/
-
-$campos = [
-
-    "tipo_documento"   => $tipo_documento,
-    "documento"        => $documento,
-    "telefono"         => $telefono,
-    "nombre"           => $nombre,
-    "fecha_nacimiento" => $fecha_nacimiento,
-    "categoria_id"     => $categoria_id,
-    "estado"           => $estado,
-    "acudiente"        => $acudiente,
-    "parentesco"       => $parentesco,
-    "entrenador_id"    => $entrenador_id
-
-];
-
-foreach($campos as $campo => $nuevo){
-
-    $anteriorValor = $anterior[$campo] ?? null;
-
-    if((string)$anteriorValor !== (string)$nuevo){
-
-        $cambios[$campo] = [
-
-            "antes"   => $anteriorValor,
-            "despues" => $nuevo
-
-        ];
-
-    }
-
-}
-
-/*
-=================================================
-GUARDAR AUDITORÍA SOLO SI HUBO CAMBIOS
-=================================================
-*/
-
-if(!empty($cambios)){
-
-    registrarAuditoria(
-
-        $conexion,
-        "deportista",
-        $txtid,
-        "EDITAR",
-        $cambios,
-        "Edición de deportista"
-
-    );
-
-}
-
-    // =========================
-    // SUBIR MULTIPLES PDFs
-    // =========================
-
-if(isset($_FILES['documentos'])){
-
-    // carpeta
-    $carpetaDocs = "../../uploads/documentos/";
-
-    // crear carpeta si no existe
-    if(!file_exists($carpetaDocs)){
-
-        mkdir($carpetaDocs, 0777, true);
-
-    }
-
-    foreach($_FILES['documentos']['tmp_name'] as $key => $tmp_name){
-
-        // validar subida
-        if($_FILES['documentos']['error'][$key] == 0){
-
-            // nombre original
-            $archivoOriginal = $_FILES['documentos']['name'][$key];
-
-            // limpiar caracteres raros
-            $archivoOriginal = preg_replace(
-                '/[^A-Za-z0-9_\-.]/',
-                '_',
-                $archivoOriginal
-            );
-
-            // extensión
-            $extension = strtolower(
-                pathinfo($archivoOriginal, PATHINFO_EXTENSION)
-            );
-
-            // validar PDF
-            if(
-                $extension == "pdf" ||
-                $extension == "jpg" ||
-                $extension == "jpeg" ||
-                $extension == "png"
-            ){
-
-                // separar nombre y extensión
-                $nombreBase = pathinfo(
-                    $archivoOriginal,
-                    PATHINFO_FILENAME
-                );
-
-                // nombre final
-                $nuevoNombre = $archivoOriginal;
-
-                // ruta final
-                $rutaFinal = $carpetaDocs . $nuevoNombre;
-
-                // si ya existe agrega número
-                $contador = 1;
-
-                while(file_exists($rutaFinal)){
-
-                    $nuevoNombre = $nombreBase . "_" . $contador . "." . $extension;
-
-                    $rutaFinal = $carpetaDocs . $nuevoNombre;
-
-                    $contador++;
-
+    if (empty($mensajeError)) {
+
+        // OBTENER FOTO ACTUAL
+        $stmt_actual = $conexion->prepare("SELECT foto FROM deportista WHERE id = :id");
+        $stmt_actual->execute([":id" => $txtid]);
+        $actual = $stmt_actual->fetch(PDO::FETCH_ASSOC);
+        $foto = $actual['foto'] ?? "";
+
+        // SUBIR NUEVA FOTO (CON SANITIZACIÓN DE NOMBRE)
+        if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
+            $extFoto = strtolower(pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION));
+            $extPermitidasFoto = ['jpg', 'jpeg', 'png', 'webp'];
+
+            if (in_array($extFoto, $extPermitidasFoto)) {
+                $nombreFoto = time() . "_" . uniqid() . "." . $extFoto;
+                if (move_uploaded_file($_FILES['foto']['tmp_name'], "../../uploads/fotos/" . $nombreFoto)) {
+                    // Borrar foto anterior si no era por defecto
+                    if (!empty($foto) && file_exists("../../uploads/fotos/" . $foto)) {
+                        unlink("../../uploads/fotos/" . $foto);
+                    }
+                    $foto = $nombreFoto;
                 }
-
-                // mover archivo
-                move_uploaded_file(
-                    $tmp_name,
-                    $rutaFinal
-                );
-
-                // guardar en BD
-                $stmtInsert = $conexion->prepare("
-                    INSERT INTO deportista_documentos(
-                        deportista_id,
-                        archivo
-                    )
-                    VALUES(
-                        :deportista_id,
-                        :archivo
-                    )
-                ");
-
-                $stmtInsert->execute([
-                    ":deportista_id"=>$txtid,
-                    ":archivo"=>$nuevoNombre
-                ]);
-
             }
-
         }
 
+        // DATOS ANTERIORES PARA AUDITORÍA
+        $stmtAnterior = $conexion->prepare("
+            SELECT d.*, ud.acudiente, ud.parentesco, ud.entrenador_id
+            FROM deportista d
+            LEFT JOIN usuario_deportista ud ON d.id = ud.deportista_id
+            WHERE d.id = :id
+        ");
+        $stmtAnterior->execute([":id" => $txtid]);
+        $anterior = $stmtAnterior->fetch(PDO::FETCH_ASSOC);
+
+        // ACTUALIZAR TABLA DEPORTISTA
+        $stm = $conexion->prepare("
+            UPDATE deportista SET 
+                tipo_documento = :tipo_documento,
+                documento = :documento,
+                telefono = :telefono,
+                nombre = :nombre,
+                fecha_nacimiento = :fecha_nacimiento,
+                categoria_id = :categoria_id,
+                estado = :estado,
+                foto = :foto
+            WHERE id = :id
+        ");
+        $stm->execute([
+            ":tipo_documento"   => $tipo_documento,
+            ":documento"        => $documento,
+            ":telefono"         => $telefono,
+            ":nombre"           => $nombre,
+            ":fecha_nacimiento" => $fecha_nacimiento,
+            ":categoria_id"     => $categoria_id,
+            ":estado"           => $estado,
+            ":foto"             => $foto,
+            ":id"               => $txtid
+        ]);
+
+        // ACTUALIZAR TABLA USUARIO_DEPORTISTA
+        $stmt_rel = $conexion->prepare("
+            UPDATE usuario_deportista SET 
+                acudiente = :acudiente,
+                parentesco = :parentesco,
+                entrenador_id = :entrenador_id
+            WHERE deportista_id = :deportista_id
+        ");
+        $stmt_rel->bindValue(":acudiente", $acudiente);
+        $stmt_rel->bindValue(":parentesco", $parentesco);
+        $stmt_rel->bindValue(":entrenador_id", $entrenador_id, $entrenador_id === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
+        $stmt_rel->bindValue(":deportista_id", $txtid, PDO::PARAM_INT);
+        $stmt_rel->execute();
+
+        // AUDITORÍA DE CAMBIOS
+        $campos = [
+            "tipo_documento"   => $tipo_documento,
+            "documento"        => $documento,
+            "telefono"         => $telefono,
+            "nombre"           => $nombre,
+            "fecha_nacimiento" => $fecha_nacimiento,
+            "categoria_id"     => $categoria_id,
+            "estado"           => $estado,
+            "acudiente"        => $acudiente,
+            "parentesco"       => $parentesco,
+            "entrenador_id"    => $entrenador_id
+        ];
+
+        $cambios = [];
+        foreach ($campos as $campo => $nuevo) {
+            $anteriorValor = $anterior[$campo] ?? null;
+            if ((string)$anteriorValor !== (string)$nuevo) {
+                $cambios[$campo] = [
+                    "antes"   => $anteriorValor,
+                    "despues" => $nuevo
+                ];
+            }
+        }
+
+        if (!empty($cambios)) {
+            registrarAuditoria($conexion, "deportista", $txtid, "EDITAR", $cambios, "Edición de deportista");
+        }
+
+        // SUBIR MÚLTIPLES ARCHIVOS
+        if (isset($_FILES['documentos']) && !empty($_FILES['documentos']['name'][0])) {
+            $carpetaDocs = "../../uploads/documentos/";
+            if (!file_exists($carpetaDocs)) {
+                mkdir($carpetaDocs, 0755, true);
+            }
+
+            foreach ($_FILES['documentos']['tmp_name'] as $key => $tmp_name) {
+                if ($_FILES['documentos']['error'][$key] == 0) {
+                    $archivoOriginal = $_FILES['documentos']['name'][$key];
+                    $extension = strtolower(pathinfo($archivoOriginal, PATHINFO_EXTENSION));
+
+                    if (in_array($extension, ['pdf', 'jpg', 'jpeg', 'png'])) {
+                        $nombreBase = preg_replace('/[^A-Za-z0-9_\-]/', '_', pathinfo($archivoOriginal, PATHINFO_FILENAME));
+                        $nuevoNombre = $nombreBase . "." . $extension;
+                        $rutaFinal = $carpetaDocs . $nuevoNombre;
+
+                        $contador = 1;
+                        while (file_exists($rutaFinal)) {
+                            $nuevoNombre = $nombreBase . "_" . $contador . "." . $extension;
+                            $rutaFinal = $carpetaDocs . $nuevoNombre;
+                            $contador++;
+                        }
+
+                        if (move_uploaded_file($tmp_name, $rutaFinal)) {
+                            $stmtInsert = $conexion->prepare("
+                                INSERT INTO deportista_documentos (deportista_id, archivo) 
+                                VALUES (:deportista_id, :archivo)
+                            ");
+                            $stmtInsert->execute([
+                                ":deportista_id" => $txtid,
+                                ":archivo"       => $nuevoNombre
+                            ]);
+                        }
+                    }
+                }
+            }
+        }
+
+        header("Location: index.php?actualizado=1");
+        exit;
     }
-
 }
 
+/* =================================================
+   OBTENER DATOS PARA FORMULARIO (GET)
+================================================= */
+if ($txtid > 0) {
+    $stm = $conexion->prepare("
+        SELECT d.*, ud.acudiente, ud.parentesco, ud.entrenador_id
+        FROM deportista d
+        LEFT JOIN usuario_deportista ud ON d.id = ud.deportista_id
+        WHERE d.id = :id
+    ");
+    $stm->execute([":id" => $txtid]);
+    $registro = $stm->fetch(PDO::FETCH_ASSOC);
 
-    header("location:index.php?actualizado=1");
-    exit;
-
+    if ($registro) {
+        $tipo_documento   = $registro['tipo_documento'];
+        $documento        = $registro['documento'];
+        $telefono         = $registro['telefono'];
+        $nombre           = $registro['nombre'];
+        $fecha_nacimiento = $registro['fecha_nacimiento'];
+        $categoria_id     = $registro['categoria_id'];
+        $estado           = $registro['estado'];
+        $foto             = $registro['foto'] ?? "";
+        $acudiente        = $registro['acudiente'] ?? "";
+        $parentesco       = $registro['parentesco'] ?? "";
+        $entrenador_id    = $registro['entrenador_id'] ?? "";
+    }
 }
-
 ?>
 
-<?php include("../../template/header_modulos_Usuarios.php") ?>
-
+<?php include("../../template/header_modulos.php") ?>
 
 <div class="container mt-4 mb-5">
-
     <div class="card shadow border-0 rounded-4">
-
-        <!-- HEADER -->
-<div class="card-header bg-primary text-white rounded-top-4">
-
-    <h4 class="mb-0">
-        ⚽ Editar Deportista
-    </h4>
-
-</div>
+        <div class="card-header bg-primary text-white rounded-top-4">
+            <h4 class="mb-0">⚽ Editar Deportista</h4>
+        </div>
 
         <div class="card-body p-4">
 
-            <form action="" method="post" enctype="multipart/form-data">
+            <?php if (!empty($mensajeError)): ?>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <strong>Error:</strong> <?php echo htmlspecialchars($mensajeError); ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <?php endif; ?>
 
-                <input 
-                    type="hidden" 
-                    name="id" 
-                    value="<?php echo $txtid; ?>"
-                >
+            <form action="" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="id" value="<?php echo htmlspecialchars($txtid); ?>">
 
                 <div class="row">
-
                     <!-- FOTO -->
                     <div class="col-md-12 text-center mb-4">
-
-                        <label 
-                            for="fotoInput"
-                            style="
-                                cursor:pointer;
-                                color:#0d6efd;
-                                font-weight:bold;
-                                display:block;
-                                margin-bottom:10px;
-                            "
-                        >
+                        <label for="fotoInput" style="cursor:pointer; color:#0d6efd; font-weight:bold; display:block; margin-bottom:10px;">
                             Editar Foto
                         </label>
+                        
+                        <img src="<?php echo !empty($foto) ? '../../uploads/fotos/' . htmlspecialchars($foto) : 'https://via.placeholder.com/150'; ?>" 
+                             id="imgPreview"
+                             width="150" height="150" 
+                             class="rounded-circle shadow" 
+                             style="object-fit:cover;">
 
-                        <?php if(!empty($foto)){ ?>
-
-                            <img 
-                                src="../../uploads/fotos/<?php echo $foto; ?>" 
-                                width="150"
-                                height="150"
-                                class="rounded-circle shadow"
-                                style="object-fit:cover;"
-                            >
-
-                        <?php }else{ ?>
-
-                            <img 
-                                src="https://via.placeholder.com/150"
-                                width="150"
-                                height="150"
-                                class="rounded-circle shadow"
-                                style="object-fit:cover;"
-                            >
-
-                        <?php } ?>
-
-                        <input 
-                            type="file" 
-                            id="fotoInput"
-                            name="foto"
-                            accept="image/*"
-                            style="display:none;"
-                        >
-
+                        <input type="file" id="fotoInput" name="foto" accept="image/*" style="display:none;" onchange="previewImage(event)">
                     </div>
 
-
-                    <!-- DOCUMENTOS -->
+                    <!-- ADJUNTAR DOCUMENTOS -->
                     <div class="col-md-12 mb-4">
-
-                        <label class="form-label fw-bold">
-                            Adjuntar Documentos
-                        </label>
-
-                        <input 
-                            type="file" 
-                            name="documentos[]"
-                            class="form-control"
-                            accept=".pdf,.jpg,.jpeg,.png"
-                            multiple
-                        >
-
+                        <label class="form-label fw-bold">Adjuntar Documentos</label>
+                        <input type="file" name="documentos[]" class="form-control" accept=".pdf,.jpg,.jpeg,.png" multiple>
                     </div>
 
-
-                    <!-- LISTAR DOCUMENTOS -->
+                    <!-- LISTA DE DOCUMENTOS ADJUNTOS -->
                     <div class="col-md-12 mb-4">
-
                         <div class="border rounded p-3 bg-light">
-
-                            <h5 class="fw-bold mb-3">
-                                📁 Documentos Adjuntos
-                            </h5>
-
+                            <h5 class="fw-bold mb-3">📁 Documentos Adjuntos</h5>
                             <?php
-
-                            $stmtDocs = $conexion->prepare("
-                            SELECT *
-                            FROM deportista_documentos
-                            WHERE deportista_id = :id
-                            ORDER BY id DESC
-                            ");
-
-                            $stmtDocs->execute([
-                                ":id"=>$txtid
-                            ]);
-
+                            $stmtDocs = $conexion->prepare("SELECT * FROM deportista_documentos WHERE deportista_id = :id ORDER BY id DESC");
+                            $stmtDocs->execute([":id" => $txtid]);
                             $documentos = $stmtDocs->fetchAll(PDO::FETCH_ASSOC);
-
                             ?>
 
-                            <?php if(count($documentos) > 0){ ?>
-
-                                <?php foreach($documentos as $doc){ ?>
-
+                            <?php if (count($documentos) > 0): ?>
+                                <?php foreach ($documentos as $doc): ?>
                                     <div class="d-flex justify-content-between align-items-center border rounded p-2 mb-2 bg-white">
-
-                                        <!-- NOMBRE -->
                                         <div>
-
-                                            <span class="fw-bold text-danger">
-                                                📄 Archivo
-                                            </span>
-
-                                            <br>
-
-                                            <small class="text-muted">
-                                                <?php echo $doc['archivo']; ?>
-                                            </small>
-
+                                            <span class="fw-bold text-danger">📄 Archivo</span><br>
+                                            <small class="text-muted"><?php echo htmlspecialchars($doc['archivo']); ?></small>
                                         </div>
-
-                                        <!-- BOTONES -->
                                         <div class="d-flex gap-2">
-
-                                            <!-- VER -->
-                                            <a 
-                                                href="../../uploads/documentos/<?php echo $doc['archivo']; ?>"
-                                                target="_blank"
-                                                class="btn btn-primary btn-sm"
-                                            >
-                                                👁 Ver
-                                            </a>
-
-                                            <!-- DESCARGAR -->
-                                            <a 
-                                                href="../../uploads/documentos/<?php echo $doc['archivo']; ?>"
-                                                download
-                                                class="btn btn-success btn-sm"
-                                            >
-                                                ⬇ Descargar
-                                            </a>
-
-                                            <!-- ELIMINAR -->
-                                            <a 
-                                                href="?id=<?php echo $txtid; ?>&eliminar_doc=<?php echo $doc['id']; ?>"
-                                                class="btn btn-danger btn-sm"
-                                                onclick="return confirm('¿Eliminar documento?')"
-                                            >
-                                                🗑 Eliminar
-                                            </a>
-
+                                            <a href="../../uploads/documentos/<?php echo htmlspecialchars($doc['archivo']); ?>" target="_blank" class="btn btn-primary btn-sm">👁 Ver</a>
+                                            <a href="../../uploads/documentos/<?php echo htmlspecialchars($doc['archivo']); ?>" download class="btn btn-success btn-sm">⬇ Descargar</a>
+                                            <a href="?id=<?php echo $txtid; ?>&eliminar_doc=<?php echo $doc['id']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar documento?')">🗑 Eliminar</a>
                                         </div>
-
                                     </div>
-
-                                <?php } ?>
-
-                            <?php }else{ ?>
-
-                                <div class="alert alert-warning mb-0">
-
-                                    No hay documentos adjuntos.
-
-                                </div>
-
-                            <?php } ?>
-
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <div class="alert alert-warning mb-0">No hay documentos adjuntos.</div>
+                            <?php endif; ?>
                         </div>
-
                     </div>
 
-
-                    <!-- TIPO DOCUMENTO -->
+                    <!-- CAMPOS DEL FORMULARIO -->
                     <div class="col-md-6 mb-3">
-
-                        <label class="form-label">
-                            Tipo Documento
-                        </label>
-
-                        <input 
-                            type="text" 
-                            class="form-control" 
-                            name="tipo_documento" 
-                            value="<?php echo $tipo_documento; ?>"
-                        >
-
+                        <label class="form-label">Tipo Documento</label>
+                        <input type="text" class="form-control" name="tipo_documento" value="<?php echo htmlspecialchars($tipo_documento ?? ''); ?>">
                     </div>
 
-
-                    <!-- DOCUMENTO -->
                     <div class="col-md-6 mb-3">
-
-                        <label class="form-label">
-                            Documento
-                        </label>
-
-                        <input 
-                            type="text" 
-                            class="form-control" 
-                            name="documento" 
-                            value="<?php echo $documento; ?>"
-                        >
-
+                        <label class="form-label">Documento</label>
+                        <input type="text" class="form-control" name="documento" value="<?php echo htmlspecialchars($documento ?? ''); ?>" required>
                     </div>
 
-
-                    <!-- TELEFONO -->
                     <div class="col-md-6 mb-3">
-
-                        <label class="form-label">
-                            Teléfono
-                        </label>
-
-                        <input 
-                            type="text" 
-                            class="form-control" 
-                            name="telefono" 
-                            value="<?php echo $telefono; ?>"
-                        >
-
+                        <label class="form-label">Teléfono</label>
+                        <input type="text" class="form-control" name="telefono" value="<?php echo htmlspecialchars($telefono ?? ''); ?>">
                     </div>
 
-
-                    <!-- NOMBRE -->
                     <div class="col-md-6 mb-3">
-
-                        <label class="form-label">
-                            Nombre
-                        </label>
-
-                        <input 
-                            type="text" 
-                            class="form-control" 
-                            name="nombre" 
-                            value="<?php echo $nombre; ?>"
-                        >
-
+                        <label class="form-label">Nombre</label>
+                        <input type="text" class="form-control" name="nombre" value="<?php echo htmlspecialchars($nombre ?? ''); ?>" required>
                     </div>
 
-
-                    <!-- FECHA NACIMIENTO -->
                     <div class="col-md-6 mb-3">
-
-                        <label class="form-label">
-                            Fecha de nacimiento
-                        </label>
-
-                        <input 
-                        type="date" 
-                        id="fecha_nacimiento"
-                        class="form-control" 
-                        name="fecha_nacimiento" 
-                        value="<?php echo $fecha_nacimiento; ?>"
-                        >
-
+                        <label class="form-label">Fecha de nacimiento</label>
+                        <input type="date" id="fecha_nacimiento" class="form-control" name="fecha_nacimiento" value="<?php echo htmlspecialchars($fecha_nacimiento ?? ''); ?>">
                     </div>
 
-
-<!-- ENTRENADOR -->
-<div class="col-md-6 mb-3">
-
-<label class="form-label">
-    Entrenador
-</label>
-
-<select 
-    id="entrenador_id"
-    name="entrenador_id"
-    class="form-control"
->
-
-<option value="">
-    Seleccione entrenador
-</option>
-
-</select>
-
-</div>
-
-
-                    <!-- ACUDIENTE -->
                     <div class="col-md-6 mb-3">
-
-                        <label class="form-label">
-                            Acudiente
-                        </label>
-
-                        <input 
-                            type="text" 
-                            name="acudiente" 
-                            class="form-control" 
-                            value="<?php echo $acudiente; ?>"
-                            required
-                        >
-
-                    </div>
-
-
-                    <!-- PARENTESCO -->
-                    <div class="col-md-6 mb-3">
-
-                        <label class="form-label">
-                            Parentesco
-                        </label>
-
-                        <select 
-                            name="parentesco" 
-                            class="form-control"
-                            required
-                        >
-
-                            <option value="">
-                                Seleccione parentesco
-                            </option>
-
-                            <option 
-                                value="Papá"
-                                <?php if($parentesco=="Papá"){ echo "selected"; } ?>
-                            >
-                                Papá
-                            </option>
-
-                            <option 
-                                value="Mamá"
-                                <?php if($parentesco=="Mamá"){ echo "selected"; } ?>
-                            >
-                                Mamá
-                            </option>
-
-                            <option 
-                                value="Acudiente"
-                                <?php if($parentesco=="Acudiente"){ echo "selected"; } ?>
-                            >
-                                Acudiente
-                            </option>
-
-                        </select>
-
-                    </div>
-
-
-                    <!-- CATEGORIA -->
-                    <div class="col-md-6 mb-3">
-
-                        <label class="form-label">
-                            Categoría
-                        </label>
-
-                        <select 
-                            id="categoria_id"
-                            name="categoria_id" 
-                            class="form-control"
-                            required
-                        >
-
-                            <option value="">
-                                Seleccionar categoría
-                            </option>
-
+                        <label class="form-label">Categoría</label>
+                        <select id="categoria_id" name="categoria_id" class="form-control" required>
+                            <option value="">Seleccionar categoría</option>
                             <?php
-
-                            $stmt = $conexion->query("
-                            SELECT id, nombre, anio_desde, anio_hasta
-                            FROM categoria
-                            ORDER BY anio_desde DESC
-                            ");
-
-                            while($row = $stmt->fetch(PDO::FETCH_ASSOC)){
-
+                            $stmtCat = $conexion->query("SELECT id, nombre, anio_desde, anio_hasta FROM categoria ORDER BY anio_desde DESC");
+                            while ($row = $stmtCat->fetch(PDO::FETCH_ASSOC)) {
                                 $selected = ($row['id'] == $categoria_id) ? "selected" : "";
-
-                                echo "
-                                <option 
-                                value='".$row['id']."' 
-                                data-desde='".$row['anio_desde']."'
-                                data-hasta='".$row['anio_hasta']."'
-                                $selected>
-
-                                ".$row['nombre']."
-
-                                </option>
-                                ";
+                                echo "<option value='{$row['id']}' data-desde='{$row['anio_desde']}' data-hasta='{$row['anio_hasta']}' $selected>" . htmlspecialchars($row['nombre']) . "</option>";
                             }
-
                             ?>
-
                         </select>
-
                     </div>
 
-
-                    <!-- ESTADO -->
                     <div class="col-md-6 mb-3">
-
-                        <label class="form-label">
-                            Estado
-                        </label>
-
-                        <select 
-                            name="estado" 
-                            class="form-control"
-                            required
-                        >
-
-                            <option 
-                                value="activo"
-                                <?php if($estado=="activo"){ echo "selected"; } ?>
-                            >
-                                Activo
-                            </option>
-
-                            <option 
-                                value="inactivo"
-                                <?php if($estado=="inactivo"){ echo "selected"; } ?>
-                            >
-                                Inactivo
-                            </option>
-
+                        <label class="form-label">Entrenador</label>
+                        <select id="entrenador_id" name="entrenador_id" class="form-control">
+                            <option value="">Seleccione entrenador</option>
                         </select>
-
                     </div>
 
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Acudiente</label>
+                        <input type="text" name="acudiente" class="form-control" value="<?php echo htmlspecialchars($acudiente ?? ''); ?>" required>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Parentesco</label>
+                        <select name="parentesco" class="form-control" required>
+                            <option value="">Seleccione parentesco</option>
+                            <option value="Papá" <?php echo ($parentesco == "Papá") ? "selected" : ""; ?>>Papá</option>
+                            <option value="Mamá" <?php echo ($parentesco == "Mamá") ? "selected" : ""; ?>>Mamá</option>
+                            <option value="Acudiente" <?php echo ($parentesco == "Acudiente") ? "selected" : ""; ?>>Acudiente</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Estado</label>
+                        <select name="estado" class="form-control" required>
+                            <option value="activo" <?php echo ($estado == "activo") ? "selected" : ""; ?>>Activo</option>
+                            <option value="inactivo" <?php echo ($estado == "inactivo") ? "selected" : ""; ?>>Inactivo</option>
+                        </select>
+                    </div>
                 </div>
 
-
-                <!-- BOTONES -->
                 <div class="d-flex gap-2 mt-3">
-
-                    <a href="index.php" class="btn btn-danger">
-                        Cancelar
-                    </a>
-
-                    <button type="submit" class="btn btn-primary">
-                        Actualizar Deportista
-                    </button>
-
+                    <a href="index.php" class="btn btn-danger">Cancelar</a>
+                    <button type="submit" class="btn btn-primary">Actualizar Deportista</button>
                 </div>
-
             </form>
-
         </div>
-
     </div>
-
 </div>
-
 
 <script>
+// Previsualizar la foto antes de subirla
+function previewImage(event) {
+    const reader = new FileReader();
+    reader.onload = function(){
+        const output = document.getElementById('imgPreview');
+        output.src = reader.result;
+    };
+    if(event.target.files[0]){
+        reader.readAsDataURL(event.target.files[0]);
+    }
+}
 
-document.addEventListener("DOMContentLoaded",function(){
+document.addEventListener("DOMContentLoaded", function() {
+    const categoria = document.getElementById("categoria_id");
+    const entrenador = document.getElementById("entrenador_id");
+    const fecha = document.getElementById("fecha_nacimiento");
+    let entrenadorActual = "<?php echo $entrenador_id; ?>";
 
-const categoria = document.getElementById("categoria_id");
-const entrenador = document.getElementById("entrenador_id");
+    function cargarEntrenadores() {
+        let categoria_id = categoria.value;
+        entrenador.innerHTML = '<option value="">Seleccione entrenador</option>';
 
-let entrenadorActual = "<?php echo $entrenador_id; ?>";
+        if (!categoria_id) return;
 
+        fetch("buscar_entrenadores.php?categoria_id=" + categoria_id)
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(function(ent) {
+                    let option = document.createElement("option");
+                    option.value = ent.id;
+                    option.textContent = ent.nombre;
+                    if (ent.id == entrenadorActual) {
+                        option.selected = true;
+                    }
+                    entrenador.appendChild(option);
+                });
 
-
-function cargarEntrenadores(){
-
-
-    let categoria_id = categoria.value;
-
-
-    entrenador.innerHTML = `
-    <option value="">
-        Seleccione entrenador
-    </option>
-    `;
-
-
-    if(categoria_id==""){
-        return;
+                if (data.length === 1) {
+                    entrenador.value = data[0].id;
+                }
+            })
+            .catch(err => console.error("Error al cargar entrenadores:", err));
     }
 
+    categoria.addEventListener("change", function() {
+        entrenadorActual = "";
+        cargarEntrenadores();
+    });
 
+    fecha.addEventListener("change", function() {
+        if (!this.value) return;
 
-    fetch("buscar_entrenadores.php?categoria_id="+categoria_id)
+        // Extraer el año directamente del string 'YYYY-MM-DD' evita problemas de timezone en JS
+        let anioNacimiento = parseInt(this.value.split('-')[0], 10);
+        let opciones = categoria.querySelectorAll("option");
 
-    .then(response=>response.json())
+        opciones.forEach(function(opcion) {
+            let desde = parseInt(opcion.dataset.desde, 10);
+            let hasta = parseInt(opcion.dataset.hasta, 10);
 
-    .then(data=>{
-
-
-        data.forEach(function(ent){
-
-
-            let option=document.createElement("option");
-
-
-            option.value=ent.id;
-
-
-            option.textContent=ent.nombre;
-
-
-
-            // mantener entrenador actual
-            if(ent.id == entrenadorActual){
-
-                option.selected=true;
-
+            if (anioNacimiento >= desde && anioNacimiento <= hasta) {
+                categoria.value = opcion.value;
+                entrenadorActual = "";
+                cargarEntrenadores();
             }
-
-
-            entrenador.appendChild(option);
-
-
         });
-
-
-
-        // SI SOLO EXISTE UNO LO SELECCIONA
-        if(data.length == 1){
-
-            entrenador.value=data[0].id;
-
-        }
-
-
-
     });
 
-
-}
-
-
-
-// cambio manual categoría
-categoria.addEventListener(
-"change",
-function(){
-
-    entrenadorActual="";
-
+    // Cargar entrenadores al abrir
     cargarEntrenadores();
-
 });
-
-
-// FECHA NACIMIENTO
-const fecha = document.getElementById("fecha_nacimiento");
-
-
-// CAMBIO FECHA NACIMIENTO
-fecha.addEventListener("change", function(){
-
-
-    if(this.value == ""){
-    return;
-}
-
-let añoNacimiento = new Date(this.value).getFullYear();
-
-
-    let opciones = categoria.querySelectorAll("option");
-
-
-    opciones.forEach(function(opcion){
-
-
-        let desde = parseInt(opcion.dataset.desde);
-        let hasta = parseInt(opcion.dataset.hasta);
-
-
-        if(
-            añoNacimiento >= desde &&
-            añoNacimiento <= hasta
-        ){
-
-            categoria.value = opcion.value;
-
-            entrenadorActual = "";
-
-            cargarEntrenadores();
-
-        }
-
-
-    });
-
-
-});
-
-
-// cargar al abrir editar
-cargarEntrenadores();
-
-
-}); // <-- CIERRA document.addEventListener
-
 </script>
 
 <?php include("../../template/footer_modulos.php") ?>

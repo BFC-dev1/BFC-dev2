@@ -67,49 +67,47 @@ WHERE u.usuario = :usuario
 
                 $error = "Usuario inactivo. Contacte al administrador del sistema.";
 
-            } elseif ($password == $admin['password']) {
+} elseif ($password == $admin['password']) {
 
-               
                 /*
-=================================================
-REGENERAR EL ID DE SESIÓN
+                =================================================
+                REGENERAR EL ID DE SESIÓN
+                =================================================
+                */
+                session_regenerate_id(true);
 
-Se genera un nuevo identificador de sesión para
-evitar ataques de Session Fixation y mejorar la
-seguridad del inicio de sesión.
-=================================================
-*/
+                /*
+                =================================================
+                CONSULTAR PERMISOS DEL ROL DE LA BASE DE DATOS
+                =================================================
+                */
+                $sqlPermisos = "
+                    SELECT p.modulo 
+                    FROM permiso p
+                    INNER JOIN rol_permiso rp ON p.id = rp.permiso_id
+                    WHERE rp.rol_id = :rol_id
+                ";
+                $stmtPermisos = $conexion->prepare($sqlPermisos);
+                $stmtPermisos->execute([':rol_id' => $admin['rol_id']]);
+                
+                // Extrae la lista simple de módulos permitidos
+                $permisos_db = $stmtPermisos->fetchAll(PDO::FETCH_COLUMN);
 
-session_regenerate_id(true);
+                /*
+                =================================================
+                GUARDAR DATOS DEL USUARIO Y PERMISOS EN LA SESIÓN
+                =================================================
+                */
+                $_SESSION['id_usuario'] = $admin['id'];
+                $_SESSION['usuario']    = $admin['usuario'];
+                $_SESSION['nombre']     = $admin['nombre'];
+                $_SESSION['rol_id']     = $admin['rol_id'];
+                $_SESSION['rol']        = $admin['rol_nombre'];
+                $_SESSION['permisos']   = $permisos_db; // <-- Guardamos los permisos del rol
 
-
-/*
-=================================================
-GUARDAR DATOS DEL USUARIO EN LA SESIÓN
-
-Se almacenan los datos principales del usuario
-autenticado para utilizarlos durante toda la
-sesión sin realizar consultas repetitivas a la
-base de datos.
-
-id_usuario : Identificador del usuario.
-usuario    : Nombre de usuario.
-nombre     : Nombre completo.
-rol_id     : Id del rol.
-rol         : Nombre del rol.
-=================================================
-*/
-
-$_SESSION['id_usuario'] = $admin['id'];
-$_SESSION['usuario'] = $admin['usuario'];
-$_SESSION['nombre'] = $admin['nombre'];
-$_SESSION['rol_id'] = $admin['rol_id'];
-$_SESSION['rol'] = $admin['rol_nombre'];
-
-
-/*
-=================================================
-REDIRECCIONAR AL DASHBOARD
+                /*
+                =================================================
+                REDIRECCIONAR AL DASHBOARD
 
 Una vez autenticado correctamente el usuario,
 se redirecciona al panel principal.
