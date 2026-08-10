@@ -5,8 +5,9 @@ VERIFICAR PERMISOS DEL MÓDULO DEPORTISTAS
 =================================================
 */
 
-require_once("../../includes/verificar_roles.php");
+
 require_once("../../includes/config.php");
+require_once("../../includes/verificar_roles.php");
 
 // Permite la entrada si tiene permiso de gestión completa O de solo lectura
 if (!tiene_permiso('deportistas') && !tiene_permiso('ver_deportistas')) {
@@ -21,51 +22,6 @@ $error_nombre = false;
 
 include("../../modulos/conexion_modulos.php");
 
-/*
-=================================================
-FORMULARIO CREAR DEPORTISTA
-(Solo si tiene permiso de gestión completa 'deportistas')
-=================================================
-*/
-if (tiene_permiso('deportistas')) {
-    include("crear_deportista.php");
-}
-
-$buscar = trim($_GET["buscar"] ?? "");
-
-// CONSULTAR DEPORTISTAS
-if($buscar != ""){
-    $stm = $conexion->prepare("
-        SELECT d.*, c.nombre AS categoria_nombre, u.nombre AS entrenador_nombre, ud.acudiente AS acudiente_nombre
-        FROM deportista d
-        LEFT JOIN categoria c ON d.categoria_id = c.id
-        LEFT JOIN usuario_deportista ud ON ud.deportista_id = d.id
-        LEFT JOIN usuario u ON u.id = ud.entrenador_id
-        WHERE d.tipo_documento LIKE :buscar
-           OR d.documento LIKE :buscar
-           OR d.telefono LIKE :buscar
-           OR d.nombre LIKE :buscar
-           OR d.fecha_nacimiento LIKE :buscar
-           OR c.nombre LIKE :buscar
-           OR u.nombre LIKE :buscar
-           OR ud.acudiente LIKE :buscar
-           OR d.estado LIKE :buscar
-        ORDER BY d.id DESC
-    ");
-    $stm->execute([":buscar" => "%".$buscar."%"]);
-} else {
-    $stm = $conexion->prepare("
-        SELECT d.*, c.nombre AS categoria_nombre, u.nombre AS entrenador_nombre, ud.acudiente AS acudiente_nombre
-        FROM deportista d
-        LEFT JOIN categoria c ON d.categoria_id = c.id
-        LEFT JOIN usuario_deportista ud ON ud.deportista_id = d.id
-        LEFT JOIN usuario u ON u.id = ud.entrenador_id
-        ORDER BY d.id DESC
-    ");
-    $stm->execute();
-}
-
-$deportista = $stm->fetchAll(PDO::FETCH_ASSOC);
 
 /*
 =================================================
@@ -80,7 +36,7 @@ if(isset($_GET['id'])){
         exit;
     }
 
-    $txtid = $_GET['id'];
+    $txtid = (int) $_GET['id'];
 
     $stmt = $conexion->prepare("
         SELECT d.*, ud.acudiente, ud.parentesco, ud.entrenador_id
@@ -127,7 +83,110 @@ if(isset($_GET['id'])){
     exit;
 }
 
+
+
+$buscar = trim($_GET["buscar"] ?? "");
+
+// CONSULTAR DEPORTISTAS
+if($buscar != ""){
+    $stm = $conexion->prepare("
+        SELECT d.*, c.nombre AS categoria_nombre, u.nombre AS entrenador_nombre, ud.acudiente AS acudiente_nombre
+        FROM deportista d
+        LEFT JOIN categoria c ON d.categoria_id = c.id
+        LEFT JOIN usuario_deportista ud ON ud.deportista_id = d.id
+        LEFT JOIN usuario u ON u.id = ud.entrenador_id
+        WHERE d.tipo_documento LIKE :buscar
+           OR d.documento LIKE :buscar
+           OR d.telefono LIKE :buscar
+           OR d.nombre LIKE :buscar
+           OR d.fecha_nacimiento LIKE :buscar
+           OR c.nombre LIKE :buscar
+           OR u.nombre LIKE :buscar
+           OR ud.acudiente LIKE :buscar
+           OR d.estado LIKE :buscar
+        ORDER BY d.id DESC
+    ");
+    $stm->execute([":buscar" => "%".$buscar."%"]);
+} else {
+    $stm = $conexion->prepare("
+        SELECT d.*, c.nombre AS categoria_nombre, u.nombre AS entrenador_nombre, ud.acudiente AS acudiente_nombre
+        FROM deportista d
+        LEFT JOIN categoria c ON d.categoria_id = c.id
+        LEFT JOIN usuario_deportista ud ON ud.deportista_id = d.id
+        LEFT JOIN usuario u ON u.id = ud.entrenador_id
+        ORDER BY d.id DESC
+    ");
+    $stm->execute();
+}
+
+$deportista = $stm->fetchAll(PDO::FETCH_ASSOC);
+
+
+
+/*
+=========================================================
+CONFIGURACIÓN DEL MÓDULO DEPORTISTAS
+=========================================================
+*/
+
+/*
+Nombre principal que mostrará el header.
+*/
+$modulo_actual = 'Deportistas';
+
+/*
+Deportistas no tiene actualmente un submódulo.
+*/
+$submodulo_actual = '';
+
+/*
+No utilizamos menú adicional en el navbar por ahora.
+*/
+$menu_modulo = [];
+
+
+/*
+=================================================
+CARGA DEL HEADER ANTES DEL CONTENIDO VISUAL
+=================================================
+
+IMPORTANTE:
+
+header_modulos.php debe cargarse antes de cualquier
+archivo que genere HTML visible.
+
+Si crear_deportista.php se carga antes del header,
+el navegador puede mostrar temporalmente el contenido
+sin los estilos CSS, provocando un parpadeo visual
+("flash") durante la carga de la página.
+
+Por esta razón se mantiene el siguiente orden:
+
+    header_modulos.php
+            ↓
+    crear_deportista.php
+            ↓
+    resto del contenido visual
+
+Toda la lógica PHP y procesamiento de datos debe
+realizarse antes de llegar a este punto.
+
+=================================================
+*/
+
 include("../../template/header_modulos.php");
+
+
+/*
+=================================================
+FORMULARIO DE CREACIÓN DE DEPORTISTA
+=================================================
+*/
+
+if (tiene_permiso('deportistas')) {
+    include("crear_deportista.php");
+}
+
 ?>
 
 <?php if(isset($_GET['actualizado'])){ ?>

@@ -29,15 +29,12 @@ será enviado al Dashboard.
 */
 
 
+require_once("../../includes/config.php");
 require_once("../../includes/verificar_roles.php");
 
-
-
 permitirRoles([
-
     "admin",
     "auditor"
-
 ]);
 
 
@@ -151,12 +148,12 @@ $auditorias = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     <div class="d-flex gap-2">
 
-        <a
-            href="/BFC-dev2/modulos/dashboard/index.php"
-            class="btn btn-outline-dark"
-        >
-            ← Volver al Dashboard
-        </a>
+<a
+    href="<?= $url_base ?>/modulos/dashboard/index.php"
+    class="btn btn-outline-dark"
+>
+    ← Volver al Dashboard
+</a>
 
     </div>
 

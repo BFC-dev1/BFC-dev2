@@ -1,72 +1,194 @@
 <?php
 
-
 /*
-=================================================
-VERIFICAR PERMISOS DEL MÓDULO USUARIOS
+=========================================================
+MÓDULO: USUARIOS
+SISTEMA: BELLAVISTA FC
+ARCHIVO: index.php
+=========================================================
 
-Este archivo controla el acceso a la administración
-de usuarios.
+RESPONSABILIDADES DE ESTE ARCHIVO:
 
-Permite:
+- Verificar permisos de acceso.
+- Cargar la configuración general.
+- Cargar la conexión a la base de datos.
+- Definir la identidad del módulo.
+- Cargar el header general de módulos.
+- Cargar el formulario/modal de creación.
+- Consultar usuarios.
+- Permitir búsqueda.
+- Mostrar usuarios.
+- Controlar estado activo/inactivo.
+- Permitir editar y eliminar usuarios.
+- Mostrar mensajes de operación.
+- Cargar el footer general.
 
-- Crear usuarios.
-- Editar usuarios.
-- Eliminar usuarios.
-- Cambiar estados.
-
-Solamente el rol "admin" puede ingresar.
-
-Si otro rol intenta entrar:
-será enviado al Dashboard.
-=================================================
+=========================================================
 */
 
 
-require_once("../../includes/verificar_roles.php");
+/*
+=========================================================
+1. CONFIGURACIÓN GENERAL DEL SISTEMA
+=========================================================
 
+IMPORTANTE:
 
+Debe cargarse ANTES de:
 
-permitirRoles([
+    header_modulos.php
 
-    "admin"
+porque el header utiliza variables como:
 
-]);
+    $url_base
+    $css_url
+    $img_url
 
+=========================================================
+*/
+
+require_once(__DIR__ . "/../../includes/config.php");
 
 
 /*
-=================================================
-CONEXIÓN DEL MÓDULO
+=========================================================
+2. VERIFICAR SESIÓN Y PERMISOS
+=========================================================
 
-La conexión se carga después de validar
-los permisos.
+Se conserva el sistema actual de permisos de Usuarios.
 
-Así evitamos ejecutar consultas antes de
-comprobar el acceso.
-=================================================
+El módulo Usuarios actualmente está restringido
+al rol "admin".
+
+=========================================================
+*/
+
+require_once(__DIR__ . "/../../includes/verificar_roles.php");
+
+permitirRoles([
+    "admin"
+]);
+
+
+/*
+=========================================================
+3. CONEXIÓN A LA BASE DE DATOS
+=========================================================
+
+Se utiliza la conexión modular existente.
+
+Este archivo establece la variable:
+
+    $conexion
+
+=========================================================
 */
 
 include("../conexion_modulos.php");
 
 
+/*
+=========================================================
+4. IDENTIDAD DEL MÓDULO
+=========================================================
+
+Estas variables son utilizadas por el framework
+general de módulos.
+
+Todos los módulos pueden utilizar la misma estructura:
+
+    Deportistas
+    Usuarios
+    Financiero
+    Auditoría
+    etc.
+
+=========================================================
+*/
+
+$modulo_actual = 'Usuarios';
+
+$submodulo_actual = '';
+
+$menu_modulo = [];
+
 
 /*
-=================================================
-MODAL CREAR USUARIO
+=========================================================
+5. CARGAR HEADER GENERAL DE MÓDULOS
+=========================================================
 
-Se carga después del control de permisos.
-=================================================
+IMPORTANTE:
+
+ANTES:
+
+    header_modulos_Usuarios.php
+
+AHORA:
+
+    header_modulos.php
+
+Todos los módulos utilizan el mismo framework.
+
+=========================================================
+*/
+
+include("../../template/header_modulos.php");
+
+
+/*
+=========================================================
+6. MODAL / FORMULARIO DE CREAR USUARIO
+=========================================================
+
+IMPORTANTE:
+
+Este include se coloca DESPUÉS del header.
+
+De esta manera crear_usuario.php no imprime HTML
+antes de que se haya construido la estructura
+principal de la página.
+
+=========================================================
 */
 
 include("crear_usuario.php");
 
 
+/*
+=========================================================
+7. BUSCADOR
+=========================================================
 
-// ✅ BUSCADOR
+Permite buscar usuarios por:
+
+- Nombre
+- Tipo de documento
+- Documento
+- Teléfono
+- Correo
+- Rol
+- Estado
+
+=========================================================
+*/
+
 $buscar = trim($_GET["buscar"] ?? "");
 
-if($buscar != ""){
+
+/*
+=========================================================
+8. CONSULTAR USUARIOS
+=========================================================
+*/
+
+if ($buscar != "") {
+
+    /*
+    -----------------------------------------------------
+    BÚSQUEDA CON FILTRO
+    -----------------------------------------------------
+    */
 
     $stm = $conexion->prepare("
         SELECT
@@ -91,10 +213,16 @@ if($buscar != ""){
     ");
 
     $stm->execute([
-        ":buscar" => "%".$buscar."%"
+        ":buscar" => "%" . $buscar . "%"
     ]);
 
-}else{
+} else {
+
+    /*
+    -----------------------------------------------------
+    CONSULTA GENERAL
+    -----------------------------------------------------
+    */
 
     $stm = $conexion->prepare("
         SELECT
@@ -110,55 +238,66 @@ if($buscar != ""){
     ");
 
     $stm->execute();
-
 }
+
+
+/*
+=========================================================
+9. OBTENER RESULTADOS
+=========================================================
+*/
 
 $usuarios = $stm->fetchAll(PDO::FETCH_ASSOC);
 
 
-    ?>
-
-
-    <?php include("../../template/header_modulos_Usuarios.php") ?>
-
-    <?php
-
 /*
-=================================================
-MENSAJE DE ELIMINACIÓN EXITOSA
+=========================================================
+10. MENSAJE DE ELIMINACIÓN EXITOSA
+=========================================================
 
-Si la URL contiene el parámetro "eliminado",
-se muestra un mensaje indicando que el usuario
-fue eliminado correctamente.
+Si la URL contiene:
 
-=================================================
+    ?eliminado=1
+
+se muestra un mensaje de confirmación.
+
+=========================================================
 */
 
-if(isset($_GET["eliminado"])){
-
+if (isset($_GET["eliminado"])) {
 ?>
 
 <script>
 
 Swal.fire({
-
     icon: "success",
-
     title: "Usuario eliminado",
-
     text: "El usuario fue eliminado correctamente.",
-
     confirmButtonText: "Aceptar"
-
 });
 
 </script>
 
-<?php } ?>
+<?php
+}
 
-<?php if(isset($_GET['actualizado'])){ ?>
 
-    
+/*
+=========================================================
+11. MENSAJE DE ACTUALIZACIÓN EXITOSA
+=========================================================
+
+Si la URL contiene:
+
+    ?actualizado=1
+
+se muestra un mensaje de confirmación.
+
+=========================================================
+*/
+
+if (isset($_GET["actualizado"])) {
+?>
 
 <script>
 
@@ -171,36 +310,64 @@ Swal.fire({
 
 </script>
 
-<?php } ?>
+<?php
+}
 
+
+/*
+=========================================================
+12. BOTONES SUPERIORES Y BUSCADOR
+=========================================================
+*/
+
+?>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
 
+
+    <!-- =================================================
+         BOTONES DEL MÓDULO
+         ================================================= -->
+
     <div class="d-flex gap-2">
 
-<!-- BOTÓN VOLVER AL DASHBOARD -->
-<div class="mb-3">
+        <!-- VOLVER AL DASHBOARD -->
 
-    <a
-        href="<?= $url_base ?>/modulos/dashboard/index.php"
-        class="btn btn-outline-dark"
-    >
-        <i class="fa-solid fa-arrow-left"></i>
-        Volver al Dashboard
-    </a>
-
-</div>
-
-        <button
-            type="button"
-            class="btn btn-primary"
-            data-bs-toggle="modal"
-            data-bs-target="#create"
+        <a
+            href="<?= $url_base ?>/modulos/dashboard/index.php"
+            class="btn btn-outline-dark"
         >
-            Crear Usuario
-        </button>
+            <i class="fa-solid fa-arrow-left"></i>
+            Volver al Dashboard
+        </a>
+
+
+        <!-- =================================================
+             CREAR USUARIO
+             
+             Solo se muestra si el usuario tiene permiso
+             sobre el módulo Usuarios.
+             ================================================= -->
+
+        <?php if (tiene_permiso('usuarios')): ?>
+
+            <button
+                type="button"
+                class="btn btn-primary"
+                data-bs-toggle="modal"
+                data-bs-target="#create"
+            >
+                Crear Usuario
+            </button>
+
+        <?php endif; ?>
 
     </div>
+
+
+    <!-- =================================================
+         BUSCADOR
+         ================================================= -->
 
     <form method="GET" class="d-flex gap-2">
 
@@ -213,11 +380,17 @@ Swal.fire({
             value="<?php echo htmlspecialchars($buscar); ?>"
         >
 
-        <button class="btn btn-primary">
+        <button
+            type="submit"
+            class="btn btn-primary"
+        >
             Buscar
         </button>
 
-        <a href="index.php" class="btn btn-secondary">
+        <a
+            href="index.php"
+            class="btn btn-secondary"
+        >
             Limpiar
         </a>
 
@@ -226,156 +399,368 @@ Swal.fire({
 </div>
 
 
-    <table class="table table-bordered table-hover text-center align-middle">
+<!-- =====================================================
+     TABLA DE USUARIOS
+     ===================================================== -->
 
-        <thead class="table-dark">
-
-            <tr>
-
-                <th>Nombre</th>
-                <th>Tipo Documento</th>
-                <th>Documento</th>
-                <th>Teléfono</th>
-                <th>Correo</th>
-                <th>Rol</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-
-            </tr>
-
-        </thead>
-
-        <tbody>
-
-        <?php foreach($usuarios as $usuario) { ?>
-
-            <tr>
-
-                <td><?php echo $usuario['nombre']; ?></td>
-
-                <td><?php echo $usuario['tipo_documento']; ?></td>
-
-                <td><?php echo $usuario['documento']; ?></td>
-
-                <td><?php echo $usuario['telefono']; ?></td>
-
-                <td><?php echo $usuario['correo']; ?></td>
-
-                <!-- ✅ ROL -->
-                <td>
-
-                    <span class="badge bg-info text-dark">
-
-                        <?php echo $usuario['rol_nombre']; ?>
-
-                    </span>
-
-                </td>
+<table class="table table-bordered table-hover text-center align-middle">
 
 
-                <!-- ✅ ESTADO -->
-                <td>
+    <!-- ENCABEZADO -->
 
-                    <div class="form-check form-switch d-flex justify-content-center">
+    <thead class="table-dark">
 
-                        <input 
-                            class="form-check-input"
-                            type="checkbox"
+        <tr>
 
-                            <?php 
-                            if($usuario['estado'] == 'activo'){
-                                echo 'checked';
-                            }
-                            ?>
+            <th>Nombre</th>
 
-                            onclick="cambiarEstado(<?php echo $usuario['id']; ?>)"
-                        >
+            <th>Tipo Documento</th>
 
-                    </div>
+            <th>Documento</th>
 
-                </td>
+            <th>Teléfono</th>
+
+            <th>Correo</th>
+
+            <th>Rol</th>
+
+            <th>Estado</th>
+
+            <th>Acciones</th>
+
+        </tr>
+
+    </thead>
 
 
-                <!-- ✅ ACCIONES -->
-                <td>
+    <!-- CUERPO -->
+
+    <tbody>
+
+    <?php foreach ($usuarios as $usuario): ?>
+
+        <tr>
+
+
+            <!-- =================================================
+                 NOMBRE
+                 ================================================= -->
+
+            <td>
+                <?php
+                echo htmlspecialchars(
+                    $usuario['nombre'] ?? ''
+                );
+                ?>
+            </td>
+
+
+            <!-- =================================================
+                 TIPO DOCUMENTO
+                 ================================================= -->
+
+            <td>
+                <?php
+                echo htmlspecialchars(
+                    $usuario['tipo_documento'] ?? ''
+                );
+                ?>
+            </td>
+
+
+            <!-- =================================================
+                 DOCUMENTO
+                 ================================================= -->
+
+            <td>
+                <?php
+                echo htmlspecialchars(
+                    $usuario['documento'] ?? ''
+                );
+                ?>
+            </td>
+
+
+            <!-- =================================================
+                 TELÉFONO
+                 ================================================= -->
+
+            <td>
+                <?php
+                echo htmlspecialchars(
+                    $usuario['telefono'] ?? ''
+                );
+                ?>
+            </td>
+
+
+            <!-- =================================================
+                 CORREO
+                 ================================================= -->
+
+            <td>
+                <?php
+                echo htmlspecialchars(
+                    $usuario['correo'] ?? ''
+                );
+                ?>
+            </td>
+
+
+            <!-- =================================================
+                 ROL
+                 ================================================= -->
+
+            <td>
+
+                <span class="badge bg-info text-dark">
+
+                    <?php
+                    echo htmlspecialchars(
+                        $usuario['rol_nombre'] ?? 'Sin rol'
+                    );
+                    ?>
+
+                </span>
+
+            </td>
+
+
+            <!-- =================================================
+                 ESTADO
+                 ================================================= -->
+
+            <td>
+
+                <div class="form-check form-switch d-flex justify-content-center">
+
+                    <input
+                        class="form-check-input"
+                        type="checkbox"
+
+                        <?php
+                        echo (
+                            ($usuario['estado'] ?? '') == 'activo'
+                        )
+                            ? 'checked'
+                            : '';
+                        ?>
+
+                        <?php if (tiene_permiso('usuarios')): ?>
+
+                            onclick="cambiarEstado(
+                                <?php echo (int)$usuario['id']; ?>
+                            )"
+
+                        <?php else: ?>
+
+                            disabled
+
+                        <?php endif; ?>
+
+                    >
+
+                </div>
+
+            </td>
+
+
+            <!-- =================================================
+                 ACCIONES
+                 ================================================= -->
+
+            <td>
+
+                <?php if (tiene_permiso('usuarios')): ?>
 
                     <div class="d-flex justify-content-center gap-2">
 
-                        <a 
-                            href="editar_usuario.php?id=<?php echo $usuario['id']; ?>" 
+
+                        <!-- EDITAR -->
+
+                        <a
+                            href="editar_usuario.php?id=<?php echo (int)$usuario['id']; ?>"
                             class="btn btn-success btn-sm"
                         >
                             Editar
                         </a>
 
-                        <a 
+
+                        <!-- ELIMINAR -->
+
+                        <a
                             href="javascript:void(0)"
-                            onclick="confirmarEliminacion(<?php echo $usuario['id']; ?>)"
+                            onclick="confirmarEliminacion(
+                                <?php echo (int)$usuario['id']; ?>
+                            )"
                             class="btn btn-danger btn-sm"
                         >
                             Eliminar
                         </a>
 
+
                     </div>
 
-                </td>
+                <?php else: ?>
 
-            </tr>
+                    <span class="badge bg-secondary">
+                        Solo lectura
+                    </span>
 
-        <?php } ?>
+                <?php endif; ?>
 
-        </tbody>
-
-    </table>
+            </td>
 
 
-    <!-- ✅ SCRIPT -->
+        </tr>
 
-    <script>
+    <?php endforeach; ?>
 
-    function confirmarEliminacion(id){
+    </tbody>
 
-        let confirmar = confirm("¿Seguro que deseas eliminar este usuario?");
+</table>
 
-        if(confirmar){
 
-            window.location = "eliminar_usuario.php?id=" + id;
+<!-- =====================================================
+     JAVASCRIPT DEL MÓDULO
+     ===================================================== -->
+
+<script>
+
+
+/*
+=========================================================
+CONFIRMAR ELIMINACIÓN
+=========================================================
+
+Muestra una confirmación antes de eliminar un usuario.
+
+=========================================================
+*/
+
+function confirmarEliminacion(id) {
+
+    Swal.fire({
+
+        title: "¿Eliminar usuario?",
+
+        text: "Esta acción no se puede deshacer.",
+
+        icon: "warning",
+
+        showCancelButton: true,
+
+        confirmButtonColor: "#d33",
+
+        cancelButtonColor: "#3085d6",
+
+        confirmButtonText: "Sí, eliminar",
+
+        cancelButtonText: "Cancelar"
+
+    }).then((result) => {
+
+        if (result.isConfirmed) {
+
+            window.location =
+                "eliminar_usuario.php?id=" + id;
 
         }
-
-    }
-
-
-    // ✅ CAMBIAR ESTADO
-function cambiarEstado(id){
-
-    fetch("cambiar_estado_usuario.php?id=" + id)
-    .then(response => {
-
-        if(!response.ok){
-            throw new Error("Error en la petición");
-        }
-
-        return response.text();
-
-    })
-    .then(data => {
-
-        console.log(data);
-
-        // Recargar tabla para mostrar nuevo estado
-        location.reload();
-
-    })
-    .catch(error => {
-
-        console.error(error);
 
     });
 
 }
 
-    </script>
+
+/*
+=========================================================
+CAMBIAR ESTADO DEL USUARIO
+=========================================================
+
+Realiza una petición AJAX al archivo:
+
+    cambiar_estado_usuario.php
+
+Después de cambiar el estado se recarga la página.
+
+=========================================================
+*/
+
+function cambiarEstado(id) {
+
+    fetch(
+        "cambiar_estado_usuario.php?id=" + id
+    )
+
+    .then(response => {
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Error en la petición"
+            );
+
+        }
+
+        return response.text();
+
+    })
+
+    .then(data => {
+
+        console.log(data);
+
+        /*
+        -------------------------------------------------
+        Recargar tabla para mostrar el nuevo estado.
+        -------------------------------------------------
+        */
+
+        location.reload();
+
+    })
+
+    .catch(error => {
+
+        console.error(error);
+
+        Swal.fire({
+
+            icon: "error",
+
+            title: "Error",
+
+            text: "No fue posible cambiar el estado del usuario."
+
+        });
+
+    });
+
+}
+
+</script>
 
 
-    <?php include("../../template/footer_modulos_Usuarios.php") ?>
+<?php
+
+/*
+=========================================================
+FOOTER GENERAL DE MÓDULOS
+=========================================================
+
+ANTES:
+
+    footer_modulos_Usuarios.php
+
+AHORA:
+
+    footer_modulos.php
+
+Todos los módulos utilizan el mismo footer.
+
+=========================================================
+*/
+
+include("../../template/footer_modulos.php");
+
+?>
