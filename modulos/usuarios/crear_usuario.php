@@ -20,8 +20,17 @@ if(session_status() === PHP_SESSION_NONE){
 }
 
 
-// ✅ CARGAR FUNCIÓN DE AUDITORÍA
-// Permite usar registrarAuditoria() para guardar las acciones realizadas en el sistema.
+// =================================================
+// CONEXIÓN A LA BASE DE DATOS
+// =================================================
+
+require_once(__DIR__ . "/../conexion_modulos.php");
+
+
+// =================================================
+// CARGAR FUNCIÓN DE AUDITORÍA
+// =================================================
+
 require_once(__DIR__ . "/../auditoria/funciones/registrar_auditoria.php");
 
 

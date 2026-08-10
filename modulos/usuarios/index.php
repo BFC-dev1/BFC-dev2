@@ -764,3 +764,23 @@ Todos los módulos utilizan el mismo footer.
 include("../../template/footer_modulos.php");
 
 ?>
+
+<?php if (isset($_GET['crear']) && $_GET['crear'] == '1'): ?>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const modalCrear = document.getElementById("create");
+
+    if (modalCrear) {
+
+        const modal = new bootstrap.Modal(modalCrear);
+
+        modal.show();
+
+    }
+
+});
+</script>
+
+<?php endif; ?>

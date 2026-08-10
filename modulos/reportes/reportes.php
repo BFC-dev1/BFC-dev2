@@ -7,6 +7,43 @@ if(!isset($_SESSION['usuario'])){
 }
 
 include(__DIR__ . "/../../modulos/conexion_modulos.php");
+
+
+/* =========================================================
+   TIPO DE REPORTE
+
+   Recibe el tipo enviado desde el submenú de Reportes:
+
+   ?tipo=usuarios
+   ?tipo=deportistas
+   ?tipo=asistencias
+
+   Si no se recibe ningún tipo, se muestran los usuarios
+   como opción predeterminada.
+========================================================= */
+
+$tipo = $_GET['tipo'] ?? 'usuarios';
+
+
+/* =========================================================
+   VALIDACIÓN
+
+   Solo permitimos los tres tipos de reporte definidos.
+   Esto evita recibir valores inesperados por la URL.
+========================================================= */
+
+$tiposPermitidos = [
+    'usuarios',
+    'deportistas',
+    'asistencias'
+];
+
+
+if (!in_array($tipo, $tiposPermitidos, true)) {
+
+    $tipo = 'usuarios';
+
+}
 ?>
 
 <?php include("../../includes/header_dashboard.php"); ?>
@@ -27,64 +64,256 @@ include(__DIR__ . "/../../modulos/conexion_modulos.php");
 
     </div>
 
-    <!-- TITULO -->
-    <div class="mb-4">
+<!-- =========================================================
+     REPORTE DE DEPORTISTAS
 
-        <h3 class="fw-bold mb-1">
-            <i class="fa-solid fa-chart-column me-2 text-primary"></i>
-            Centro de Reportes
-        </h3>
+     Esta sección solamente aparece cuando:
 
-        <p class="text-muted">
-            Exportación y gestión de información del sistema.
-        </p>
+     reportes.php?tipo=deportistas
+========================================================= -->
+
+<?php if ($tipo === 'deportistas'): ?>
+
+<div class="card border-0 rounded-4 p-4 mb-4 shadow-sm">
+
+    <h5 class="fw-bold mb-3">
+
+        <i class="fa-solid fa-person-running me-2 text-success"></i>
+
+        Reporte de Deportistas
+
+    </h5>
+
+
+    <p class="text-muted mb-4">
+
+        Exporta la información de los deportistas registrados.
+
+    </p>
+
+
+    <div class="row g-3">
+
+
+        <!-- =================================================
+             FILTRO DE ESTADO
+        ================================================== -->
+
+        <div class="col-md-4">
+
+            <label class="fw-semibold mb-2">
+
+                Estado
+
+            </label>
+
+
+            <select
+                name="estado"
+                class="form-select rounded-3"
+            >
+
+                <option value="">
+                    Todos
+                </option>
+
+                <option value="1">
+                    Activos
+                </option>
+
+                <option value="0">
+                    Inactivos
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <!-- =================================================
+             FILTRO DE CATEGORÍA
+        ================================================== -->
+
+        <div class="col-md-4">
+
+            <label class="fw-semibold mb-2">
+
+                Categoría
+
+            </label>
+
+
+            <select
+                name="categoria_id"
+                class="form-select rounded-3"
+            >
+
+                <option value="">
+                    Todas
+                </option>
+
+                <?php
+
+                $cats = $conexion->query(
+                    "SELECT id, nombre FROM categoria"
+                );
+
+
+                while (
+                    $c = $cats->fetch(PDO::FETCH_ASSOC)
+                ):
+
+                ?>
+
+                    <option value="<?= $c['id'] ?>">
+
+                        <?= htmlspecialchars($c['nombre']) ?>
+
+                    </option>
+
+                <?php endwhile; ?>
+
+            </select>
+
+        </div>
+
+
+        <!-- =================================================
+             BOTÓN EXPORTAR
+        ================================================== -->
+
+        <div class="col-md-4 d-flex align-items-end">
+
+            <a
+                href="export_deportistas.php"
+                class="btn btn-dark rounded-pill w-100"
+            >
+
+                <i class="fa-solid fa-file-export me-2"></i>
+
+                Exportar deportistas
+
+            </a>
+
+        </div>
+
 
     </div>
 
-    <!-- ================= USUARIOS ================= -->
-    <div class="card border-0 rounded-4 p-4 mb-4 shadow-sm">
+</div>
 
-        <h5 class="fw-bold mb-3">
-            <i class="fa-solid fa-users me-2 text-dark"></i>
-            Usuarios
-        </h5>
+<?php endif; ?>
 
-        <p class="text-muted mb-3">
-            Descarga el listado completo de usuarios registrados.
-        </p>
+<!-- =========================================================
+     REPORTE DE USUARIOS
 
-        <a href="export_usuarios.php" class="btn btn-dark rounded-pill">
+     Esta sección solamente aparece cuando:
 
-            <i class="fa-solid fa-file-export me-2"></i>
-            Exportar usuarios
+     reportes.php?tipo=usuarios
+========================================================= -->
 
-        </a>
+<?php if ($tipo === 'usuarios'): ?>
+
+<div class="card border-0 rounded-4 p-4 mb-4 shadow-sm">
+
+    <h5 class="fw-bold mb-3">
+
+        <i class="fa-solid fa-users me-2 text-dark"></i>
+
+        Reporte de Usuarios
+
+    </h5>
+
+
+    <p class="text-muted mb-4">
+
+        Descarga el listado de usuarios registrados.
+
+    </p>
+
+
+    <!-- =====================================================
+         FILTRO DE ESTADO
+
+         Por ahora dejamos:
+         - Todos
+         - Activos
+         - Inactivos
+
+         Posteriormente conectamos este filtro
+         con la consulta de exportación.
+    ====================================================== -->
+
+    <div class="row g-3">
+
+
+        <div class="col-md-6">
+
+            <label class="fw-semibold mb-2">
+
+                Estado
+
+            </label>
+
+
+            <select
+                name="estado"
+                class="form-select rounded-3"
+            >
+
+                <option value="">Todos</option>
+
+                <option value="1">
+                    Activos
+                </option>
+
+                <option value="0">
+                    Inactivos
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <!-- =================================================
+             BOTÓN EXPORTAR
+        ================================================== -->
+
+        <div class="col-md-6 d-flex align-items-end">
+
+            <a
+                href="export_usuarios.php"
+                class="btn btn-dark rounded-pill w-100"
+            >
+
+                <i class="fa-solid fa-file-export me-2"></i>
+
+                Exportar usuarios
+
+            </a>
+
+        </div>
+
 
     </div>
 
-    <!-- ================= DEPORTISTAS ================= -->
-    <div class="card border-0 rounded-4 p-4 mb-4 shadow-sm">
+</div>
 
-        <h5 class="fw-bold mb-3">
-            <i class="fa-solid fa-person-running me-2 text-success"></i>
-            Deportistas
-        </h5>
+<?php endif; ?>
 
-        <p class="text-muted mb-3">
-            Exporta la información de todos los deportistas registrados.
-        </p>
 
-        <a href="export_deportistas.php" class="btn btn-dark rounded-pill">
+<!-- =========================================================
+     REPORTE DE ASISTENCIAS
 
-            <i class="fa-solid fa-file-export me-2"></i>
-            Exportar deportistas
+     Esta sección solamente aparece cuando:
 
-        </a>
+     reportes.php?tipo=asistencias
+========================================================= -->
 
-    </div>
+<?php if ($tipo === 'asistencias'): ?>
 
-    <!-- ================= ASISTENCIAS ================= -->
-    <div class="card border-0 rounded-4 p-4 shadow-sm">
+<div class="card border-0 rounded-4 p-4 shadow-sm">
 
         <h5 class="fw-bold mb-3">
             <i class="fa-solid fa-calendar-check me-2 text-warning"></i>
@@ -158,5 +387,7 @@ include(__DIR__ . "/../../modulos/conexion_modulos.php");
     </div>
 
 </div>
+
+<?php endif; ?>
 
 <?php include("../../includes/footer_dashboard.php"); ?>

@@ -459,7 +459,7 @@ CONTENIDO DEL MÓDULO
 <?php if (tiene_permiso('matriculas')): ?>
 
 <a
-    href="<?= rtrim($url_base, '/') ?>/modulos/financiero/matriculas/nueva_Matricula.php"
+    href="<?= rtrim($url_base, '/') ?>/modulos/financiero/matriculas/nueva_matricula.php"
     class="btn btn-primary fw-bold"
 >
 

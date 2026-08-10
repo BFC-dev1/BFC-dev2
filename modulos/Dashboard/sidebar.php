@@ -73,122 +73,251 @@
             </li>
             <?php endif; ?>
 
-            <!-- USUARIOS -->
-            <?php if (tiene_permiso('usuarios')): ?>
-            <li class="nav-item mb-2">
+           <!-- USUARIOS -->
+<?php if (tiene_permiso('usuarios')): ?>
 
-                <a 
-                    class="nav-link text-white d-flex justify-content-between align-items-center"
-                    data-bs-toggle="collapse"
-                    href="#submenuUsuarios"
+<li class="nav-item mb-2">
+
+    <a 
+        class="nav-link text-white d-flex justify-content-between align-items-center"
+        data-bs-toggle="collapse"
+        href="#submenuUsuarios"
+        role="button"
+        aria-expanded="false"
+        aria-controls="submenuUsuarios"
+    >
+
+        <span>
+            <i class="fa-solid fa-users"></i>
+            Usuarios
+        </span>
+
+        <span>▼</span>
+
+    </a>
+
+
+    <div class="collapse ms-3" id="submenuUsuarios">
+
+        <ul class="nav flex-column">
+
+            <!-- USUARIOS REGISTRADOS -->
+            <li class="nav-item">
+
+                <a
+                    href="<?= $url_base ?>/modulos/usuarios/index.php"
+                    class="nav-link text-white"
                 >
 
-                    <span>
-                        <i class="fa-solid fa-users"></i>
-                        Usuarios
-                    </span>
+                    <i class="fa-solid fa-users"></i>
 
-                    <span>▼</span>
+                    Usuarios registrados
 
                 </a>
 
-                <div class="collapse ms-3" id="submenuUsuarios">
+            </li>
 
-                    <ul class="nav flex-column">
 
-                        <li class="nav-item">
+            <!-- REGISTRAR USUARIO -->
+            <li class="nav-item">
 
-                            <a
-                                href="<?= $url_base ?>/modulos/usuarios/index.php"
-                                class="nav-link text-white"
-                            >
-                                <i class="fa-solid fa-list"></i>
-                                Listado
-                            </a>
-
-                        </li>
-
-                    </ul>
-
-                </div>
+<a
+    href="<?= $url_base ?>/modulos/usuarios/index.php?crear=1"
+    class="nav-link text-white"
+>
+    <i class="fa-solid fa-plus"></i>
+    Registrar usuario
+</a>
 
             </li>
-            <?php endif; ?>
 
-            <!-- DEPORTISTAS -->
-            <?php if (tiene_permiso('deportistas') || tiene_permiso('ver_deportistas') || tiene_permiso('asistencia') || tiene_permiso('convocatoria')): ?>
-            <li class="nav-item mb-2">
+        </ul>
 
-                <a 
-                    class="nav-link text-white d-flex justify-content-between align-items-center"
-                    data-bs-toggle="collapse"
-                    href="#submenuDeportistas"
+    </div>
+
+</li>
+
+<?php endif; ?>
+
+  <!-- =================================================
+     MÓDULO DEPORTISTAS
+     
+     Este bloque controla las opciones disponibles
+     dentro del módulo de Deportistas.
+     
+     Opciones:
+     - Deportistas registrados
+     - Registrar deportista
+     - Asistencia
+     - Convocatoria
+================================================= -->
+
+<?php if (
+    tiene_permiso('deportistas') ||
+    tiene_permiso('ver_deportistas') ||
+    tiene_permiso('asistencia') ||
+    tiene_permiso('convocatoria')
+): ?>
+
+<li class="nav-item mb-2">
+
+
+    <!-- =================================================
+         TÍTULO DEL MENÚ
+         
+         Al hacer clic se despliegan las opciones.
+    ================================================= -->
+
+    <a
+        class="nav-link text-white d-flex justify-content-between align-items-center"
+        data-bs-toggle="collapse"
+        href="#submenuDeportistas"
+        role="button"
+        aria-expanded="false"
+        aria-controls="submenuDeportistas"
+    >
+
+        <span>
+
+            <i class="fa-solid fa-person-running"></i>
+
+            Deportistas
+
+        </span>
+
+        <span>▼</span>
+
+    </a>
+
+
+    <!-- =================================================
+         SUBMENÚ DEPORTISTAS
+    ================================================= -->
+
+    <div class="collapse ms-3" id="submenuDeportistas">
+
+        <ul class="nav flex-column">
+
+
+            <!-- =================================================
+                 DEPORTISTAS REGISTRADOS
+                 
+                 Lleva al listado principal.
+            ================================================= -->
+
+            <?php if (
+                tiene_permiso('deportistas') ||
+                tiene_permiso('ver_deportistas')
+            ): ?>
+
+            <li class="nav-item">
+
+                <a
+                    href="<?= $url_base ?>/modulos/deportistas/"
+                    class="nav-link text-white"
                 >
 
-                    <span>
-                        <i class="fa-solid fa-person-running"></i>
-                        Deportistas
-                    </span>
+                    <i class="fa-solid fa-users"></i>
 
-                    <span>▼</span>
+                    Deportistas registrados
 
                 </a>
 
-                <div class="collapse ms-3" id="submenuDeportistas">
+            </li>
 
-                    <ul class="nav flex-column">
+            <?php endif; ?>
 
-                        <!-- Listado -->
-                        <?php if (tiene_permiso('deportistas') || tiene_permiso('ver_deportistas')): ?>
-                        <li class="nav-item">
 
-                            <a 
-                                href="<?= $url_base ?>/modulos/deportistas/"
-                                class="nav-link text-white"
-                            >
-                                <i class="fa-solid fa-list"></i>
-                                Listado
-                            </a>
+            <!-- =================================================
+                 REGISTRAR DEPORTISTA
+                 
+                 Igual que Usuarios:
+                 
+                 index.php?crear=1
+                 
+                 Esto permitirá que el index cargue normalmente
+                 con header, CSS, sidebar, etc., y posteriormente
+                 abra automáticamente el formulario/modal.
+            ================================================= -->
 
-                        </li>
-                        <?php endif; ?>
+            <?php if (tiene_permiso('deportistas')): ?>
 
-                        <!-- Asistencia -->
-                        <?php if (tiene_permiso('asistencia')): ?>
-                        <li class="nav-item">
+            <li class="nav-item">
 
-                            <a 
-                                href="<?= $url_base ?>/modulos/asistencia/"
-                                class="nav-link text-white"
-                            >
-                                <i class="fa-solid fa-calendar-check"></i>
-                                Asistencia
-                            </a>
+                <a
+                    href="<?= $url_base ?>/modulos/deportistas/index.php?crear=1"
+                    class="nav-link text-white"
+                >
 
-                        </li>
-                        <?php endif; ?>
+                    <i class="fa-solid fa-plus"></i>
 
-                        <!-- Convocatoria -->
-                        <?php if (tiene_permiso('convocatoria') || tiene_permiso('deportistas')): ?>
-                        <li class="nav-item">
+                    Registrar deportista
 
-                            <a
-                                href="<?= $url_base ?>/modulos/deportistas/convocatoria.php"
-                                class="nav-link text-white"
-                            >
-                                <i class="fa-solid fa-clipboard-list"></i>
-                                Convocatoria
-                            </a>
-
-                        </li>
-                        <?php endif; ?>
-
-                    </ul>
-
-                </div>
+                </a>
 
             </li>
+
             <?php endif; ?>
+
+
+            <!-- =================================================
+                 ASISTENCIA
+            ================================================= -->
+
+            <?php if (tiene_permiso('asistencia')): ?>
+
+            <li class="nav-item">
+
+                <a
+                    href="<?= $url_base ?>/modulos/asistencia/"
+                    class="nav-link text-white"
+                >
+
+                    <i class="fa-solid fa-calendar-check"></i>
+
+                    Asistencia
+
+                </a>
+
+            </li>
+
+            <?php endif; ?>
+
+
+            <!-- =================================================
+                 CONVOCATORIA
+            ================================================= -->
+
+            <?php if (
+                tiene_permiso('convocatoria') ||
+                tiene_permiso('deportistas')
+            ): ?>
+
+            <li class="nav-item">
+
+                <a
+                    href="<?= $url_base ?>/modulos/deportistas/convocatoria.php"
+                    class="nav-link text-white"
+                >
+
+                    <i class="fa-solid fa-clipboard-list"></i>
+
+                    Convocatoria
+
+                </a>
+
+            </li>
+
+            <?php endif; ?>
+
+
+        </ul>
+
+    </div>
+
+</li>
+
+<?php endif; ?>
 
     <!-- ====================================== -->
     <!-- MÓDULO FINANCIERO                      -->
@@ -574,20 +703,190 @@
             </li>
             <?php endif; ?>
 
-            <!-- REPORTES -->
-            <?php if (tiene_permiso('reportes') || tiene_permiso('reportes_asistencia') || tiene_permiso('reportes_deportistas')): ?>
-            <li class="nav-item mb-2">
+<!-- =========================================================
+     MÓDULO REPORTES
+
+     Reportes contiene tres opciones:
+
+     1. Usuarios
+     2. Deportistas
+     3. Asistencias
+
+     Los filtros como activos/inactivos se manejarán
+     dentro de cada reporte y NO en este menú.
+========================================================= -->
+
+<?php if (
+    tiene_permiso('reportes') ||
+    tiene_permiso('reportes_asistencia') ||
+    tiene_permiso('reportes_deportistas')
+): ?>
+
+<li class="nav-item mb-2">
+
+    <!-- =====================================================
+         MENÚ PRINCIPAL REPORTES
+    ====================================================== -->
+
+    <a
+        class="nav-link text-white d-flex justify-content-between align-items-center"
+        data-bs-toggle="collapse"
+        href="#submenuReportes"
+        role="button"
+        aria-expanded="false"
+        aria-controls="submenuReportes"
+    >
+
+        <span>
+            <i class="fa-solid fa-chart-column"></i>
+            Reportes
+        </span>
+
+        <span>▼</span>
+
+    </a>
+
+
+    <!-- =====================================================
+         SUBMENÚ DE REPORTES
+    ====================================================== -->
+
+    <div
+        class="collapse ms-3"
+        id="submenuReportes"
+    >
+
+        <ul class="nav flex-column">
+
+
+            <!-- =================================================
+                 REPORTE DE USUARIOS
+            ================================================== -->
+
+            <?php if (tiene_permiso('reportes')): ?>
+
+            <li class="nav-item">
 
                 <a
-                    href="<?= $url_base ?>/modulos/reportes/reportes.php"
+                    href="<?= $url_base ?>/modulos/reportes/reportes.php?tipo=usuarios"
                     class="nav-link text-white"
                 >
-                    <i class="fa-solid fa-chart-column"></i>
-                    Reportes
+
+                    <i class="fa-solid fa-users"></i>
+                    Usuarios
+
                 </a>
 
             </li>
+
             <?php endif; ?>
+
+
+<!-- =================================================
+     REPORTE DE DEPORTISTAS
+     
+     Deportistas tendrá su propio submenú
+     para agrupar las opciones relacionadas.
+================================================== -->
+
+<?php if (
+    tiene_permiso('reportes_deportistas') ||
+    tiene_permiso('reportes_asistencia')
+): ?>
+
+<li class="nav-item">
+
+    <!-- MENÚ DEPORTISTAS -->
+
+    <a
+        class="nav-link text-white d-flex justify-content-between align-items-center"
+        data-bs-toggle="collapse"
+        href="#submenuReportesDeportistas"
+        role="button"
+        aria-expanded="false"
+        aria-controls="submenuReportesDeportistas"
+    >
+
+        <span>
+            <i class="fa-solid fa-person-running"></i>
+            Deportistas
+        </span>
+
+        <span>▼</span>
+
+    </a>
+
+
+    <!-- SUBMENÚ DEPORTISTAS -->
+
+    <div
+        class="collapse ms-3"
+        id="submenuReportesDeportistas"
+    >
+
+        <ul class="nav flex-column">
+
+
+            <!-- REPORTE DE DEPORTISTAS -->
+
+            <?php if (tiene_permiso('reportes_deportistas')): ?>
+
+            <li class="nav-item">
+
+                <a
+                    href="<?= $url_base ?>/modulos/reportes/reportes.php?tipo=deportistas"
+                    class="nav-link text-white"
+                >
+
+                    <i class="fa-solid fa-person-running"></i>
+                    Deportistas
+
+                </a>
+
+            </li>
+
+            <?php endif; ?>
+
+
+            <!-- REPORTE DE ASISTENCIAS -->
+
+            <?php if (tiene_permiso('reportes_asistencia')): ?>
+
+            <li class="nav-item">
+
+                <a
+                    href="<?= $url_base ?>/modulos/reportes/reportes.php?tipo=asistencias"
+                    class="nav-link text-white"
+                >
+
+                    <i class="fa-solid fa-calendar-check"></i>
+                    Asistencias
+
+                </a>
+
+            </li>
+
+            <?php endif; ?>
+
+
+        </ul>
+
+    </div>
+
+</li>
+
+<?php endif; ?>
+
+
+
+
+        </ul>
+
+    </div>
+
+</li>
+
+<?php endif; ?>
 
             <hr>
 

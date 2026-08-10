@@ -307,4 +307,73 @@ function confirmarEliminacion(id){
 }
 </script>
 
+
+<!-- =========================================================
+     APERTURA AUTOMÁTICA DEL FORMULARIO DE CREAR DEPORTISTA
+
+     Cuando el usuario llega mediante:
+
+     index.php?crear=1
+
+     se busca el botón existente "Crear Deportista"
+     y se hace clic automáticamente.
+
+     De esta manera NO duplicamos el formulario,
+     NO creamos otro modal y mantenemos el diseño
+     actual del módulo.
+========================================================= -->
+
+<?php if (
+    isset($_GET['crear']) &&
+    $_GET['crear'] === '1'
+): ?>
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    /*
+    =========================================================
+    BUSCAR EL BOTÓN "CREAR DEPORTISTA"
+    =========================================================
+    */
+
+    const botones = document.querySelectorAll(
+        "button, a"
+    );
+
+
+    /*
+    =========================================================
+    RECORRER LOS BOTONES Y ENCONTRAR EL DE CREACIÓN
+    =========================================================
+    */
+
+    botones.forEach(function (boton) {
+
+        const texto = boton.textContent
+            .trim()
+            .toLowerCase();
+
+
+        /*
+        =====================================================
+        SI ENCUENTRA "CREAR DEPORTISTA"
+        =====================================================
+        */
+
+        if (texto.includes("crear deportista")) {
+
+            boton.click();
+
+        }
+
+    });
+
+});
+
+</script>
+
+<?php endif; ?>
+
 <?php include("../../template/footer_modulos.php"); ?>
