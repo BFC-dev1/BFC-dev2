@@ -2,12 +2,24 @@
 
 include("../conexion_modulos.php");
 
-/*
-=================================================
-QUERY EXPORTAR USUARIOS
-=================================================
-*/
-$data = $conexion->query("
+/* =================================================
+   FILTRO DE ESTADO
+
+   Valores recibidos desde reportes.php:
+
+   ""  = Todos
+   "1" = Activos
+   "0" = Inactivos
+================================================= */
+
+$estado = $_GET['estado'] ?? '';
+
+
+/* =================================================
+   CONSULTA BASE
+================================================= */
+
+$sql = "
 
     SELECT 
 
@@ -27,9 +39,71 @@ $data = $conexion->query("
     LEFT JOIN rol r
         ON u.rol_id = r.id
 
-    ORDER BY u.nombre ASC
+";
 
-");
+
+/* =================================================
+   APLICAR FILTRO DE ESTADO
+
+   El formulario utiliza:
+
+   1 = Activos
+   0 = Inactivos
+
+   La base de datos utiliza:
+
+   'activo'
+   'inactivo'
+================================================= */
+
+$params = [];
+
+if ($estado === '1') {
+
+    $sql .= " WHERE u.estado = :estado ";
+
+    $params[':estado'] = 'activo';
+
+}
+
+elseif ($estado === '0') {
+
+    $sql .= " WHERE u.estado = :estado ";
+
+    $params[':estado'] = 'inactivo';
+
+}
+
+
+/* =================================================
+   ORDENAR RESULTADOS
+================================================= */
+
+$sql .= " ORDER BY u.nombre ASC ";
+
+
+/* =================================================
+   PREPARAR CONSULTA
+================================================= */
+
+$stmt = $conexion->prepare($sql);
+
+
+/* =================================================
+   EJECUTAR CONSULTA
+================================================= */
+
+$stmt->execute($params);
+
+
+/* =================================================
+   RESULTADO
+
+   $data seguirá funcionando con el código
+   que ya tienes debajo.
+================================================= */
+
+$data = $stmt;
 
 /*
 =================================================

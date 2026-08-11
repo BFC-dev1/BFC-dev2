@@ -639,69 +639,22 @@
 
             <!-- AUDITORIA -->
             <?php if (tiene_permiso('auditoria')): ?>
-            <li class="nav-item mb-2">
+  <li class="nav-item mb-2">
 
-                <a 
-                    class="nav-link text-white d-flex justify-content-between align-items-center"
-                    data-bs-toggle="collapse"
-                    href="#submenuAuditoria"
-                >
+    <a
+        href="<?= $url_base ?>/modulos/auditoria/index.php"
+        class="nav-link text-white"
+    >
 
-                    <span>
-                        <i class="fa-solid fa-file-shield"></i>
-                        Auditoría
-                    </span>
+        <i class="fa-solid fa-file-shield"></i>
 
-                    <span>▼</span>
+        Auditoría
 
-                </a>
+    </a>
 
-                <div class="collapse ms-3" id="submenuAuditoria">
+</li>
 
-                    <ul class="nav flex-column">
-
-                        <li class="nav-item">
-
-                            <a 
-                                href="<?= $url_base ?>/modulos/auditoria/index.php"
-                                class="nav-link text-white"
-                            >
-                                <i class="fa-solid fa-users"></i>
-                                Usuarios
-                            </a>
-
-                        </li>
-
-                        <li class="nav-item">
-
-                            <a 
-                                href="<?= $url_base ?>/modulos/auditoria/deportistas.php"
-                                class="nav-link text-white"
-                            >
-                                <i class="fa-solid fa-person-running"></i>
-                                Deportistas
-                            </a>
-
-                        </li>
-
-                        <li class="nav-item">
-
-                            <a 
-                                href="<?= $url_base ?>/modulos/auditoria/pagos.php"
-                                class="nav-link text-white"
-                            >
-                                <i class="fa-solid fa-money-bill-wave"></i>
-                                Pagos
-                            </a>
-
-                        </li>
-
-                    </ul>
-
-                </div>
-
-            </li>
-            <?php endif; ?>
+<?php endif; ?>
 
 <!-- =========================================================
      MÓDULO REPORTES

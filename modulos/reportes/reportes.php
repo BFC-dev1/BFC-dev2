@@ -94,111 +94,134 @@ if (!in_array($tipo, $tiposPermitidos, true)) {
 
     <div class="row g-3">
 
+<!-- =====================================================
+     FILTROS Y EXPORTACIÓN DE DEPORTISTAS
 
-        <!-- =================================================
-             FILTRO DE ESTADO
-        ================================================== -->
+     Los filtros se envían mediante GET hacia
+     export_deportistas.php.
 
-        <div class="col-md-4">
+     estado:
+     ""  = Todos
+     "1" = Activos
+     "0" = Inactivos
 
-            <label class="fw-semibold mb-2">
+     categoria_id:
+     ""  = Todas
+     ID  = Categoría seleccionada
+====================================================== -->
 
-                Estado
-
-            </label>
-
-
-            <select
-                name="estado"
-                class="form-select rounded-3"
-            >
-
-                <option value="">
-                    Todos
-                </option>
-
-                <option value="1">
-                    Activos
-                </option>
-
-                <option value="0">
-                    Inactivos
-                </option>
-
-            </select>
-
-        </div>
+<form
+    method="GET"
+    action="export_deportistas.php"
+    class="row g-3"
+>
 
 
-        <!-- =================================================
-             FILTRO DE CATEGORÍA
-        ================================================== -->
+    <!-- =================================================
+         FILTRO DE ESTADO
+    ================================================== -->
 
-        <div class="col-md-4">
+    <div class="col-md-4">
 
-            <label class="fw-semibold mb-2">
+        <label class="fw-semibold mb-2">
+            Estado
+        </label>
 
-                Categoría
+        <select
+            name="estado"
+            class="form-select rounded-3"
+        >
 
-            </label>
+            <!-- Todos -->
+            <option value="">
+                Todos
+            </option>
 
+            <!-- Activos -->
+            <option value="1">
+                Activos
+            </option>
 
-            <select
-                name="categoria_id"
-                class="form-select rounded-3"
-            >
+            <!-- Inactivos -->
+            <option value="0">
+                Inactivos
+            </option>
 
-                <option value="">
-                    Todas
-                </option>
-
-                <?php
-
-                $cats = $conexion->query(
-                    "SELECT id, nombre FROM categoria"
-                );
-
-
-                while (
-                    $c = $cats->fetch(PDO::FETCH_ASSOC)
-                ):
-
-                ?>
-
-                    <option value="<?= $c['id'] ?>">
-
-                        <?= htmlspecialchars($c['nombre']) ?>
-
-                    </option>
-
-                <?php endwhile; ?>
-
-            </select>
-
-        </div>
-
-
-        <!-- =================================================
-             BOTÓN EXPORTAR
-        ================================================== -->
-
-        <div class="col-md-4 d-flex align-items-end">
-
-            <a
-                href="export_deportistas.php"
-                class="btn btn-dark rounded-pill w-100"
-            >
-
-                <i class="fa-solid fa-file-export me-2"></i>
-
-                Exportar deportistas
-
-            </a>
-
-        </div>
-
+        </select>
 
     </div>
+
+
+    <!-- =================================================
+         FILTRO DE CATEGORÍA
+    ================================================== -->
+
+    <div class="col-md-4">
+
+        <label class="fw-semibold mb-2">
+            Categoría
+        </label>
+
+        <select
+            name="categoria_id"
+            class="form-select rounded-3"
+        >
+
+            <!-- Todas -->
+            <option value="">
+                Todas
+            </option>
+
+            <?php
+
+            /* =============================================
+               CONSULTAR CATEGORÍAS
+            ============================================= */
+
+            $cats = $conexion->query(
+                "SELECT id, nombre FROM categoria ORDER BY nombre ASC"
+            );
+
+            while (
+                $c = $cats->fetch(PDO::FETCH_ASSOC)
+            ):
+
+            ?>
+
+                <option value="<?= $c['id'] ?>">
+
+                    <?= htmlspecialchars($c['nombre']) ?>
+
+                </option>
+
+            <?php endwhile; ?>
+
+        </select>
+
+    </div>
+
+
+    <!-- =================================================
+         BOTÓN EXPORTAR
+    ================================================== -->
+
+    <div class="col-md-4 d-flex align-items-end">
+
+        <button
+            type="submit"
+            class="btn btn-dark rounded-pill w-100"
+        >
+
+            <i class="fa-solid fa-file-export me-2"></i>
+
+            Exportar deportistas
+
+        </button>
+
+    </div>
+
+
+</form>
 
 </div>
 
@@ -231,72 +254,79 @@ if (!in_array($tipo, $tiposPermitidos, true)) {
 
     </p>
 
+<!-- =====================================================
+     FILTRO Y EXPORTACIÓN DE USUARIOS
 
-    <!-- =====================================================
+     El formulario envía el estado seleccionado
+     mediante GET hacia export_usuarios.php.
+
+     Valores:
+     ""  = Todos
+     "1" = Activos
+     "0" = Inactivos
+====================================================== -->
+
+<form
+    method="GET"
+    action="export_usuarios.php"
+    class="row g-3"
+>
+
+    <!-- =================================================
          FILTRO DE ESTADO
+    ================================================== -->
 
-         Por ahora dejamos:
-         - Todos
-         - Activos
-         - Inactivos
+    <div class="col-md-6">
 
-         Posteriormente conectamos este filtro
-         con la consulta de exportación.
-    ====================================================== -->
+        <label class="fw-semibold mb-2">
+            Estado
+        </label>
 
-    <div class="row g-3">
+        <select
+            name="estado"
+            class="form-select rounded-3"
+        >
 
+            <!-- Todos -->
+            <option value="">
+                Todos
+            </option>
 
-        <div class="col-md-6">
+            <!-- Activos -->
+            <option value="1">
+                Activos
+            </option>
 
-            <label class="fw-semibold mb-2">
+            <!-- Inactivos -->
+            <option value="0">
+                Inactivos
+            </option>
 
-                Estado
-
-            </label>
-
-
-            <select
-                name="estado"
-                class="form-select rounded-3"
-            >
-
-                <option value="">Todos</option>
-
-                <option value="1">
-                    Activos
-                </option>
-
-                <option value="0">
-                    Inactivos
-                </option>
-
-            </select>
-
-        </div>
-
-
-        <!-- =================================================
-             BOTÓN EXPORTAR
-        ================================================== -->
-
-        <div class="col-md-6 d-flex align-items-end">
-
-            <a
-                href="export_usuarios.php"
-                class="btn btn-dark rounded-pill w-100"
-            >
-
-                <i class="fa-solid fa-file-export me-2"></i>
-
-                Exportar usuarios
-
-            </a>
-
-        </div>
-
+        </select>
 
     </div>
+
+
+    <!-- =================================================
+         BOTÓN EXPORTAR
+    ================================================== -->
+
+    <div class="col-md-6 d-flex align-items-end">
+
+        <button
+            type="submit"
+            class="btn btn-dark rounded-pill w-100"
+        >
+
+            <i class="fa-solid fa-file-export me-2"></i>
+
+            Exportar usuarios
+
+        </button>
+
+    </div>
+
+</form>
 
 </div>
 

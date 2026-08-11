@@ -7,7 +7,32 @@ include("../conexion_modulos.php");
 QUERY EXPORTAR DEPORTISTAS
 =================================================
 */
-$data = $conexion->query("
+/* =================================================
+   FILTROS RECIBIDOS DESDE reportes.php
+
+   estado:
+
+   ""  = Todos
+   "1" = Activos
+   "0" = Inactivos
+
+   categoria_id:
+
+   ""  = Todas
+   ID   = Categoría seleccionada
+================================================= */
+
+$estado = $_GET['estado'] ?? '';
+
+$categoria_id = $_GET['categoria_id'] ?? '';
+
+
+
+/* =================================================
+   CONSULTA BASE
+================================================= */
+
+$sql = "
 
     SELECT 
 
@@ -33,9 +58,104 @@ $data = $conexion->query("
     LEFT JOIN usuario_deportista ud
         ON ud.deportista_id = d.id
 
-    ORDER BY d.nombre ASC
+";
 
-");
+
+/* =================================================
+   CONDICIONES DE FILTRO
+================================================= */
+
+$condiciones = [];
+
+$params = [];
+
+
+/* =================================================
+   FILTRO DE ESTADO
+
+   El formulario utiliza:
+
+   1 = Activos
+   0 = Inactivos
+
+   La BD utiliza:
+
+   'activo'
+   'inactivo'
+================================================= */
+
+if ($estado === '1') {
+
+    $condiciones[] = "d.estado = :estado";
+
+    $params[':estado'] = 'activo';
+
+}
+
+elseif ($estado === '0') {
+
+    $condiciones[] = "d.estado = :estado";
+
+    $params[':estado'] = 'inactivo';
+
+}
+
+
+/* =================================================
+   FILTRO DE CATEGORÍA
+================================================= */
+
+if ($categoria_id !== '' && ctype_digit($categoria_id)) {
+
+    $condiciones[] = "d.categoria_id = :categoria_id";
+
+    $params[':categoria_id'] = (int)$categoria_id;
+
+}
+
+
+/* =================================================
+   AGREGAR WHERE
+
+   Solo se agrega si existe al menos un filtro.
+================================================= */
+
+if (!empty($condiciones)) {
+
+    $sql .= " WHERE " . implode(" AND ", $condiciones);
+
+}
+
+
+/* =================================================
+   ORDENAR RESULTADOS
+================================================= */
+
+$sql .= " ORDER BY d.nombre ASC ";
+
+
+/* =================================================
+   PREPARAR CONSULTA
+================================================= */
+
+$stmt = $conexion->prepare($sql);
+
+
+/* =================================================
+   EJECUTAR CONSULTA
+================================================= */
+
+$stmt->execute($params);
+
+
+/* =================================================
+   RESULTADO
+
+   $data mantiene el mismo funcionamiento
+   que tenía el código original.
+================================================= */
+
+$data = $stmt;
 
 /*
 =================================================
