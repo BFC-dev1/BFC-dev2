@@ -1,0 +1,166 @@
+/* =========================================================
+   BELLAVISTA FC
+   CSS GENERAL DE MÓDULOS
+   ========================================================= */
+
+
+/* =========================================================
+   CONTENEDOR DE UNIFORMES
+   ========================================================= */
+
+.uniformes-contenedor {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+
+/* =========================================================
+   FILTROS DE UNIFORMES
+   ========================================================= */
+
+.filtros-uniformes {
+    display: grid;
+
+    grid-template-columns:
+        1.5fr 1fr 1fr 1fr 1fr auto;
+
+    gap: 12px;
+
+    align-items: end;
+}
+
+
+/* Cada campo */
+
+.filtro-item {
+    min-width: 0;
+}
+
+
+/* Etiquetas */
+
+.filtro-item .form-label {
+    margin-bottom: 6px;
+    display: block;
+}
+
+
+/* Botón Filtrar */
+
+.filtro-boton {
+    display: flex;
+    align-items: flex-end;
+    height: 100%;
+}
+
+
+/* Tamaño del botón */
+
+.filtro-boton .btn {
+    height: 38px;
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   TABLA DE UNIFORMES
+   ========================================================= */
+
+.tabla-uniformes {
+    width: 100%;
+}
+
+
+/* Encabezados */
+
+.tabla-uniformes thead th {
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+
+/* Celdas */
+
+.tabla-uniformes tbody td {
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   COLUMNA ACCIONES
+   ========================================================= */
+
+.tabla-uniformes th:last-child,
+.tabla-uniformes td:last-child {
+    min-width: 180px;
+
+    text-align: center;
+
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   BOTONES DE ACCIONES
+   ========================================================= */
+
+.acciones-uniforme {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 5px;
+
+    white-space: nowrap;
+}
+
+
+/* Tamaño uniforme */
+
+.btn-accion-uniforme {
+    min-width: 48px;
+    height: 32px;
+
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 4px 9px;
+
+    font-size: 13px;
+
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1000px) {
+
+    .filtros-uniformes {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .filtro-boton {
+        grid-column: span 2;
+    }
+
+}
+
+
+@media (max-width: 600px) {
+
+    .filtros-uniformes {
+        grid-template-columns: 1fr;
+    }
+
+    .filtro-boton {
+        grid-column: span 1;
+    }
+
+}

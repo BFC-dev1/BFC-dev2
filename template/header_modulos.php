@@ -295,14 +295,18 @@ if (!empty($submodulo_actual)) {
 
          ================================================= -->
 
-    <link
-        rel="stylesheet"
-        href="<?= htmlspecialchars(
-            $css_url,
-            ENT_QUOTES,
-            'UTF-8'
-        ); ?>/header_deportistas.css"
-    >
+<!-- =================================================
+     CSS GENERAL DE MÓDULOS
+     ================================================= -->
+
+<link
+    rel="stylesheet"
+    href="<?= htmlspecialchars(
+        $css_url,
+        ENT_QUOTES,
+        'UTF-8'
+    ); ?>/modulos.css"
+>
 
 
     <!-- =================================================

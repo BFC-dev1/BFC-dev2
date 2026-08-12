@@ -1,34 +1,31 @@
 <?php
 
 /*
-=================================================
+=========================================================
 MÓDULO FINANCIERO - MATRÍCULAS
-=================================================
+=========================================================
 
-Este archivo sigue el mismo framework utilizado
-por el módulo de Mensualidades.
+Archivo:
+    /modulos/financiero/matriculas/index.php
 
-Orden del archivo:
+Funciones:
+    - Listar matrículas
+    - Filtrar matrículas
+    - Mostrar resumen financiero
+    - Registrar pago
+    - Ver matrícula
+    - Editar matrícula
+    - Eliminar matrícula
+    - Crear nueva matrícula
 
-1. Configuración
-2. Verificación de permisos
-3. Auditoría
-4. Conexión
-5. Filtros
-6. Consulta de matrículas
-7. Resumen financiero
-8. Header del módulo
-9. Contenido visual
-10. Footer del módulo
-
-=================================================
+=========================================================
 */
 
 
 /*
-=================================================
-CONFIGURACIÓN Y PERMISOS
-=================================================
+=========================================================
+1. CONFIGURACIÓN Y PERMISOS
+=========================================================
 */
 
 require_once("../../../includes/config.php");
@@ -36,15 +33,17 @@ require_once("../../../includes/verificar_roles.php");
 
 
 /*
-=================================================
+---------------------------------------------------------
 VERIFICAR PERMISOS
-=================================================
+---------------------------------------------------------
 
-Permite el acceso si el usuario tiene permiso
-de gestión de matrículas o solamente permiso
-de consulta.
+El usuario puede entrar si posee:
 
-=================================================
+    matriculas
+    o
+    ver_matriculas
+
+=========================================================
 */
 
 if (
@@ -52,52 +51,94 @@ if (
     !tiene_permiso('ver_matriculas')
 ) {
 
-    header("Location: " . $url_base . "/index.php");
-    exit;
+    header(
+        "Location: " . $url_base . "/index.php"
+    );
 
+    exit;
 }
 
 
 /*
-=================================================
-AUDITORÍA
-=================================================
+=========================================================
+2. AUDITORÍA
+=========================================================
 */
 
-include("../../../modulos/auditoria/funciones/registrar_auditoria.php");
+include(
+    "../../../modulos/auditoria/funciones/registrar_auditoria.php"
+);
 
 
 /*
-=================================================
-CONEXIÓN A LA BASE DE DATOS
-=================================================
+=========================================================
+3. CONEXIÓN A LA BASE DE DATOS
+=========================================================
 */
 
-include("../../../modulos/conexion_modulos.php");
+include(
+    "../../../modulos/conexion_modulos.php"
+);
 
 
 /*
-=================================================
-FILTROS
-=================================================
+=========================================================
+4. FILTROS
+=========================================================
 */
 
-$filtro_busqueda = trim($_GET['buscar'] ?? '');
-$filtro_categoria = $_GET['categoria'] ?? '';
-$filtro_anio = $_GET['anio'] ?? '';
-$filtro_estado = $_GET['estado'] ?? '';
 
 /*
-=================================================
-OBTENER AÑOS DISPONIBLES
-=================================================
+---------------------------------------------------------
+BÚSQUEDA
+---------------------------------------------------------
 
-Se obtienen los años registrados en la tabla
-matriculas y se garantiza que el año actual
-también aparezca aunque todavía no existan
-matrículas registradas.
+Permite buscar por:
 
-=================================================
+- Nombre del deportista
+- Documento
+---------------------------------------------------------
+*/
+
+$filtro_busqueda = trim(
+    $_GET['buscar'] ?? ''
+);
+
+
+/*
+---------------------------------------------------------
+CATEGORÍA
+---------------------------------------------------------
+*/
+
+$filtro_categoria =
+    $_GET['categoria'] ?? '';
+
+
+/*
+---------------------------------------------------------
+AÑO
+---------------------------------------------------------
+*/
+
+$filtro_anio =
+    $_GET['anio'] ?? '';
+
+
+/*
+---------------------------------------------------------
+ESTADO
+---------------------------------------------------------
+*/
+
+$filtro_estado =
+    $_GET['estado'] ?? '';
+
+
+/*
+=========================================================
+5. OBTENER AÑOS DISPONIBLES
+=========================================================
 */
 
 $anio_actual = date('Y');
@@ -114,41 +155,45 @@ $stmtAnios = $conexion->query("
     ORDER BY anio DESC
 ");
 
-$anios = $stmtAnios->fetchAll(PDO::FETCH_COLUMN);
+$anios = $stmtAnios->fetchAll(
+    PDO::FETCH_COLUMN
+);
 
 
 /*
-=================================================
-OBTENER CATEGORÍAS
-=================================================
-
-Se obtienen las categorías disponibles para
-permitir filtrar las matrículas.
-
-=================================================
+=========================================================
+6. OBTENER CATEGORÍAS
+=========================================================
 */
 
 $stmtCategorias = $conexion->query("
-    SELECT id, nombre
+    SELECT
+        id,
+        nombre
     FROM categoria
     ORDER BY nombre ASC
 ");
 
-$categorias = $stmtCategorias->fetchAll(PDO::FETCH_ASSOC);
+$categorias = $stmtCategorias->fetchAll(
+    PDO::FETCH_ASSOC
+);
+
 
 /*
-=================================================
-CONDICIONES DE CONSULTA
-=================================================
+=========================================================
+7. CONSTRUIR CONDICIONES DE CONSULTA
+=========================================================
 */
 
 $where = [];
+
 $params = [];
 
+
 /*
--------------------------------------------------
-FILTRO POR BÚSQUEDA
--------------------------------------------------
+---------------------------------------------------------
+FILTRO DE BÚSQUEDA
+---------------------------------------------------------
 */
 
 if ($filtro_busqueda !== '') {
@@ -160,96 +205,90 @@ if ($filtro_busqueda !== '') {
         )
     ";
 
-    $params[':buscar'] = '%' . $filtro_busqueda . '%';
+    $params[':buscar'] =
+        '%' . $filtro_busqueda . '%';
 }
 
 
 /*
--------------------------------------------------
-FILTRO POR CATEGORÍA
--------------------------------------------------
+---------------------------------------------------------
+FILTRO DE CATEGORÍA
+---------------------------------------------------------
 */
 
 if ($filtro_categoria !== '') {
 
-    $where[] = "d.categoria_id = :categoria_id";
+    $where[] =
+        "d.categoria_id = :categoria_id";
 
-    $params[':categoria_id'] = $filtro_categoria;
+    $params[':categoria_id'] =
+        $filtro_categoria;
 }
 
 
 /*
--------------------------------------------------
-FILTRO POR AÑO
--------------------------------------------------
+---------------------------------------------------------
+FILTRO DE AÑO
+---------------------------------------------------------
 */
 
 if ($filtro_anio !== '') {
 
-    $where[] = "m.anio = :anio";
+    $where[] =
+        "m.anio = :anio";
 
-    $params[':anio'] = $filtro_anio;
-
+    $params[':anio'] =
+        $filtro_anio;
 }
 
 
 /*
--------------------------------------------------
-FILTRO POR ESTADO
--------------------------------------------------
+---------------------------------------------------------
+FILTRO DE ESTADO
+---------------------------------------------------------
 */
 
 if ($filtro_estado !== '') {
 
-    $where[] = "m.estado = :estado";
+    $where[] =
+        "m.estado = :estado";
 
-    $params[':estado'] = $filtro_estado;
-
+    $params[':estado'] =
+        $filtro_estado;
 }
 
 
 /*
-=================================================
-CONSTRUIR WHERE
-=================================================
+=========================================================
+8. CONSTRUIR WHERE
+=========================================================
 */
 
 $whereSQL = '';
 
 if (!empty($where)) {
 
-    $whereSQL = "WHERE " . implode(" AND ", $where);
-
+    $whereSQL =
+        "WHERE " . implode(" AND ", $where);
 }
 
 
 /*
-=================================================
-CONSULTAR MATRÍCULAS
-=================================================
+=========================================================
+9. CONSULTAR MATRÍCULAS
+=========================================================
 
-ESTRUCTURA REAL DE LA TABLA:
-
-matriculas
-- id
-- id_deportista
-- anio
-- monto
-- fecha_matricula
-- estado
-- fecha_pago
-- metodo_pago
-- observacion
-- id_usuario_registra
-- created_at
-
-Relación:
+Relaciones:
 
 matriculas.id_deportista
         ↓
 deportista.id
 
-=================================================
+deportista.categoria_id
+        ↓
+categoria.id
+
+=========================================================
 */
 
 $sql = "
@@ -268,19 +307,21 @@ $sql = "
         m.id_usuario_registra,
         m.created_at,
 
-d.nombre AS deportista_nombre,
-d.documento AS deportista_documento,
-c.nombre AS categoria_nombre
+        d.nombre AS deportista_nombre,
 
-FROM matriculas m
+        d.documento AS deportista_documento,
 
-INNER JOIN deportista d
-    ON d.id = m.id_deportista
+        c.nombre AS categoria_nombre
 
-INNER JOIN categoria c
-    ON c.id = d.categoria_id
+    FROM matriculas m
 
-$whereSQL
+    INNER JOIN deportista d
+        ON d.id = m.id_deportista
+
+    INNER JOIN categoria c
+        ON c.id = d.categoria_id
+
+    {$whereSQL}
 
     ORDER BY
         m.fecha_matricula DESC,
@@ -293,13 +334,14 @@ $stmt = $conexion->prepare($sql);
 
 $stmt->execute($params);
 
-$matriculas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$matriculas =
+    $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 
 /*
-=================================================
-RESUMEN GENERAL
-=================================================
+=========================================================
+10. RESUMEN FINANCIERO
+=========================================================
 */
 
 $stmtResumen = $conexion->query("
@@ -325,14 +367,19 @@ $stmtResumen = $conexion->query("
         ) AS matriculas_pagadas,
 
         COALESCE(
+
             SUM(
+
                 CASE
                     WHEN estado != 'anulado'
                     THEN monto
                     ELSE 0
                 END
+
             ),
+
             0
+
         ) AS total_matriculado
 
     FROM matriculas
@@ -340,112 +387,107 @@ $stmtResumen = $conexion->query("
 ");
 
 
-$resumen = $stmtResumen->fetch(PDO::FETCH_ASSOC);
+$resumen =
+    $stmtResumen->fetch(PDO::FETCH_ASSOC);
 
 
 /*
-=================================================
-VARIABLES DEL RESUMEN
-=================================================
+=========================================================
+11. VARIABLES DEL RESUMEN
+=========================================================
 */
 
-$total_matriculas = (int) (
-    $resumen['total_matriculas'] ?? 0
-);
+$total_matriculas =
+    (int) (
+        $resumen['total_matriculas'] ?? 0
+    );
 
 
-$matriculas_activas = (int) (
-    $resumen['matriculas_activas'] ?? 0
-);
+$matriculas_activas =
+    (int) (
+        $resumen['matriculas_activas'] ?? 0
+    );
 
 
-$matriculas_pagadas = (int) (
-    $resumen['matriculas_pagadas'] ?? 0
-);
+$matriculas_pagadas =
+    (int) (
+        $resumen['matriculas_pagadas'] ?? 0
+    );
 
 
-$total_matriculado = (float) (
-    $resumen['total_matriculado'] ?? 0
-);
+$total_matriculado =
+    (float) (
+        $resumen['total_matriculado'] ?? 0
+    );
 
 
 /*
-=================================================
-HEADER DEL MÓDULO
-=================================================
-
-IMPORTANTE:
-
-El header se carga DESPUÉS de toda la lógica PHP
-para evitar el parpadeo visual que presentaba
-el módulo.
-
-=================================================
+=========================================================
+12. HEADER DEL MÓDULO
+=========================================================
 */
 
-$modulo_actual = 'Financiero';
+$modulo_actual =
+    'Financiero';
 
-$submodulo_actual = 'Matrículas';
+$submodulo_actual =
+    'Matrículas';
 
-include("../../../includes/config.php");
-include("../../../template/header_modulos.php");
+
+include(
+    "../../../template/header_modulos.php"
+);
 
 ?>
 
 
-<!--
-=================================================
-CONTENIDO DEL MÓDULO
-=================================================
--->
+<!-- =====================================================
+     CONTENIDO PRINCIPAL
+     ===================================================== -->
 
 <div class="container-fluid py-4">
 
 
-    <!--
-    =================================================
-    VOLVER AL DASHBOARD
-    =================================================
-    -->
+    <!-- =================================================
+         BOTÓN VOLVER AL DASHBOARD
+         ================================================= -->
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="mb-3">
 
-        <div class="d-flex gap-2">
+        <a
+            href="<?= rtrim($url_base, '/') ?>/modulos/dashboard/index.php"
+            class="btn btn-outline-dark"
+        >
 
-            <a
-                href="<?= $url_base ?>/modulos/dashboard/index.php"
-                class="btn btn-outline-dark"
-            >
+            <i class="fa-solid fa-arrow-left me-1"></i>
 
-                <i class="fa-solid fa-arrow-left me-1"></i>
+            Volver al Dashboard
 
-                Volver al Dashboard
-
-            </a>
-
-        </div>
+        </a>
 
     </div>
 
 
+    <!-- =================================================
+         ENCABEZADO DEL MÓDULO
+         ================================================= -->
 
-    <!--
-    =================================================
-    ENCABEZADO
-    =================================================
-    -->
-
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div
+        class="d-flex justify-content-between align-items-center mb-4"
+    >
 
         <div>
 
             <h2 class="fw-bold mb-1">
 
-                <i class="fa-solid fa-file-signature text-primary me-2"></i>
+                <i
+                    class="fa-solid fa-file-signature text-primary me-2"
+                ></i>
 
                 Matrículas
 
             </h2>
+
 
             <p class="text-muted mb-0">
 
@@ -456,30 +498,31 @@ CONTENIDO DEL MÓDULO
         </div>
 
 
-<?php if (tiene_permiso('matriculas')): ?>
+        <!-- =================================================
+             NUEVA MATRÍCULA
+             ================================================= -->
 
-<a
-    href="<?= rtrim($url_base, '/') ?>/modulos/financiero/matriculas/nueva_matricula.php"
-    class="btn btn-primary fw-bold"
->
+        <?php if (tiene_permiso('matriculas')): ?>
 
-    <i class="fa-solid fa-plus me-1"></i>
+            <a
+                href="<?= rtrim($url_base, '/') ?>/modulos/financiero/matriculas/nueva_matricula.php"
+                class="btn btn-primary fw-bold"
+            >
 
-    Nueva Matrícula
+                <i class="fa-solid fa-plus me-1"></i>
 
-</a>
+                Nueva Matrícula
 
-<?php endif; ?>
+            </a>
 
-</div>
+        <?php endif; ?>
+
+    </div>
 
 
-
-    <!--
-    =================================================
-    TARJETAS DE RESUMEN
-    =================================================
-    -->
+    <!-- =================================================
+         TARJETAS DE RESUMEN
+         ================================================= -->
 
     <div class="row g-3 mb-4">
 
@@ -492,39 +535,23 @@ CONTENIDO DEL MÓDULO
 
                 <div class="card-body">
 
-                    <div class="d-flex justify-content-between align-items-center">
+                    <small
+                        class="text-muted fw-bold text-uppercase"
+                    >
+                        Total Matrículas
+                    </small>
 
-                        <div>
-
-                            <small class="text-muted fw-bold text-uppercase">
-
-                                Total Matrículas
-
-                            </small>
-
-                            <h3 class="fw-bold text-primary mb-0 mt-1">
-
-                                <?= $total_matriculas ?>
-
-                            </h3>
-
-                        </div>
-
-
-                        <div class="text-primary fs-2">
-
-                            <i class="fa-solid fa-file-signature"></i>
-
-                        </div>
-
-                    </div>
+                    <h3
+                        class="fw-bold text-primary mb-0 mt-1"
+                    >
+                        <?= $total_matriculas ?>
+                    </h3>
 
                 </div>
 
             </div>
 
         </div>
-
 
 
         <!-- MATRÍCULAS ACTIVAS -->
@@ -535,39 +562,23 @@ CONTENIDO DEL MÓDULO
 
                 <div class="card-body">
 
-                    <div class="d-flex justify-content-between align-items-center">
+                    <small
+                        class="text-muted fw-bold text-uppercase"
+                    >
+                        Matrículas Activas
+                    </small>
 
-                        <div>
-
-                            <small class="text-muted fw-bold text-uppercase">
-
-                                Matrículas Activas
-
-                            </small>
-
-                            <h3 class="fw-bold text-success mb-0 mt-1">
-
-                                <?= $matriculas_activas ?>
-
-                            </h3>
-
-                        </div>
-
-
-                        <div class="text-success fs-2">
-
-                            <i class="fa-solid fa-circle-check"></i>
-
-                        </div>
-
-                    </div>
+                    <h3
+                        class="fw-bold text-success mb-0 mt-1"
+                    >
+                        <?= $matriculas_activas ?>
+                    </h3>
 
                 </div>
 
             </div>
 
         </div>
-
 
 
         <!-- MATRÍCULAS PAGADAS -->
@@ -578,39 +589,23 @@ CONTENIDO DEL MÓDULO
 
                 <div class="card-body">
 
-                    <div class="d-flex justify-content-between align-items-center">
+                    <small
+                        class="text-muted fw-bold text-uppercase"
+                    >
+                        Matrículas Pagadas
+                    </small>
 
-                        <div>
-
-                            <small class="text-muted fw-bold text-uppercase">
-
-                                Matrículas Pagadas
-
-                            </small>
-
-                            <h3 class="fw-bold text-info mb-0 mt-1">
-
-                                <?= $matriculas_pagadas ?>
-
-                            </h3>
-
-                        </div>
-
-
-                        <div class="text-info fs-2">
-
-                            <i class="fa-solid fa-money-bill-wave"></i>
-
-                        </div>
-
-                    </div>
+                    <h3
+                        class="fw-bold text-info mb-0 mt-1"
+                    >
+                        <?= $matriculas_pagadas ?>
+                    </h3>
 
                 </div>
 
             </div>
 
         </div>
-
 
 
         <!-- VALOR MATRICULADO -->
@@ -621,39 +616,26 @@ CONTENIDO DEL MÓDULO
 
                 <div class="card-body">
 
-                    <div class="d-flex justify-content-between align-items-center">
+                    <small
+                        class="text-muted fw-bold text-uppercase"
+                    >
+                        Valor Matriculado
+                    </small>
 
-                        <div>
+                    <h3
+                        class="fw-bold text-warning mb-0 mt-1"
+                    >
 
-                            <small class="text-muted fw-bold text-uppercase">
+                        $
 
-                                Valor Matriculado
+                        <?= number_format(
+                            $total_matriculado,
+                            2,
+                            '.',
+                            ','
+                        ) ?>
 
-                            </small>
-
-                            <h3 class="fw-bold text-warning mb-0 mt-1">
-
-                                $
-
-                                <?= number_format(
-                                    $total_matriculado,
-                                    2,
-                                    '.',
-                                    ','
-                                ) ?>
-
-                            </h3>
-
-                        </div>
-
-
-                        <div class="text-warning fs-2">
-
-                            <i class="fa-solid fa-dollar-sign"></i>
-
-                        </div>
-
-                    </div>
+                    </h3>
 
                 </div>
 
@@ -665,221 +647,246 @@ CONTENIDO DEL MÓDULO
     </div>
 
 
-
-    <!--
-    =================================================
-    FILTROS
-    =================================================
-    -->
+    <!-- =================================================
+         FILTROS
+         ================================================= -->
 
     <div class="card border-0 shadow-sm mb-4">
 
         <div class="card-body">
 
-<form
-    method="GET"
-    class="row g-3 align-items-end"
->
-
-    <!-- BÚSQUEDA -->
-
-    <div class="col-md-3">
-
-        <label class="form-label fw-bold">
-            Buscar deportista
-        </label>
-
-        <input
-            type="text"
-            name="buscar"
-            class="form-control"
-            placeholder="Nombre o documento..."
-            value="<?= htmlspecialchars($filtro_busqueda) ?>"
-        >
-
-    </div>
-
-
-    <!-- CATEGORÍA -->
-
-    <div class="col-md-2">
-
-        <label class="form-label fw-bold">
-            Categoría
-        </label>
-
-        <select
-            name="categoria"
-            class="form-select"
-        >
-
-            <option value="">
-                Todas
-            </option>
-
-            <?php foreach ($categorias as $categoria): ?>
-
-                <option
-                    value="<?= (int)$categoria['id'] ?>"
-                    <?= (
-                        (string)$filtro_categoria ===
-                        (string)$categoria['id']
-                    )
-                        ? 'selected'
-                        : ''
-                    ?>
-                >
-
-                    <?= htmlspecialchars($categoria['nombre']) ?>
-
-                </option>
-
-            <?php endforeach; ?>
-
-        </select>
-
-    </div>
-
-
-    <!-- AÑO -->
-
-    <div class="col-md-2">
-
-        <label class="form-label fw-bold">
-            Año
-        </label>
-
-        <select
-            name="anio"
-            class="form-select"
-        >
-
-            <option value="">
-                Todos
-            </option>
-
-            <?php foreach ($anios as $anio): ?>
-
-                <option
-                    value="<?= htmlspecialchars($anio) ?>"
-                    <?= (
-                        (string)$filtro_anio ===
-                        (string)$anio
-                    )
-                        ? 'selected'
-                        : ''
-                    ?>
-                >
-
-                    <?= htmlspecialchars($anio) ?>
-
-                </option>
-
-            <?php endforeach; ?>
-
-        </select>
-
-    </div>
-
-
-    <!-- ESTADO -->
-
-    <div class="col-md-2">
-
-        <label class="form-label fw-bold">
-            Estado
-        </label>
-
-        <select
-            name="estado"
-            class="form-select"
-        >
-
-            <option value="">
-                Todos
-            </option>
-
-            <option
-                value="pendiente"
-                <?= $filtro_estado === 'pendiente'
-                    ? 'selected'
-                    : ''
-                ?>
-            >
-                Pendiente
-            </option>
-
-            <option
-                value="pagado"
-                <?= $filtro_estado === 'pagado'
-                    ? 'selected'
-                    : ''
-                ?>
-            >
-                Pagado
-            </option>
-
-            <option
-                value="anulado"
-                <?= $filtro_estado === 'anulado'
-                    ? 'selected'
-                    : ''
-                ?>
-            >
-                Anulado
-            </option>
-
-        </select>
-
-    </div>
-
-
-    <!-- BOTONES -->
-
-    <div class="col-md-3">
-
-        <div class="d-flex gap-2">
-
-            <button
-                type="submit"
-                class="btn btn-dark fw-bold flex-grow-1"
+            <form
+                method="GET"
+                class="row g-3 align-items-end"
             >
 
-                <i class="fa-solid fa-filter me-1"></i>
 
-                Filtrar
+                <!-- =====================================
+                     BÚSQUEDA
+                     ===================================== -->
 
-            </button>
+                <div class="col-md-3">
+
+                    <label class="form-label fw-bold">
+
+                        Buscar deportista
+
+                    </label>
 
 
-            <a
-                href="index.php"
-                class="btn btn-outline-secondary"
-            >
+                    <input
+                        type="text"
+                        name="buscar"
+                        class="form-control"
+                        placeholder="Nombre o documento..."
+                        value="<?= htmlspecialchars(
+                            $filtro_busqueda
+                        ) ?>"
+                    >
 
-                <i class="fa-solid fa-rotate-left"></i>
+                </div>
 
-                Limpiar
 
-            </a>
+                <!-- =====================================
+                     CATEGORÍA
+                     ===================================== -->
+
+                <div class="col-md-2">
+
+                    <label class="form-label fw-bold">
+
+                        Categoría
+
+                    </label>
+
+
+                    <select
+                        name="categoria"
+                        class="form-select"
+                    >
+
+                        <option value="">
+
+                            Todas
+
+                        </option>
+
+
+                        <?php foreach ($categorias as $categoria): ?>
+
+                            <option
+                                value="<?= (int)$categoria['id'] ?>"
+                                <?= (
+                                    (string)$filtro_categoria ===
+                                    (string)$categoria['id']
+                                )
+                                    ? 'selected'
+                                    : ''
+                                ?>
+                            >
+
+                                <?= htmlspecialchars(
+                                    $categoria['nombre']
+                                ) ?>
+
+                            </option>
+
+                        <?php endforeach; ?>
+
+                    </select>
+
+                </div>
+
+
+                <!-- =====================================
+                     AÑO
+                     ===================================== -->
+
+                <div class="col-md-2">
+
+                    <label class="form-label fw-bold">
+
+                        Año
+
+                    </label>
+
+
+                    <select
+                        name="anio"
+                        class="form-select"
+                    >
+
+                        <option value="">
+
+                            Todos
+
+                        </option>
+
+
+                        <?php foreach ($anios as $anio): ?>
+
+                            <option
+                                value="<?= htmlspecialchars($anio) ?>"
+                                <?= (
+                                    (string)$filtro_anio ===
+                                    (string)$anio
+                                )
+                                    ? 'selected'
+                                    : ''
+                                ?>
+                            >
+
+                                <?= htmlspecialchars($anio) ?>
+
+                            </option>
+
+                        <?php endforeach; ?>
+
+                    </select>
+
+                </div>
+
+
+                <!-- =====================================
+                     ESTADO
+                     ===================================== -->
+
+                <div class="col-md-2">
+
+                    <label class="form-label fw-bold">
+
+                        Estado
+
+                    </label>
+
+
+                    <select
+                        name="estado"
+                        class="form-select"
+                    >
+
+                        <option value="">
+
+                            Todos
+
+                        </option>
+
+
+                        <option
+                            value="pendiente"
+                            <?= $filtro_estado === 'pendiente'
+                                ? 'selected'
+                                : ''
+                            ?>
+                        >
+
+                            Pendiente
+
+                        </option>
+
+
+                        <option
+                            value="pagado"
+                            <?= $filtro_estado === 'pagado'
+                                ? 'selected'
+                                : ''
+                            ?>
+                        >
+
+                            Pagado
+
+                        </option>
+
+
+                        <option
+                            value="anulado"
+                            <?= $filtro_estado === 'anulado'
+                                ? 'selected'
+                                : ''
+                            ?>
+                        >
+
+                            Anulado
+
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- =====================================
+                     BOTÓN FILTRAR
+                     ===================================== -->
+
+                <div class="col-md-3">
+
+                    <button
+                        type="submit"
+                        class="btn btn-dark fw-bold w-100"
+                    >
+
+                        <i
+                            class="fa-solid fa-filter me-1"
+                        ></i>
+
+                        Filtrar
+
+                    </button>
+
+                </div>
+
+
+            </form>
 
         </div>
 
     </div>
 
-</form>
 
-        </div>
-
-    </div>
-
-
-
-    <!--
-    =================================================
-    TABLA DE MATRÍCULAS
-    =================================================
-    -->
+    <!-- =================================================
+         TABLA DE MATRÍCULAS
+         ================================================= -->
 
     <div class="card border-0 shadow-sm">
 
@@ -887,8 +894,14 @@ CONTENIDO DEL MÓDULO
 
             <div class="table-responsive">
 
-                <table class="table table-hover align-middle mb-0">
+                <table
+                    class="table table-hover align-middle mb-0"
+                >
 
+
+                    <!-- =================================
+                         ENCABEZADO
+                         ================================= -->
 
                     <thead class="table-dark">
 
@@ -911,8 +924,8 @@ CONTENIDO DEL MÓDULO
                             </th>
 
                             <th>
-    Categoría
-</th>
+                                Categoría
+                            </th>
 
                             <th>
                                 Monto
@@ -939,6 +952,10 @@ CONTENIDO DEL MÓDULO
                     </thead>
 
 
+                    <!-- =================================
+                         CUERPO
+                         ================================= -->
+
                     <tbody>
 
 
@@ -955,6 +972,7 @@ CONTENIDO DEL MÓDULO
                                     <i
                                         class="fa-solid fa-file-signature fa-2x mb-3"
                                     ></i>
+
 
                                     <div class="fw-bold">
 
@@ -976,14 +994,18 @@ CONTENIDO DEL MÓDULO
                                 <tr>
 
 
-                                    <!-- DEPORTISTA -->
+                                    <!-- =========================
+                                         DEPORTISTA
+                                         ========================= -->
 
                                     <td class="px-3">
 
                                         <div class="fw-bold">
 
                                             <?= htmlspecialchars(
-                                                $matricula['deportista_nombre']
+                                                $matricula[
+                                                    'deportista_nombre'
+                                                ]
                                             ) ?>
 
                                         </div>
@@ -991,20 +1013,24 @@ CONTENIDO DEL MÓDULO
                                     </td>
 
 
-
-                                    <!-- DOCUMENTO -->
+                                    <!-- =========================
+                                         DOCUMENTO
+                                         ========================= -->
 
                                     <td>
 
                                         <?= htmlspecialchars(
-                                            $matricula['deportista_documento'] ?? '-'
+                                            $matricula[
+                                                'deportista_documento'
+                                            ] ?? '-'
                                         ) ?>
 
                                     </td>
 
 
-
-                                    <!-- AÑO -->
+                                    <!-- =========================
+                                         AÑO
+                                         ========================= -->
 
                                     <td>
 
@@ -1015,21 +1041,26 @@ CONTENIDO DEL MÓDULO
                                     </td>
 
 
-
-                                    <!-- FECHA MATRÍCULA -->
+                                    <!-- =========================
+                                         FECHA MATRÍCULA
+                                         ========================= -->
 
                                     <td>
 
                                         <?php if (
                                             !empty(
-                                                $matricula['fecha_matricula']
+                                                $matricula[
+                                                    'fecha_matricula'
+                                                ]
                                             )
                                         ): ?>
 
                                             <?= date(
                                                 'd/m/Y',
                                                 strtotime(
-                                                    $matricula['fecha_matricula']
+                                                    $matricula[
+                                                        'fecha_matricula'
+                                                    ]
                                                 )
                                             ) ?>
 
@@ -1041,53 +1072,25 @@ CONTENIDO DEL MÓDULO
 
                                     </td>
 
-<!-- FECHA MATRÍCULA -->
 
-<td>
+                                    <!-- =========================
+                                         CATEGORÍA
+                                         ========================= -->
 
-    <?php if (!empty($matricula['fecha_matricula'])): ?>
+                                    <td>
 
-        <?= date(
-            'd/m/Y',
-            strtotime($matricula['fecha_matricula'])
-        ) ?>
+                                        <?= htmlspecialchars(
+                                            $matricula[
+                                                'categoria_nombre'
+                                            ] ?? '-'
+                                        ) ?>
 
-    <?php else: ?>
-
-        -
-
-    <?php endif; ?>
-
-</td>
+                                    </td>
 
 
-<!-- CATEGORÍA -->
-
-<td>
-
-    <?= htmlspecialchars(
-        $matricula['categoria_nombre'] ?? '-'
-    ) ?>
-
-</td>
-
-
-<!-- MONTO -->
-
-<td class="fw-bold">
-
-    $
-
-    <?= number_format(
-        (float)$matricula['monto'],
-        2,
-        '.',
-        ','
-    ) ?>
-
-</td>
-
-                                    <!-- MONTO -->
+                                    <!-- =========================
+                                         MONTO
+                                         ========================= -->
 
                                     <td class="fw-bold">
 
@@ -1103,18 +1106,22 @@ CONTENIDO DEL MÓDULO
                                     </td>
 
 
-
-                                    <!-- ESTADO -->
+                                    <!-- =========================
+                                         ESTADO
+                                         ========================= -->
 
                                     <td>
 
 
                                         <?php if (
-                                            $matricula['estado'] === 'pagado'
+                                            $matricula['estado']
+                                            === 'pagado'
                                         ): ?>
 
 
-                                            <span class="badge bg-success">
+                                            <span
+                                                class="badge bg-success"
+                                            >
 
                                                 <i
                                                     class="fa-solid fa-check me-1"
@@ -1126,11 +1133,14 @@ CONTENIDO DEL MÓDULO
 
 
                                         <?php elseif (
-                                            $matricula['estado'] === 'pendiente'
+                                            $matricula['estado']
+                                            === 'pendiente'
                                         ): ?>
 
 
-                                            <span class="badge bg-warning text-dark">
+                                            <span
+                                                class="badge bg-warning text-dark"
+                                            >
 
                                                 <i
                                                     class="fa-solid fa-clock me-1"
@@ -1144,7 +1154,9 @@ CONTENIDO DEL MÓDULO
                                         <?php else: ?>
 
 
-                                            <span class="badge bg-secondary">
+                                            <span
+                                                class="badge bg-secondary"
+                                            >
 
                                                 <i
                                                     class="fa-solid fa-ban me-1"
@@ -1161,8 +1173,9 @@ CONTENIDO DEL MÓDULO
                                     </td>
 
 
-
-                                    <!-- FECHA DE PAGO -->
+                                    <!-- =========================
+                                         FECHA DE PAGO
+                                         ========================= -->
 
                                     <td>
 
@@ -1188,30 +1201,41 @@ CONTENIDO DEL MÓDULO
                                     </td>
 
 
-
-                                    <!-- MÉTODO DE PAGO -->
+                                    <!-- =========================
+                                         MÉTODO DE PAGO
+                                         ========================= -->
 
                                     <td>
 
                                         <?= htmlspecialchars(
-                                            $matricula['metodo_pago'] ?? '-'
+                                            $matricula[
+                                                'metodo_pago'
+                                            ] ?? '-'
                                         ) ?>
 
                                     </td>
 
 
+                                    <!-- =========================
+                                         ACCIONES
+                                         ========================= -->
 
-                                    <!-- ACCIONES -->
+                                    <td>
 
-                                    <td class="text-center">
+                                        <div
+                                            class="d-flex justify-content-center align-items-center gap-1 flex-nowrap"
+                                        >
 
 
-                                        <?php if (
-                                            tiene_permiso('matriculas')
-                                        ): ?>
-
+                                            <!-- =================
+                                                 PAGAR
+                                                 ================= -->
 
                                             <?php if (
+                                                tiene_permiso(
+                                                    'matriculas'
+                                                )
+                                                &&
                                                 $matricula['estado']
                                                 === 'pendiente'
                                             ): ?>
@@ -1223,7 +1247,7 @@ CONTENIDO DEL MÓDULO
                                                 >
 
                                                     <i
-                                                        class="fa-solid fa-dollar-sign"
+                                                        class="fa-solid fa-dollar-sign me-1"
                                                     ></i>
 
                                                     Pagar
@@ -1233,37 +1257,73 @@ CONTENIDO DEL MÓDULO
                                             <?php endif; ?>
 
 
-<a
-    href="ver_matricula.php?id=<?= (int)$matricula['id'] ?>"
-    class="btn btn-sm btn-outline-dark"
-    title="Ver matrícula"
->
-
-                                                <i
-                                                    class="fa-solid fa-eye"
-                                                ></i>
-
-                                            </a>
-
-
-                                        <?php else: ?>
-
+                                            <!-- =================
+                                                 VER
+                                                 ================= -->
 
                                             <a
-                                                href="ver.php?id=<?= (int)$matricula['id'] ?>"
+                                                href="ver_matricula.php?id=<?= (int)$matricula['id'] ?>"
                                                 class="btn btn-sm btn-outline-dark"
                                                 title="Ver matrícula"
                                             >
 
                                                 <i
-                                                    class="fa-solid fa-eye"
+                                                    class="fa-solid fa-eye me-1"
                                                 ></i>
+
+                                                Ver
 
                                             </a>
 
 
-                                        <?php endif; ?>
+                                            <!-- =================
+                                                 EDITAR
+                                                 ================= -->
 
+                                            <?php if (
+                                                tiene_permiso(
+                                                    'matriculas'
+                                                )
+                                            ): ?>
+
+                                                <a
+                                                    href="editar_matricula.php?id=<?= (int)$matricula['id'] ?>"
+                                                    class="btn btn-sm btn-outline-primary"
+                                                    title="Editar matrícula"
+                                                >
+
+                                                    <i
+                                                        class="fa-solid fa-pen me-1"
+                                                    ></i>
+
+                                                    Editar
+
+                                                </a>
+
+
+                                                <!-- ===============
+                                                     ELIMINAR
+                                                     =============== -->
+
+                                                <a
+                                                    href="eliminar_matricula.php?id=<?= (int)$matricula['id'] ?>"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    title="Eliminar matrícula"
+                                                    onclick="return confirm('¿Está seguro de eliminar esta matrícula?');"
+                                                >
+
+                                                    <i
+                                                        class="fa-solid fa-trash me-1"
+                                                    ></i>
+
+                                                    Eliminar
+
+                                                </a>
+
+                                            <?php endif; ?>
+
+
+                                        </div>
 
                                     </td>
 
@@ -1279,6 +1339,7 @@ CONTENIDO DEL MÓDULO
 
                     </tbody>
 
+
                 </table>
 
             </div>
@@ -1291,15 +1352,16 @@ CONTENIDO DEL MÓDULO
 </div>
 
 
-
 <?php
 
 /*
-=================================================
-FOOTER DEL MÓDULO
-=================================================
+=========================================================
+13. FOOTER DEL MÓDULO
+=========================================================
 */
 
-include("../../../template/footer_modulos.php");
+include(
+    "../../../template/footer_modulos.php"
+);
 
 ?>

@@ -1,36 +1,34 @@
 <?php
 
 /*
-=================================================
+=========================================================
 MÓDULO FINANCIERO - UNIFORMES
-=================================================
+=========================================================
 
-Este archivo sigue el mismo framework utilizado
-por el módulo de Matrículas.
+Archivo:
+    /modulos/financiero/uniformes/index.php
 
-Orden del archivo:
+Funciones:
+    - Listar uniformes
+    - Filtrar uniformes
+    - Mostrar resumen
+    - Ver uniforme
+    - Editar uniforme
+    - Eliminar uniforme
+    - Crear nuevo uniforme
 
-1. Configuración
-2. Verificación de permisos
-3. Auditoría
-4. Conexión
-5. Filtros
-6. Categorías y tipos de uniforme
-7. Condiciones de consulta
-8. Consulta de uniformes
-9. Resumen financiero
-10. Header del módulo
-11. Contenido visual
-12. Footer del módulo
-
-=================================================
+IMPORTANTE:
+    Este archivo NO contiene CSS propio.
+    Utiliza Bootstrap y Font Awesome cargados
+    desde el header general del sistema.
+=========================================================
 */
 
 
 /*
-=================================================
+=========================================================
 1. CONFIGURACIÓN Y PERMISOS
-=================================================
+=========================================================
 */
 
 require_once("../../../includes/config.php");
@@ -38,18 +36,9 @@ require_once("../../../includes/verificar_roles.php");
 
 
 /*
-=================================================
-VERIFICAR PERMISOS
-=================================================
-
-El módulo utiliza el permiso:
-
-financiero_uniformes
-
-Si el usuario no tiene permiso, vuelve al
-Dashboard principal.
-
-=================================================
+---------------------------------------------------------
+VERIFICAR PERMISO DEL MÓDULO
+---------------------------------------------------------
 */
 
 if (!tiene_permiso('financiero_uniformes')) {
@@ -63,9 +52,9 @@ if (!tiene_permiso('financiero_uniformes')) {
 
 
 /*
-=================================================
+=========================================================
 2. AUDITORÍA
-=================================================
+=========================================================
 */
 
 include(
@@ -74,9 +63,9 @@ include(
 
 
 /*
-=================================================
-3. CONEXIÓN A LA BASE DE DATOS
-=================================================
+=========================================================
+3. CONEXIÓN A BASE DE DATOS
+=========================================================
 */
 
 include(
@@ -85,102 +74,40 @@ include(
 
 
 /*
-=================================================
-4. FILTROS
-=================================================
-*/
-
-/*
--------------------------------------------------
-FILTRO DE BÚSQUEDA
--------------------------------------------------
-
-Permite buscar por:
-
-- Nombre del deportista
-- Documento
--------------------------------------------------
+=========================================================
+4. FILTROS RECIBIDOS
+=========================================================
 */
 
 $filtro_busqueda = trim(
     $_GET['buscar'] ?? ''
 );
 
+$filtro_categoria =
+    $_GET['categoria'] ?? '';
 
-/*
--------------------------------------------------
-FILTRO DE CATEGORÍA
--------------------------------------------------
-*/
+$filtro_tipo =
+    $_GET['tipo'] ?? '';
 
-$filtro_categoria = $_GET['categoria'] ?? '';
+$filtro_estado_entrega =
+    $_GET['estado_entrega'] ?? '';
 
-
-/*
--------------------------------------------------
-FILTRO DE TIPO DE UNIFORME
--------------------------------------------------
-*/
-
-$filtro_tipo = $_GET['tipo'] ?? '';
+$filtro_estado_pago =
+    $_GET['estado_pago'] ?? '';
 
 
 /*
--------------------------------------------------
-FILTRO DE ESTADO DE ENTREGA
--------------------------------------------------
-
-Valores reales de la BD:
-
-pendiente
-entregado
--------------------------------------------------
-*/
-
-$filtro_estado_entrega = $_GET['estado_entrega'] ?? '';
-
-
-/*
--------------------------------------------------
-FILTRO DE ESTADO DE PAGO
--------------------------------------------------
-
-Valores reales de la BD:
-
-pendiente
-parcial
-pagado
--------------------------------------------------
-*/
-
-$filtro_estado_pago = $_GET['estado_pago'] ?? '';
-
-
-/*
-=================================================
+=========================================================
 5. OBTENER CATEGORÍAS
-=================================================
-
-Las categorías se obtienen desde la tabla:
-
-categoria
-
-Esto permite filtrar los uniformes por la
-categoría del deportista.
-
-=================================================
+=========================================================
 */
 
 $stmtCategorias = $conexion->query("
-
     SELECT
         id,
         nombre
-
     FROM categoria
-
     ORDER BY nombre ASC
-
 ");
 
 $categorias = $stmtCategorias->fetchAll(
@@ -189,34 +116,18 @@ $categorias = $stmtCategorias->fetchAll(
 
 
 /*
-=================================================
+=========================================================
 6. OBTENER TIPOS DE UNIFORME
-=================================================
-
-Los tipos se obtienen directamente de los
-registros existentes en uniformes.
-
-Ejemplos:
-
-- Juego
-- Entrenamiento
-- Presentación
-
-=================================================
+=========================================================
 */
 
 $stmtTipos = $conexion->query("
-
     SELECT DISTINCT
         tipo_uniforme
-
     FROM uniformes
-
     WHERE tipo_uniforme IS NOT NULL
       AND tipo_uniforme <> ''
-
     ORDER BY tipo_uniforme ASC
-
 ");
 
 $tipos_uniforme = $stmtTipos->fetchAll(
@@ -225,9 +136,9 @@ $tipos_uniforme = $stmtTipos->fetchAll(
 
 
 /*
-=================================================
-7. CONDICIONES DE CONSULTA
-=================================================
+=========================================================
+7. CONSTRUIR FILTROS SQL
+=========================================================
 */
 
 $where = [];
@@ -236,20 +147,18 @@ $params = [];
 
 
 /*
--------------------------------------------------
-FILTRO POR BÚSQUEDA
--------------------------------------------------
+---------------------------------------------------------
+BÚSQUEDA
+---------------------------------------------------------
 */
 
 if ($filtro_busqueda !== '') {
 
     $where[] = "
-
         (
             d.nombre LIKE :buscar
             OR d.documento LIKE :buscar
         )
-
     ";
 
     $params[':buscar'] =
@@ -258,9 +167,9 @@ if ($filtro_busqueda !== '') {
 
 
 /*
--------------------------------------------------
-FILTRO POR CATEGORÍA
--------------------------------------------------
+---------------------------------------------------------
+CATEGORÍA
+---------------------------------------------------------
 */
 
 if ($filtro_categoria !== '') {
@@ -274,9 +183,9 @@ if ($filtro_categoria !== '') {
 
 
 /*
--------------------------------------------------
-FILTRO POR TIPO DE UNIFORME
--------------------------------------------------
+---------------------------------------------------------
+TIPO DE UNIFORME
+---------------------------------------------------------
 */
 
 if ($filtro_tipo !== '') {
@@ -290,9 +199,9 @@ if ($filtro_tipo !== '') {
 
 
 /*
--------------------------------------------------
-FILTRO POR ESTADO DE ENTREGA
--------------------------------------------------
+---------------------------------------------------------
+ESTADO DE ENTREGA
+---------------------------------------------------------
 */
 
 if ($filtro_estado_entrega !== '') {
@@ -306,9 +215,9 @@ if ($filtro_estado_entrega !== '') {
 
 
 /*
--------------------------------------------------
-FILTRO POR ESTADO DE PAGO
--------------------------------------------------
+---------------------------------------------------------
+ESTADO DE PAGO
+---------------------------------------------------------
 */
 
 if ($filtro_estado_pago !== '') {
@@ -322,9 +231,9 @@ if ($filtro_estado_pago !== '') {
 
 
 /*
-=================================================
-8. CONSTRUIR WHERE
-=================================================
+---------------------------------------------------------
+WHERE FINAL
+---------------------------------------------------------
 */
 
 $whereSQL = '';
@@ -340,39 +249,9 @@ if (!empty($where)) {
 
 
 /*
-=================================================
-9. CONSULTAR UNIFORMES
-=================================================
-
-ESTRUCTURA REAL DE LA TABLA:
-
-uniformes
-
-- id
-- deportista_id
-- tipo_uniforme
-- talla
-- cantidad
-- valor
-- fecha_entrega
-- estado_entrega
-- estado_pago
-- observaciones
-- fecha_creacion
-
-
-RELACIONES:
-
-uniformes.deportista_id
-        ↓
-deportista.id
-
-
-deportista.categoria_id
-        ↓
-categoria.id
-
-=================================================
+=========================================================
+8. CONSULTAR UNIFORMES
+=========================================================
 */
 
 $sql = "
@@ -423,14 +302,9 @@ $uniformes = $stmt->fetchAll(
 
 
 /*
-=================================================
-10. RESUMEN GENERAL
-=================================================
-
-El resumen se calcula sobre todos los uniformes
-registrados, independientemente de los filtros.
-
-=================================================
+=========================================================
+9. RESUMEN GENERAL
+=========================================================
 */
 
 $stmtResumen = $conexion->query("
@@ -438,7 +312,6 @@ $stmtResumen = $conexion->query("
     SELECT
 
         COUNT(*) AS total_uniformes,
-
 
         SUM(
             CASE
@@ -448,7 +321,6 @@ $stmtResumen = $conexion->query("
             END
         ) AS uniformes_entregados,
 
-
         SUM(
             CASE
                 WHEN estado_entrega = 'pendiente'
@@ -456,19 +328,6 @@ $stmtResumen = $conexion->query("
                 ELSE 0
             END
         ) AS uniformes_pendientes,
-
-
-        SUM(
-            CASE
-                WHEN estado_pago IN (
-                    'pendiente',
-                    'parcial'
-                )
-                THEN 1
-                ELSE 0
-            END
-        ) AS uniformes_pendientes_pago,
-
 
         COALESCE(
             SUM(valor * cantidad),
@@ -486,52 +345,37 @@ $resumen = $stmtResumen->fetch(
 
 
 /*
-=================================================
-11. VARIABLES DEL RESUMEN
-=================================================
+=========================================================
+10. VARIABLES DEL RESUMEN
+=========================================================
 */
 
-$total_uniformes = (int) (
+$total_uniformes = (int)(
     $resumen['total_uniformes'] ?? 0
 );
 
-
-$uniformes_entregados = (int) (
+$uniformes_entregados = (int)(
     $resumen['uniformes_entregados'] ?? 0
 );
 
-
-$uniformes_pendientes = (int) (
+$uniformes_pendientes = (int)(
     $resumen['uniformes_pendientes'] ?? 0
 );
 
-
-$uniformes_pendientes_pago = (int) (
-    $resumen['uniformes_pendientes_pago'] ?? 0
-);
-
-
-$valor_total = (float) (
+$valor_total = (float)(
     $resumen['valor_total'] ?? 0
 );
 
 
 /*
-=================================================
-12. HEADER DEL MÓDULO
-=================================================
-
-El header se carga después de toda la lógica PHP
-para mantener el mismo patrón utilizado por
-Matrículas.
-
-=================================================
+=========================================================
+11. HEADER DEL MÓDULO
+=========================================================
 */
 
 $modulo_actual = 'Financiero';
 
 $submodulo_actual = 'Uniformes';
-
 
 include(
     "../../../template/header_modulos.php"
@@ -540,36 +384,27 @@ include(
 ?>
 
 
-<!--
-=================================================
-13. CONTENIDO DEL MÓDULO
-=================================================
--->
+<!-- =====================================================
+     CONTENEDOR PRINCIPAL
+     ===================================================== -->
 
 <div class="container-fluid py-4">
 
+    <div class="container">
 
-    <!--
-    =================================================
-    VOLVER AL DASHBOARD
-    =================================================
-    -->
 
-    <div
-        class="d-flex justify-content-between
-               align-items-center mb-3"
-    >
+        <!-- =================================================
+             BOTÓN VOLVER
+             ================================================= -->
 
-        <div class="d-flex gap-2">
+        <div class="mb-3">
 
             <a
                 href="<?= $url_base ?>/modulos/dashboard/index.php"
                 class="btn btn-outline-dark"
             >
 
-                <i
-                    class="fa-solid fa-arrow-left me-1"
-                ></i>
+                <i class="fa-solid fa-arrow-left me-1"></i>
 
                 Volver al Dashboard
 
@@ -577,127 +412,207 @@ include(
 
         </div>
 
-    </div>
+
+        <!-- =================================================
+             ENCABEZADO
+             ================================================= -->
+
+        <div
+            class="d-flex
+                   justify-content-between
+                   align-items-center
+                   mb-4"
+        >
+
+            <div>
+
+                <h2 class="fw-bold mb-1">
+
+                    <i
+                        class="fa-solid fa-shirt text-primary me-2"
+                    ></i>
+
+                    Uniformes
+
+                </h2>
+
+                <p class="text-muted mb-0">
+
+                    Gestión de uniformes, entregas y cobros.
+
+                </p>
+
+            </div>
 
 
-    <!--
-    =================================================
-    ENCABEZADO
-    =================================================
-    -->
+            <!-- NUEVO UNIFORME -->
 
-    <div
-        class="d-flex justify-content-between
-               align-items-center mb-4"
-    >
+            <?php if (
+                tiene_permiso('financiero_uniformes')
+            ): ?>
 
-        <div>
+                <a
+                    href="nuevo_uniforme.php"
+                    class="btn btn-primary fw-bold"
+                >
 
-            <h2 class="fw-bold mb-1">
+                    <i class="fa-solid fa-plus me-1"></i>
 
-                <i
-                    class="fa-solid fa-shirt
-                           text-primary me-2"
-                ></i>
+                    Nuevo Uniforme
 
-                Uniformes
+                </a>
 
-            </h2>
-
-
-            <p class="text-muted mb-0">
-
-                Gestión de uniformes, entregas y cobros.
-
-            </p>
+            <?php endif; ?>
 
         </div>
 
 
-        <?php if (tiene_permiso('financiero_uniformes')): ?>
 
-            <a
-                href="nuevo_uniforme.php"
-                class="btn btn-primary fw-bold"
-            >
+        <!-- =================================================
+             TARJETAS DE RESUMEN
+             ================================================= -->
 
-                <i
-                    class="fa-solid fa-plus me-1"
-                ></i>
-
-                Nuevo Uniforme
-
-            </a>
-
-        <?php endif; ?>
-
-    </div>
+        <div class="row g-3 mb-4">
 
 
-    <!--
-    =================================================
-    TARJETAS DE RESUMEN
-    =================================================
-    -->
+            <!-- TOTAL -->
 
-    <div class="row g-3 mb-4">
+            <div class="col-12 col-md-6 col-xl-3">
 
+                <div class="card border-0 shadow-sm h-100">
 
-        <!--
-        -------------------------------------------------
-        TOTAL UNIFORMES
-        -------------------------------------------------
-        -->
+                    <div class="card-body">
 
-        <div class="col-md-3">
+                        <small
+                            class="text-muted
+                                   fw-bold
+                                   text-uppercase"
+                        >
+                            Total Uniformes
+                        </small>
 
-            <div
-                class="card border-0
-                       shadow-sm h-100"
-            >
-
-                <div class="card-body">
-
-                    <div
-                        class="d-flex
-                               justify-content-between
-                               align-items-center"
-                    >
-
-                        <div>
-
-                            <small
-                                class="text-muted
-                                       fw-bold
-                                       text-uppercase"
-                            >
-                                Total Uniformes
-                            </small>
-
-
-                            <h3
-                                class="fw-bold
-                                       text-primary
-                                       mb-0 mt-1"
-                            >
-
-                                <?= $total_uniformes ?>
-
-                            </h3>
-
-                        </div>
-
-
-                        <div
-                            class="text-primary
-                                   fs-2"
+                        <h3
+                            class="fw-bold
+                                   text-primary
+                                   mb-0
+                                   mt-1"
                         >
 
-                            <i
-                                class="fa-solid fa-shirt"
-                            ></i>
+                            <?= $total_uniformes ?>
 
-                        </div>
+                        </h3>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- ENTREGADOS -->
+
+            <div class="col-12 col-md-6 col-xl-3">
+
+                <div class="card border-0 shadow-sm h-100">
+
+                    <div class="card-body">
+
+                        <small
+                            class="text-muted
+                                   fw-bold
+                                   text-uppercase"
+                        >
+                            Entregados
+                        </small>
+
+                        <h3
+                            class="fw-bold
+                                   text-success
+                                   mb-0
+                                   mt-1"
+                        >
+
+                            <?= $uniformes_entregados ?>
+
+                        </h3>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- PENDIENTES -->
+
+            <div class="col-12 col-md-6 col-xl-3">
+
+                <div class="card border-0 shadow-sm h-100">
+
+                    <div class="card-body">
+
+                        <small
+                            class="text-muted
+                                   fw-bold
+                                   text-uppercase"
+                        >
+                            Pendientes de Entrega
+                        </small>
+
+                        <h3
+                            class="fw-bold
+                                   text-warning
+                                   mb-0
+                                   mt-1"
+                        >
+
+                            <?= $uniformes_pendientes ?>
+
+                        </h3>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- VALOR TOTAL -->
+
+            <div class="col-12 col-md-6 col-xl-3">
+
+                <div class="card border-0 shadow-sm h-100">
+
+                    <div class="card-body">
+
+                        <small
+                            class="text-muted
+                                   fw-bold
+                                   text-uppercase"
+                        >
+                            Valor Total
+                        </small>
+
+                        <h3
+                            class="fw-bold
+                                   text-info
+                                   mb-0
+                                   mt-1"
+                        >
+
+                            $
+
+                            <?= number_format(
+                                $valor_total,
+                                2,
+                                '.',
+                                ','
+                            ) ?>
+
+                        </h3>
 
                     </div>
 
@@ -708,523 +623,261 @@ include(
         </div>
 
 
-        <!--
-        -------------------------------------------------
-        UNIFORMES ENTREGADOS
-        -------------------------------------------------
-        -->
 
-        <div class="col-md-3">
+        <!-- =================================================
+             FILTROS
+             
+             IMPORTANTE:
+             Se utiliza Bootstrap directamente.
+             No depende de .filtros-uniformes
+             ni de .filtro-item.
+             ================================================= -->
 
-            <div
-                class="card border-0
-                       shadow-sm h-100"
-            >
+        <div class="card border-0 shadow-sm mb-4">
 
-                <div class="card-body">
+            <div class="card-body">
 
-                    <div
-                        class="d-flex
-                               justify-content-between
-                               align-items-center"
-                    >
-
-                        <div>
-
-                            <small
-                                class="text-muted
-                                       fw-bold
-                                       text-uppercase"
-                            >
-                                Entregados
-                            </small>
+                <form
+                    method="GET"
+                    class="row g-3 align-items-end"
+                >
 
 
-                            <h3
-                                class="fw-bold
-                                       text-success
-                                       mb-0 mt-1"
-                            >
+                    <!-- BUSCAR -->
 
-                                <?= $uniformes_entregados ?>
+                    <div class="col-12 col-md-4 col-xl-3">
 
-                            </h3>
-
-                        </div>
-
-
-                        <div
-                            class="text-success
-                                   fs-2"
+                        <label
+                            class="form-label fw-bold"
                         >
 
-                            <i
-                                class="fa-solid
-                                       fa-circle-check"
-                            ></i>
+                            Buscar deportista
 
-                        </div>
+                        </label>
+
+                        <input
+                            type="text"
+                            name="buscar"
+                            class="form-control"
+                            placeholder="Nombre o documento..."
+                            value="<?= htmlspecialchars(
+                                $filtro_busqueda
+                            ) ?>"
+                        >
 
                     </div>
 
-                </div>
-
-            </div>
-
-        </div>
 
 
-        <!--
-        -------------------------------------------------
-        PENDIENTES DE ENTREGA
-        -------------------------------------------------
-        -->
+                    <!-- CATEGORÍA -->
 
-        <div class="col-md-3">
+                    <div class="col-12 col-md-4 col-xl-2">
 
-            <div
-                class="card border-0
-                       shadow-sm h-100"
-            >
-
-                <div class="card-body">
-
-                    <div
-                        class="d-flex
-                               justify-content-between
-                               align-items-center"
-                    >
-
-                        <div>
-
-                            <small
-                                class="text-muted
-                                       fw-bold
-                                       text-uppercase"
-                            >
-                                Pendientes de Entrega
-                            </small>
-
-
-                            <h3
-                                class="fw-bold
-                                       text-warning
-                                       mb-0 mt-1"
-                            >
-
-                                <?= $uniformes_pendientes ?>
-
-                            </h3>
-
-                        </div>
-
-
-                        <div
-                            class="text-warning
-                                   fs-2"
+                        <label
+                            class="form-label fw-bold"
                         >
 
-                            <i
-                                class="fa-solid fa-clock"
-                            ></i>
+                            Categoría
 
-                        </div>
+                        </label>
+
+                        <select
+                            name="categoria"
+                            class="form-select"
+                        >
+
+                            <option value="">
+                                Todas
+                            </option>
+
+                            <?php foreach (
+                                $categorias
+                                as $categoria
+                            ): ?>
+
+                                <option
+                                    value="<?= (int)$categoria['id'] ?>"
+                                    <?= (
+                                        (string)$filtro_categoria ===
+                                        (string)$categoria['id']
+                                    )
+                                        ? 'selected'
+                                        : ''
+                                    ?>
+                                >
+
+                                    <?= htmlspecialchars(
+                                        $categoria['nombre']
+                                    ) ?>
+
+                                </option>
+
+                            <?php endforeach; ?>
+
+                        </select>
 
                     </div>
 
-                </div>
-
-            </div>
-
-        </div>
 
 
-        <!--
-        -------------------------------------------------
-        VALOR TOTAL
-        -------------------------------------------------
-        -->
+                    <!-- TIPO -->
 
-        <div class="col-md-3">
+                    <div class="col-12 col-md-4 col-xl-2">
 
-            <div
-                class="card border-0
-                       shadow-sm h-100"
-            >
-
-                <div class="card-body">
-
-                    <div
-                        class="d-flex
-                               justify-content-between
-                               align-items-center"
-                    >
-
-                        <div>
-
-                            <small
-                                class="text-muted
-                                       fw-bold
-                                       text-uppercase"
-                            >
-                                Valor Total
-                            </small>
-
-
-                            <h3
-                                class="fw-bold
-                                       text-info
-                                       mb-0 mt-1"
-                            >
-
-                                $
-
-                                <?= number_format(
-                                    $valor_total,
-                                    2,
-                                    '.',
-                                    ','
-                                ) ?>
-
-                            </h3>
-
-                        </div>
-
-
-                        <div
-                            class="text-info
-                                   fs-2"
+                        <label
+                            class="form-label fw-bold"
                         >
 
-                            <i
-                                class="fa-solid
-                                       fa-dollar-sign"
-                            ></i>
+                            Tipo
 
-                        </div>
+                        </label>
+
+                        <select
+                            name="tipo"
+                            class="form-select"
+                        >
+
+                            <option value="">
+                                Todos
+                            </option>
+
+                            <?php foreach (
+                                $tipos_uniforme
+                                as $tipo
+                            ): ?>
+
+                                <option
+                                    value="<?= htmlspecialchars($tipo) ?>"
+                                    <?= $filtro_tipo === $tipo
+                                        ? 'selected'
+                                        : ''
+                                    ?>
+                                >
+
+                                    <?= htmlspecialchars($tipo) ?>
+
+                                </option>
+
+                            <?php endforeach; ?>
+
+                        </select>
 
                     </div>
 
-                </div>
-
-            </div>
-
-        </div>
 
 
-    </div>
+                    <!-- ENTREGA -->
 
+                    <div class="col-12 col-md-4 col-xl-2">
 
-    <!--
-    =================================================
-    FILTROS
-    =================================================
-    -->
+                        <label
+                            class="form-label fw-bold"
+                        >
 
-    <div
-        class="card border-0
-               shadow-sm mb-4"
-    >
+                            Entrega
 
-        <div class="card-body">
+                        </label>
 
+                        <select
+                            name="estado_entrega"
+                            class="form-select"
+                        >
 
-            <form
-                method="GET"
-                class="row g-3 align-items-end"
-            >
-
-
-                <!--
-                -------------------------------------------------
-                BÚSQUEDA
-                -------------------------------------------------
-                -->
-
-                <div class="col-md-3">
-
-                    <label
-                        class="form-label fw-bold"
-                    >
-
-                        Buscar deportista
-
-                    </label>
-
-
-                    <input
-                        type="text"
-                        name="buscar"
-                        class="form-control"
-                        placeholder="Nombre o documento..."
-                        value="<?= htmlspecialchars(
-                            $filtro_busqueda
-                        ) ?>"
-                    >
-
-                </div>
-
-
-                <!--
-                -------------------------------------------------
-                CATEGORÍA
-                -------------------------------------------------
-                -->
-
-                <div class="col-md-2">
-
-                    <label
-                        class="form-label fw-bold"
-                    >
-
-                        Categoría
-
-                    </label>
-
-
-                    <select
-                        name="categoria"
-                        class="form-select"
-                    >
-
-                        <option value="">
-
-                            Todas
-
-                        </option>
-
-
-                        <?php foreach (
-                            $categorias
-                            as $categoria
-                        ): ?>
+                            <option value="">
+                                Todos
+                            </option>
 
                             <option
-                                value="<?= (int)$categoria['id'] ?>"
-                                <?= (
-                                    (string)$filtro_categoria ===
-                                    (string)$categoria['id']
-                                )
+                                value="pendiente"
+                                <?= $filtro_estado_entrega === 'pendiente'
                                     ? 'selected'
                                     : ''
                                 ?>
                             >
-
-                                <?= htmlspecialchars(
-                                    $categoria['nombre']
-                                ) ?>
-
+                                Pendiente
                             </option>
 
-                        <?php endforeach; ?>
-
-                    </select>
-
-                </div>
-
-
-                <!--
-                -------------------------------------------------
-                TIPO DE UNIFORME
-                -------------------------------------------------
-                -->
-
-                <div class="col-md-2">
-
-                    <label
-                        class="form-label fw-bold"
-                    >
-
-                        Tipo
-
-                    </label>
-
-
-                    <select
-                        name="tipo"
-                        class="form-select"
-                    >
-
-                        <option value="">
-
-                            Todos
-
-                        </option>
-
-
-                        <?php foreach (
-                            $tipos_uniforme
-                            as $tipo
-                        ): ?>
-
                             <option
-                                value="<?= htmlspecialchars(
-                                    $tipo
-                                ) ?>"
-                                <?= $filtro_tipo === $tipo
+                                value="entregado"
+                                <?= $filtro_estado_entrega === 'entregado'
                                     ? 'selected'
                                     : ''
                                 ?>
                             >
-
-                                <?= htmlspecialchars(
-                                    $tipo
-                                ) ?>
-
+                                Entregado
                             </option>
 
-                        <?php endforeach; ?>
+                        </select>
 
-                    </select>
-
-                </div>
+                    </div>
 
 
-                <!--
-                -------------------------------------------------
-                ESTADO DE ENTREGA
-                -------------------------------------------------
-                -->
 
-                <div class="col-md-2">
+                    <!-- PAGO -->
 
-                    <label
-                        class="form-label fw-bold"
-                    >
+                    <div class="col-12 col-md-4 col-xl-2">
 
-                        Entrega
-
-                    </label>
-
-
-                    <select
-                        name="estado_entrega"
-                        class="form-select"
-                    >
-
-                        <option value="">
-
-                            Todos
-
-                        </option>
-
-
-                        <option
-                            value="pendiente"
-                            <?= $filtro_estado_entrega === 'pendiente'
-                                ? 'selected'
-                                : ''
-                            ?>
+                        <label
+                            class="form-label fw-bold"
                         >
 
-                            Pendiente
+                            Pago
 
-                        </option>
+                        </label>
 
-
-                        <option
-                            value="entregado"
-                            <?= $filtro_estado_entrega === 'entregado'
-                                ? 'selected'
-                                : ''
-                            ?>
+                        <select
+                            name="estado_pago"
+                            class="form-select"
                         >
 
-                            Entregado
+                            <option value="">
+                                Todos
+                            </option>
 
-                        </option>
+                            <option
+                                value="pendiente"
+                                <?= $filtro_estado_pago === 'pendiente'
+                                    ? 'selected'
+                                    : ''
+                                ?>
+                            >
+                                Pendiente
+                            </option>
 
-                    </select>
+                            <option
+                                value="parcial"
+                                <?= $filtro_estado_pago === 'parcial'
+                                    ? 'selected'
+                                    : ''
+                                ?>
+                            >
+                                Parcial
+                            </option>
 
-                </div>
+                            <option
+                                value="pagado"
+                                <?= $filtro_estado_pago === 'pagado'
+                                    ? 'selected'
+                                    : ''
+                                ?>
+                            >
+                                Pagado
+                            </option>
 
+                        </select>
 
-                <!--
-                -------------------------------------------------
-                ESTADO DE PAGO
-                -------------------------------------------------
-                -->
-
-                <div class="col-md-2">
-
-                    <label
-                        class="form-label fw-bold"
-                    >
-
-                        Pago
-
-                    </label>
-
-
-                    <select
-                        name="estado_pago"
-                        class="form-select"
-                    >
-
-                        <option value="">
-
-                            Todos
-
-                        </option>
-
-
-                        <option
-                            value="pendiente"
-                            <?= $filtro_estado_pago === 'pendiente'
-                                ? 'selected'
-                                : ''
-                            ?>
-                        >
-
-                            Pendiente
-
-                        </option>
+                    </div>
 
 
-                        <option
-                            value="parcial"
-                            <?= $filtro_estado_pago === 'parcial'
-                                ? 'selected'
-                                : ''
-                            ?>
-                        >
 
-                            Parcial
+                    <!-- BOTÓN FILTRAR -->
 
-                        </option>
-
-
-                        <option
-                            value="pagado"
-                            <?= $filtro_estado_pago === 'pagado'
-                                ? 'selected'
-                                : ''
-                            ?>
-                        >
-
-                            Pagado
-
-                        </option>
-
-                    </select>
-
-                </div>
-
-
-                <!--
-                -------------------------------------------------
-                BOTONES
-                -------------------------------------------------
-                -->
-
-                <div class="col-auto">
-
-                    <div class="d-flex gap-2">
+                    <div class="col-12 col-md-4 col-xl-1">
 
                         <button
                             type="submit"
-                            class="btn btn-dark fw-bold"
-                            title="Filtrar"
+                            class="btn btn-dark fw-bold w-100"
+                            title="Aplicar filtros"
                         >
 
                             <i
@@ -1235,624 +888,536 @@ include(
 
                         </button>
 
-
-                        <a
-                            href="index.php"
-                            class="btn btn-outline-secondary"
-                            title="Limpiar filtros"
-                        >
-
-                            <i
-                                class="fa-solid fa-rotate-left me-1"
-                            ></i>
-
-                            Limpiar
-
-                        </a>
-
                     </div>
 
-                </div>
 
-
-            </form>
-
-        </div>
-
-    </div>
-
-
-    <!--
-    =================================================
-    TABLA DE UNIFORMES
-    =================================================
-    -->
-
-    <div
-        class="card border-0
-               shadow-sm"
-    >
-
-        <div class="card-body p-0">
-
-            <div class="table-responsive">
-
-
-                <table
-                    class="table
-                           table-hover
-                           align-middle
-                           mb-0"
-                >
-
-
-                    <thead class="table-dark">
-
-                        <tr>
-
-                            <th class="px-3">
-                                Deportista
-                            </th>
-
-                            <th>
-                                Documento
-                            </th>
-
-                            <th>
-                                Categoría
-                            </th>
-
-                            <th>
-                                Tipo
-                            </th>
-
-                            <th>
-                                Talla
-                            </th>
-
-                            <th>
-                                Cantidad
-                            </th>
-
-                            <th>
-                                Valor
-                            </th>
-
-                            <th>
-                                Entrega
-                            </th>
-
-                            <th>
-                                Pago
-                            </th>
-
-                            <th>
-                                Fecha Entrega
-                            </th>
-
-                            <th
-                                class="text-center"
-                            >
-                                Acciones
-                            </th>
-
-                        </tr>
-
-                    </thead>
-
-
-                    <tbody>
-
-
-                        <?php if (empty($uniformes)): ?>
-
-
-                            <tr>
-
-                                <td
-                                    colspan="11"
-                                    class="text-center
-                                           py-5
-                                           text-muted"
-                                >
-
-                                    <i
-                                        class="fa-solid
-                                               fa-shirt
-                                               fa-2x
-                                               mb-3"
-                                    ></i>
-
-
-                                    <div
-                                        class="fw-bold"
-                                    >
-
-                                        No hay uniformes
-                                        registrados.
-
-                                    </div>
-
-                                </td>
-
-                            </tr>
-
-
-                        <?php else: ?>
-
-
-                            <?php foreach (
-                                $uniformes
-                                as $uniforme
-                            ): ?>
-
-
-                                <tr>
-
-
-                                    <!--
-                                    ---------------------------------
-                                    DEPORTISTA
-                                    ---------------------------------
-                                    -->
-
-                                    <td class="px-3">
-
-                                        <div
-                                            class="fw-bold"
-                                        >
-
-                                            <?= htmlspecialchars(
-                                                $uniforme[
-                                                    'deportista_nombre'
-                                                ]
-                                            ) ?>
-
-                                        </div>
-
-                                    </td>
-
-
-                                    <!--
-                                    ---------------------------------
-                                    DOCUMENTO
-                                    ---------------------------------
-                                    -->
-
-                                    <td>
-
-                                        <?= htmlspecialchars(
-                                            $uniforme[
-                                                'deportista_documento'
-                                            ] ?? '-'
-                                        ) ?>
-
-                                    </td>
-
-
-                                    <!--
-                                    ---------------------------------
-                                    CATEGORÍA
-                                    ---------------------------------
-                                    -->
-
-                                    <td>
-
-                                        <?= htmlspecialchars(
-                                            $uniforme[
-                                                'categoria_nombre'
-                                            ] ?? '-'
-                                        ) ?>
-
-                                    </td>
-
-
-                                    <!--
-                                    ---------------------------------
-                                    TIPO DE UNIFORME
-                                    ---------------------------------
-                                    -->
-
-                                    <td>
-
-                                        <?= htmlspecialchars(
-                                            $uniforme[
-                                                'tipo_uniforme'
-                                            ]
-                                        ) ?>
-
-                                    </td>
-
-
-                                    <!--
-                                    ---------------------------------
-                                    TALLA
-                                    ---------------------------------
-                                    -->
-
-                                    <td>
-
-                                        <span
-                                            class="badge
-                                                   bg-secondary"
-                                        >
-
-                                            <?= htmlspecialchars(
-                                                $uniforme[
-                                                    'talla'
-                                                ]
-                                            ) ?>
-
-                                        </span>
-
-                                    </td>
-
-
-                                    <!--
-                                    ---------------------------------
-                                    CANTIDAD
-                                    ---------------------------------
-                                    -->
-
-                                    <td>
-
-                                        <?= (int)
-                                            $uniforme[
-                                                'cantidad'
-                                            ]
-                                        ?>
-
-                                    </td>
-
-
-                                    <!--
-                                    ---------------------------------
-                                    VALOR
-                                    ---------------------------------
-                                    -->
-
-                                    <td
-                                        class="fw-bold"
-                                    >
-
-                                        $
-
-                                        <?= number_format(
-                                            (float)$uniforme[
-                                                'valor'
-                                            ] *
-                                            (int)$uniforme[
-                                                'cantidad'
-                                            ],
-                                            2,
-                                            '.',
-                                            ','
-                                        ) ?>
-
-                                    </td>
-
-
-                                    <!--
-                                    ---------------------------------
-                                    ESTADO ENTREGA
-                                    ---------------------------------
-                                    -->
-
-                                    <td>
-
-
-                                        <?php if (
-                                            $uniforme[
-                                                'estado_entrega'
-                                            ] === 'entregado'
-                                        ): ?>
-
-
-                                            <span
-                                                class="badge
-                                                       bg-success"
-                                            >
-
-                                                <i
-                                                    class="fa-solid
-                                                           fa-check
-                                                           me-1"
-                                                ></i>
-
-                                                Entregado
-
-                                            </span>
-
-
-                                        <?php else: ?>
-
-
-                                            <span
-                                                class="badge
-                                                       bg-warning
-                                                       text-dark"
-                                            >
-
-                                                <i
-                                                    class="fa-solid
-                                                           fa-clock
-                                                           me-1"
-                                                ></i>
-
-                                                Pendiente
-
-                                            </span>
-
-
-                                        <?php endif; ?>
-
-
-                                    </td>
-
-
-                                    <!--
-                                    ---------------------------------
-                                    ESTADO PAGO
-                                    ---------------------------------
-                                    -->
-
-                                    <td>
-
-
-                                        <?php if (
-                                            $uniforme[
-                                                'estado_pago'
-                                            ] === 'pagado'
-                                        ): ?>
-
-
-                                            <span
-                                                class="badge
-                                                       bg-success"
-                                            >
-
-                                                <i
-                                                    class="fa-solid
-                                                           fa-check
-                                                           me-1"
-                                                ></i>
-
-                                                Pagado
-
-                                            </span>
-
-
-                                        <?php elseif (
-                                            $uniforme[
-                                                'estado_pago'
-                                            ] === 'parcial'
-                                        ): ?>
-
-
-                                            <span
-                                                class="badge
-                                                       bg-info
-                                                       text-dark"
-                                            >
-
-                                                <i
-                                                    class="fa-solid
-                                                           fa-coins
-                                                           me-1"
-                                                ></i>
-
-                                                Parcial
-
-                                            </span>
-
-
-                                        <?php else: ?>
-
-
-                                            <span
-                                                class="badge
-                                                       bg-warning
-                                                       text-dark"
-                                            >
-
-                                                <i
-                                                    class="fa-solid
-                                                           fa-clock
-                                                           me-1"
-                                                ></i>
-
-                                                Pendiente
-
-                                            </span>
-
-
-                                        <?php endif; ?>
-
-
-                                    </td>
-
-
-                                    <!--
-                                    ---------------------------------
-                                    FECHA DE ENTREGA
-                                    ---------------------------------
-                                    -->
-
-                                    <td>
-
-
-                                        <?php if (
-                                            !empty(
-                                                $uniforme[
-                                                    'fecha_entrega'
-                                                ]
-                                            )
-                                        ): ?>
-
-
-                                            <?= date(
-                                                'd/m/Y',
-                                                strtotime(
-                                                    $uniforme[
-                                                        'fecha_entrega'
-                                                    ]
-                                                )
-                                            ) ?>
-
-
-                                        <?php else: ?>
-
-
-                                            -
-
-
-                                        <?php endif; ?>
-
-
-                                    </td>
-
-
-   <!--
-=================================================
-ACCIONES
-=================================================
-
-Botones:
-- Editar uniforme
-- Ver uniforme
-
-Se utiliza flexbox de Bootstrap para mantener
-los botones juntos, centrados y con separación.
-=================================================
--->
-
-<td class="text-center">
-
-    <?php if (
-        tiene_permiso('financiero_uniformes')
-    ): ?>
-
-        <div
-            class="d-inline-flex
-                   align-items-center
-                   justify-content-center
-                   gap-1
-                   acciones-uniforme"
-        >
-
-            <!--
-            -----------------------------------------
-            EDITAR UNIFORME
-            -----------------------------------------
-            -->
-
-            <a
-                href="editar_uniforme.php?id=<?= (int)$uniforme['id'] ?>"
-                class="btn
-                       btn-sm
-                       btn-outline-primary
-                       btn-accion-uniforme"
-                title="Editar uniforme"
-                aria-label="Editar uniforme"
-            >
-
-                <i class="fa-solid fa-pen"></i>
-
-            </a>
-
-
-            <!--
-            -----------------------------------------
-            VER UNIFORME
-            -----------------------------------------
-            -->
-
-            <a
-                href="ver_uniforme.php?id=<?= (int)$uniforme['id'] ?>"
-                class="btn
-                       btn-sm
-                       btn-outline-dark
-                       btn-accion-uniforme"
-                title="Ver uniforme"
-                aria-label="Ver uniforme"
-            >
-
-                <i class="fa-solid fa-eye"></i>
-
-            </a>
-
-        </div>
-
-    <?php else: ?>
-
-        <!--
-        -----------------------------------------
-        USUARIO SIN PERMISO DE EDICIÓN
-        -----------------------------------------
-        
-        Importante:
-        Se utiliza ver_uniforme.php y no ver.php.
-        -----------------------------------------
-        -->
-
-        <div
-            class="d-inline-flex
-                   align-items-center
-                   justify-content-center
-                   acciones-uniforme"
-        >
-
-            <a
-                href="ver_uniforme.php?id=<?= (int)$uniforme['id'] ?>"
-                class="btn
-                       btn-sm
-                       btn-outline-dark
-                       btn-accion-uniforme"
-                title="Ver uniforme"
-                aria-label="Ver uniforme"
-            >
-
-                <i class="fa-solid fa-eye"></i>
-
-            </a>
-
-        </div>
-
-    <?php endif; ?>
-
-</td>
-
-
-                                </tr>
-
-
-                            <?php endforeach; ?>
-
-
-                        <?php endif; ?>
-
-
-                    </tbody>
-
-
-                </table>
+                </form>
 
             </div>
 
         </div>
 
+
+
+        <!-- =================================================
+             TABLA DE UNIFORMES
+             ================================================= -->
+
+        <div class="card border-0 shadow-sm">
+
+            <div class="card-body p-0">
+
+                <div class="table-responsive">
+
+                    <table
+                        class="table
+                               table-hover
+                               align-middle
+                               mb-0
+                               text-nowrap"
+                    >
+
+
+                        <!-- =================================================
+                             ENCABEZADO
+                             ================================================= -->
+
+                        <thead class="table-dark">
+
+                            <tr>
+
+                                <th class="px-3">
+                                    Deportista
+                                </th>
+
+                                <th>
+                                    Documento
+                                </th>
+
+                                <th>
+                                    Categoría
+                                </th>
+
+                                <th>
+                                    Tipo
+                                </th>
+
+                                <th>
+                                    Talla
+                                </th>
+
+                                <th>
+                                    Cantidad
+                                </th>
+
+                                <th>
+                                    Valor
+                                </th>
+
+                                <th>
+                                    Entrega
+                                </th>
+
+                                <th>
+                                    Pago
+                                </th>
+
+                                <th>
+                                    Fecha Entrega
+                                </th>
+
+                                <th class="text-center">
+                                    Acciones
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+
+                        <!-- =================================================
+                             CUERPO
+                             ================================================= -->
+
+                        <tbody>
+
+
+                            <?php if (
+                                empty($uniformes)
+                            ): ?>
+
+                                <tr>
+
+                                    <td
+                                        colspan="11"
+                                        class="text-center
+                                               py-5
+                                               text-muted"
+                                    >
+
+                                        <i
+                                            class="fa-solid
+                                                   fa-shirt
+                                                   fa-2x
+                                                   mb-3"
+                                        ></i>
+
+                                        <div class="fw-bold">
+
+                                            No hay uniformes
+                                            registrados.
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+
+
+                            <?php else: ?>
+
+
+                                <?php foreach (
+                                    $uniformes
+                                    as $uniforme
+                                ): ?>
+
+                                    <tr>
+
+
+                                        <!-- DEPORTISTA -->
+
+                                        <td class="px-3">
+
+                                            <span class="fw-bold">
+
+                                                <?= htmlspecialchars(
+                                                    $uniforme[
+                                                        'deportista_nombre'
+                                                    ]
+                                                ) ?>
+
+                                            </span>
+
+                                        </td>
+
+
+
+                                        <!-- DOCUMENTO -->
+
+                                        <td>
+
+                                            <?= htmlspecialchars(
+                                                $uniforme[
+                                                    'deportista_documento'
+                                                ] ?? '-'
+                                            ) ?>
+
+                                        </td>
+
+
+
+                                        <!-- CATEGORÍA -->
+
+                                        <td>
+
+                                            <?= htmlspecialchars(
+                                                $uniforme[
+                                                    'categoria_nombre'
+                                                ] ?? '-'
+                                            ) ?>
+
+                                        </td>
+
+
+
+                                        <!-- TIPO -->
+
+                                        <td>
+
+                                            <?= htmlspecialchars(
+                                                $uniforme[
+                                                    'tipo_uniforme'
+                                                ]
+                                            ) ?>
+
+                                        </td>
+
+
+
+                                        <!-- TALLA -->
+
+                                        <td>
+
+                                            <span
+                                                class="badge bg-secondary"
+                                            >
+
+                                                <?= htmlspecialchars(
+                                                    $uniforme['talla']
+                                                ) ?>
+
+                                            </span>
+
+                                        </td>
+
+
+
+                                        <!-- CANTIDAD -->
+
+                                        <td>
+
+                                            <?= (int)
+                                                $uniforme['cantidad']
+                                            ?>
+
+                                        </td>
+
+
+
+                                        <!-- VALOR -->
+
+                                        <td class="fw-bold">
+
+                                            $
+
+                                            <?= number_format(
+                                                (float)$uniforme['valor']
+                                                *
+                                                (int)$uniforme['cantidad'],
+                                                2,
+                                                '.',
+                                                ','
+                                            ) ?>
+
+                                        </td>
+
+
+
+                                        <!-- ENTREGA -->
+
+                                        <td>
+
+                                            <?php if (
+                                                $uniforme[
+                                                    'estado_entrega'
+                                                ] === 'entregado'
+                                            ): ?>
+
+                                                <span
+                                                    class="badge bg-success"
+                                                >
+
+                                                    <i
+                                                        class="fa-solid
+                                                               fa-check
+                                                               me-1"
+                                                    ></i>
+
+                                                    Entregado
+
+                                                </span>
+
+                                            <?php else: ?>
+
+                                                <span
+                                                    class="badge
+                                                           bg-warning
+                                                           text-dark"
+                                                >
+
+                                                    <i
+                                                        class="fa-solid
+                                                               fa-clock
+                                                               me-1"
+                                                    ></i>
+
+                                                    Pendiente
+
+                                                </span>
+
+                                            <?php endif; ?>
+
+                                        </td>
+
+
+
+                                        <!-- PAGO -->
+
+                                        <td>
+
+                                            <?php if (
+                                                $uniforme[
+                                                    'estado_pago'
+                                                ] === 'pagado'
+                                            ): ?>
+
+                                                <span
+                                                    class="badge bg-success"
+                                                >
+
+                                                    <i
+                                                        class="fa-solid
+                                                               fa-check
+                                                               me-1"
+                                                    ></i>
+
+                                                    Pagado
+
+                                                </span>
+
+
+                                            <?php elseif (
+                                                $uniforme[
+                                                    'estado_pago'
+                                                ] === 'parcial'
+                                            ): ?>
+
+                                                <span
+                                                    class="badge
+                                                           bg-info
+                                                           text-dark"
+                                                >
+
+                                                    <i
+                                                        class="fa-solid
+                                                               fa-coins
+                                                               me-1"
+                                                    ></i>
+
+                                                    Parcial
+
+                                                </span>
+
+
+                                            <?php else: ?>
+
+                                                <span
+                                                    class="badge
+                                                           bg-warning
+                                                           text-dark"
+                                                >
+
+                                                    <i
+                                                        class="fa-solid
+                                                               fa-clock
+                                                               me-1"
+                                                    ></i>
+
+                                                    Pendiente
+
+                                                </span>
+
+                                            <?php endif; ?>
+
+                                        </td>
+
+
+
+                                        <!-- FECHA ENTREGA -->
+
+                                        <td>
+
+                                            <?php if (
+                                                !empty(
+                                                    $uniforme[
+                                                        'fecha_entrega'
+                                                    ]
+                                                )
+                                            ): ?>
+
+                                                <?= date(
+                                                    'd/m/Y',
+                                                    strtotime(
+                                                        $uniforme[
+                                                            'fecha_entrega'
+                                                        ]
+                                                    )
+                                                ) ?>
+
+                                            <?php else: ?>
+
+                                                -
+
+                                            <?php endif; ?>
+
+                                        </td>
+
+
+
+                                        <!-- =================================================
+                                             ACCIONES
+                                             ================================================= -->
+
+                                        <td class="text-center">
+
+                                            <div
+                                                class="d-flex
+                                                       justify-content-center
+                                                       gap-1"
+                                            >
+
+
+                                                <!-- VER -->
+
+                                                <a
+                                                    href="ver_uniforme.php?id=<?= (int)$uniforme['id'] ?>"
+                                                    class="btn
+                                                           btn-sm
+                                                           btn-outline-dark"
+                                                    title="Ver uniforme"
+                                                >
+
+                                                    <i
+                                                        class="fa-solid
+                                                               fa-eye"
+                                                    ></i>
+
+                                                    <span class="d-none d-lg-inline">
+                                                        Ver
+                                                    </span>
+
+                                                </a>
+
+
+
+                                                <?php if (
+                                                    tiene_permiso(
+                                                        'financiero_uniformes'
+                                                    )
+                                                ): ?>
+
+
+                                                    <!-- EDITAR -->
+
+                                                    <a
+                                                        href="editar_uniforme.php?id=<?= (int)$uniforme['id'] ?>"
+                                                        class="btn
+                                                               btn-sm
+                                                               btn-outline-primary"
+                                                        title="Editar uniforme"
+                                                    >
+
+                                                        <i
+                                                            class="fa-solid
+                                                                   fa-pen"
+                                                        ></i>
+
+                                                        <span class="d-none d-lg-inline">
+                                                            Editar
+                                                        </span>
+
+                                                    </a>
+
+
+
+                                                    <!-- ELIMINAR -->
+
+                                                    <a
+                                                        href="eliminar_uniforme.php?id=<?= (int)$uniforme['id'] ?>"
+                                                        class="btn
+                                                               btn-sm
+                                                               btn-outline-danger"
+                                                        title="Eliminar uniforme"
+                                                        onclick="
+                                                            return confirm(
+                                                                '¿Está seguro de eliminar este uniforme? Esta acción no se puede deshacer.'
+                                                            );
+                                                        "
+                                                    >
+
+                                                        <i
+                                                            class="fa-solid
+                                                                   fa-trash"
+                                                        ></i>
+
+                                                        <span class="d-none d-lg-inline">
+                                                            Eliminar
+                                                        </span>
+
+                                                    </a>
+
+
+                                                <?php endif; ?>
+
+
+                                            </div>
+
+                                        </td>
+
+
+                                    </tr>
+
+                                <?php endforeach; ?>
+
+
+                            <?php endif; ?>
+
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
     </div>
 
-
 </div>
+
 
 
 <?php
 
 /*
-=================================================
-14. FOOTER DEL MÓDULO
-=================================================
+=========================================================
+12. FOOTER DEL MÓDULO
+=========================================================
 */
 
 include(
