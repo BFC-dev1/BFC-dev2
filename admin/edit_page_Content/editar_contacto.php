@@ -395,7 +395,7 @@ https://bellavistafcdev.page.gd/
 -->
 
 <a
-    href="<?= $url_base ?>/modulos/Dashboard/index.php"
+    href="<?= $url_base ?>/modulos/dashboard/index.php"
     class="btn btn-outline-secondary ms-2"
 >
 
