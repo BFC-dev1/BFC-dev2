@@ -380,7 +380,7 @@
                 <li class="nav-item">
 
                     <a
-                        href="<?= $url_base ?>/modulos/financiero/index.php"
+                        href="<?= $url_base ?>/modulos/financiero/resumen/index.php"
                         class="nav-link text-white"
                     >
 

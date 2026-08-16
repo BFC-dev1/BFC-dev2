@@ -37,7 +37,7 @@
  * $whatsapp_token = 'EAABxxxxxxxxxxxxxxxx';
  */
 
-$whatsapp_token = 'EAAcEL8YQB00BSJVUEitaTihol2Wnt9Khib2l75AGgsQD8KEBi9SR3XHsQIhlNawGHAHthA3VxMiIdknnNYs8fch0MmZBgYaw3kp6NHDCsrbZCGkUcAf5VHC8fNI5VfjOts5x7MtQ2gQoaH3PhTLUFXhrbZCst5ZAml4XnROhbwV9ZAeN0pnghWKZBHnNWKL4EmSSZBbq52tSZCxV73GQzD1pGYX4cKCVoHUnw57auiDZApewAHGtBqza0PWlQC7ZAZAtZCmGInxdqtvXJz0MPM2tiHBL';
+$whatsapp_token = 'EAAcEL8YQB00BSGxmOIEIWsv8xuecKtIh9mA2AiYaaOUudZCU851E5AjgYOZABlQ3HZCo2y46p0BAVPrYDa1qkBZBUoMKIpgtAWQ2et6nUK8CiSyPQZA1AYvp7FIweJii6HV3Sk1ZBZC69uhQ7IiZAuZCgg4oQOyK8fSwZB3dbjsQRogMRtpOuKYpUBByigybewlwZDZD';
 
 
 /* ================================================================
