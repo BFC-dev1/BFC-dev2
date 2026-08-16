@@ -16,6 +16,13 @@ if (session_status() === PHP_SESSION_NONE) {
 require_once(__DIR__ . "/../../../includes/config.php");
 require_once(__DIR__ . "/../../../includes/conexion.php");
 
+/* ======================================================
+   WHATSAPP
+   ====================================================== */
+require_once(
+    __DIR__ . "/../../notificaciones/enviar_plantilla_whatsapp.php"
+);
+
 
 // ======================================================
 // CARGAR FUNCIÓN DE AUDITORÍA
@@ -113,36 +120,41 @@ try {
     $conexion->beginTransaction();
 
 
-    // ==================================================
-    // OBTENER LA CUOTA
-    // ==================================================
-    //
-    // FOR UPDATE bloquea el registro mientras se procesa.
-    // ==================================================
+// ==================================================
+// OBTENER LA CUOTA
+// ==================================================
+//
+// También obtenemos:
+// - teléfono del deportista
+// - nombre del acudiente
+//
+// Estos datos se utilizarán para WhatsApp.
+// ==================================================
 
-    $stmt = $conexion->prepare("
-        SELECT
-            c.id,
-            c.id_deportista,
-            c.mes,
-            c.anio,
-            c.monto,
-            c.fecha_vencimiento,
-            c.fecha_pago,
-            c.estado,
-            d.nombre AS deportista_nombre
-        FROM cuotas_mensuales c
-        INNER JOIN deportista d
-            ON d.id = c.id_deportista
-        WHERE c.id = ?
-        FOR UPDATE
-    ");
+$stmt = $conexion->prepare("
+    SELECT
+        c.id,
+        c.id_deportista,
+        c.mes,
+        c.anio,
+        c.monto,
+        c.fecha_vencimiento,
+        c.fecha_pago,
+        c.estado,
+        d.nombre AS deportista_nombre,
+        d.telefono AS telefono
+    FROM cuotas_mensuales c
+    INNER JOIN deportista d
+        ON d.id = c.id_deportista
+    WHERE c.id = ?
+    FOR UPDATE
+");
 
-    $stmt->execute([
-        $id_cuota
-    ]);
+$stmt->execute([
+    $id_cuota
+]);
 
-    $cuota = $stmt->fetch(PDO::FETCH_ASSOC);
+$cuota = $stmt->fetch(PDO::FETCH_ASSOC);
 
 
     // ==================================================
@@ -373,6 +385,76 @@ try {
 
     $conexion->commit();
 
+
+// ======================================================
+// ENVIAR WHATSAPP - PAGO RECIBIDO
+// ======================================================
+
+$whatsapp_resultado = null;
+
+if (!empty($cuota['telefono'])) {
+
+    // Limpiar teléfono
+    $telefono_whatsapp = preg_replace(
+        '/[^0-9]/',
+        '',
+        $cuota['telefono']
+    );
+
+    // Si está guardado como celular colombiano de 10 dígitos,
+    // agregar el código de país 57.
+    if (strlen($telefono_whatsapp) === 10) {
+        $telefono_whatsapp = '57' . $telefono_whatsapp;
+    }
+
+    $parametros_whatsapp = [
+        $cuota['acudiente_nombre'] ?: 'Acudiente',
+        $cuota['deportista_nombre'],
+        $nombre_mes . ' ' . $cuota['anio'],
+        number_format($monto_pagado, 0, ',', '.')
+    ];
+
+    $whatsapp_resultado = enviarPlantillaWhatsApp(
+        $telefono_whatsapp,
+        'bellavista_pago_recibido',
+        'en',
+        $parametros_whatsapp
+    );
+
+} else {
+
+    $whatsapp_resultado = [
+        'ok' => false,
+        'http_code' => 0,
+        'error' => 'El deportista no tiene teléfono registrado.',
+        'respuesta' => null
+    ];
+}
+
+
+// ======================================================
+// VERIFICAR RESULTADO DE WHATSAPP
+// ======================================================
+
+if (
+    !$whatsapp_resultado ||
+    !$whatsapp_resultado['ok']
+) {
+
+    $error_whatsapp =
+        $whatsapp_resultado['error']
+        ?? 'Error desconocido al enviar WhatsApp.';
+
+    header(
+        "Location: index.php?msg=" .
+        urlencode(
+            "Pago registrado correctamente, pero WhatsApp no fue enviado: "
+            . $error_whatsapp
+        )
+    );
+
+    exit;
+}
 
     // ==================================================
     // REGRESAR A MENSUALIDADES
