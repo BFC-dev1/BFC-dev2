@@ -66,7 +66,7 @@ $numero_destinatario = '573128979466';
  * bellavista_vencimiento_mensualidad
  */
 
-$nombre_plantilla = 'bellavista_pago_recibido';
+$nombre_plantilla = 'bellavista_mensualidad_vencida';
 
 
 /* ================================================================
@@ -80,7 +80,7 @@ $nombre_plantilla = 'bellavista_pago_recibido';
  * para esta plantilla, lo ajustaremos aquí.
  */
 
-$idioma = 'en';
+$idioma = 'es';
 
 
 /* ================================================================

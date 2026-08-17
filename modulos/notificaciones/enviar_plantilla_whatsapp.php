@@ -456,22 +456,54 @@ function enviarPlantillaWhatsApp(
     );
 
 
-    /* ============================================================
-       DEVOLVER RESULTADO
-       ============================================================ */
+/* ============================================================
+   DEVOLVER RESULTADO
+   ============================================================ */
 
-    return [
+/*
+ * Si Meta devuelve un error, mostramos el mensaje real
+ * que viene desde WhatsApp Cloud API.
+ *
+ * Esto nos permitirá saber exactamente por qué Meta
+ * está devolviendo HTTP 400 o HTTP 404.
+ */
 
-        'ok' => $exitoso,
+$error_meta = null;
 
-        'http_code' => $http_code,
+if (!$exitoso) {
 
-        'error' => $exitoso
-            ? null
-            : 'Meta rechazó la solicitud.',
+    if (
+        is_array($respuesta_json) &&
+        isset($respuesta_json['error'])
+    ) {
 
-        'respuesta' => $respuesta_json
-    ];
+        $error_meta = $respuesta_json['error'];
+
+    } else {
+
+        $error_meta = [
+            'message' => 'Meta rechazó la solicitud.',
+            'respuesta_raw' => $respuesta
+        ];
+    }
+}
+
+return [
+
+    'ok' => $exitoso,
+
+    'http_code' => $http_code,
+
+    'error' => $error_meta,
+
+    'respuesta' => $respuesta_json,
+
+    /*
+     * Dejamos también la respuesta original de Meta
+     * para poder diagnosticar cualquier error.
+     */
+    'respuesta_raw' => $respuesta
+];
 }
 
 
