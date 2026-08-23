@@ -105,6 +105,15 @@ if (!isset($img_url)) {
     );
 }
 
+if (!isset($favicon_url)) {
+
+    die(
+        'Error: $favicon_url no está definido. ' .
+        'Debe cargarse includes/config.php antes de ' .
+        'header_modulos.php.'
+    );
+}
+
 
 /*
 =========================================================
@@ -235,6 +244,20 @@ if (!empty($submodulo_actual)) {
         content="Sistema de gestión BELLAVISTA FC"
     >
 
+
+        <!-- =================================================
+         FAVICON
+         ================================================= -->
+
+    <link
+        rel="icon"
+        type="image/x-icon"
+        href="<?= htmlspecialchars(
+            $favicon_url,
+            ENT_QUOTES,
+            'UTF-8'
+        ); ?>"
+    >
 
     <!-- =================================================
          TÍTULO DINÁMICO
