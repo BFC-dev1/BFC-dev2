@@ -232,11 +232,6 @@ exit;
         ¿Olvidaste tu contraseña?
     </a>
 </p>
-        <p style="text-align:center; margin-top:10px;">
-            <a href="../auth/registro.php">
-                Crear cuenta
-            </a>
-        </p>
 
     </form>
 
