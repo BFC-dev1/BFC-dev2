@@ -1,8 +1,11 @@
-<?php include("../../includes/header_dashboard.php"); ?>
-<?php include("../Dashboard/sidebar.php"); ?>
-<?php include("../conexion_modulos.php"); ?>
+<?php
+require_once("../../includes/config.php");
+include("../../includes/header_dashboard.php");
+include("../Dashboard/sidebar.php");
+include("../conexion_modulos.php");
+?>
 
-<link rel="stylesheet" href="../../assets/asistencia.css">
+<link rel="stylesheet" href="<?= rtrim($url_base, '/') ?>/<?= $css_base ?>/asistencia.css">
 
 <?php
 $categoria_id = $_GET['categoria_id'] ?? "";
@@ -14,13 +17,10 @@ $modo = $_GET['modo'] ?? "tomar";
     <!-- BOTON VOLVER -->
     <div class="d-flex align-items-center mb-3">
 
-        <a
-            href="http://localhost/BFC-dev2/modulos/dashboard/index.php"
-            class="btn btn-outline-dark"
-        >
-            <i class="fa-solid fa-arrow-left me-2"></i>
-            Volver al Dashboard
-        </a>
+<a href="<?= rtrim($url_base, '/') ?>/modulos/dashboard/index.php"
+   class="btn btn-outline-dark">
+    ← Volver al Dashboard
+</a>
 
     </div>
 
