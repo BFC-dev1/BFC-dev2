@@ -19,7 +19,6 @@ if (session_status() === PHP_SESSION_NONE) {
 <div class="menu-desplegable" id="menu">
     <a href="#">Competencias</a>
     <a href="#">Grupo Técnico</a>
-    <a href="/BFC-dev2/pages/inscripciones.php">Inscripciones</a>
     <a href="/BFC-dev2/pages/contacto.php">Contacto</a>
 
 
@@ -34,7 +33,6 @@ if (session_status() === PHP_SESSION_NONE) {
 <div class="nav">
     <div class="links">
         <a href="/BFC-dev2/pages/quienes_somos.php">Quienes somos</a>
-        <a href="/BFC-dev2/pages/inscripciones.php">Inscripciones</a>
         <a href="/BFC-dev2/pages/contacto.php">Contactos</a>
         <?php if(isset($_SESSION['admin'])): ?>
             <a href="../admin/dashboard.php">Dashboard</a>
