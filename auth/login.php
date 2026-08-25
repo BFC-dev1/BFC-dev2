@@ -1,8 +1,15 @@
 <?php
 session_start();
 
+/*
+=================================================
+CONFIGURACIÓN GENERAL
+=================================================
+*/
+require_once(__DIR__ . "/../includes/config.php");
+
 // Conexión PDO
-include("../includes/conexion.php");
+require_once(__DIR__ . "/../includes/conexion.php");
 
 /** @var PDO $conexion */
 
@@ -105,28 +112,7 @@ WHERE u.usuario = :usuario
                 $_SESSION['rol']        = $admin['rol_nombre'];
                 $_SESSION['permisos']   = $permisos_db; // <-- Guardamos los permisos del rol
 
-                /*
-                =================================================
-                REDIRECCIONAR AL DASHBOARD
 
-Una vez autenticado correctamente el usuario,
-se redirecciona al panel principal.
-
-La ruta usa la configuración general del sistema
-para funcionar en:
-
-LOCAL:
-http://localhost/BFC-dev2/
-
-WEB:
-https://bellavistafcdev.page.gd/
-
-sin cambiar código.
-=================================================
-*/
-
-
-require_once("../includes/config.php");
 
 
 header("Location: ".$url_base."/modulos/dashboard/index.php");
@@ -153,8 +139,18 @@ exit;
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Bellavista FC</title>
+    
+<!-- FAVICON -->
+<link
+    rel="icon"
+    type="image/x-icon"
+    href="<?= $favicon_url ?>"
+>
 
-    <link rel="stylesheet" href="/BFC-dev2/assets/estilo.css">
+    <link
+    rel="stylesheet"
+    href="<?= $url_base ?>/<?= $css_base ?>/estilo.css"
+>
 
     <style>
 

@@ -15,8 +15,16 @@ if($_POST){
     $fecha_nacimiento = $_POST['fecha_nacimiento'] ?? "";
     $categoria_id = $_POST['categoria_id'] ?? "";
 
-    // ✅ NUEVO ENTRENADOR
-    $entrenador_id = $_POST['entrenador_id'] ?? null;
+// =================================================
+// ENTRENADOR
+// Se convierte un valor vacío en NULL para evitar
+// enviar una cadena vacía a la clave foránea.
+// =================================================
+$entrenador_id = !empty($_POST['entrenador_id'])
+    ? (int) $_POST['entrenador_id']
+    : null;
+
+    
 
     // ✅ ACUDIENTE MANUAL
     $acudiente = trim($_POST['acudiente'] ?? "");
@@ -106,24 +114,42 @@ if($_POST){
 
     }
 
-    // 🔍 VALIDAR ENTRENADOR
-if(empty($mensaje_error) && !empty($entrenador_id)){
+// =================================================
+// VALIDAR ENTRENADOR
+// =================================================
+// El entrenador es obligatorio porque
+// usuario_deportista.entrenador_id debe apuntar a
+// un usuario válido con rol de entrenador.
+//
+// Si no se seleccionó entrenador, detenemos el
+// proceso antes de insertar el deportista.
+// =================================================
 
-    $stmt_ent = $conexion->prepare("
-    SELECT id 
-    FROM usuario
-    WHERE id = :id
-    AND rol_id = 3
-    AND estado='activo'
-    ");
+if(empty($mensaje_error)){
 
-    $stmt_ent->execute([
-        ":id"=>$entrenador_id
-    ]);
+    if(empty($entrenador_id)){
 
-    if(!$stmt_ent->fetch()){
+        $mensaje_error = "Debe seleccionar un entrenador.";
 
-        $mensaje_error = "El entrenador seleccionado no existe.";
+    }else{
+
+        $stmt_ent = $conexion->prepare("
+            SELECT id
+            FROM usuario
+            WHERE id = :id
+            AND rol_id = 3
+            AND estado = 'activo'
+        ");
+
+        $stmt_ent->execute([
+            ":id" => $entrenador_id
+        ]);
+
+        if(!$stmt_ent->fetch()){
+
+            $mensaje_error = "El entrenador seleccionado no existe o no está activo.";
+
+        }
 
     }
 
@@ -546,7 +572,7 @@ registrarAuditoria(
                                 <div class="col-md-6 mb-3">
 
                                     <label class="form-label">
-                                        Nombre
+                                        Nombres y Apellidos
                                     </label>
 
                                     <input 
@@ -635,17 +661,16 @@ registrarAuditoria(
                                         Entrenador
                                     </label>
 
-                            <select 
-                                id="entrenador_id"
-                                name="entrenador_id"
-                                class="form-control"
-                            >
-
-                                <option value="">
-                                    Seleccione entrenador
-                                </option>
-
-                            </select>
+<select 
+    id="entrenador_id"
+    name="entrenador_id"
+    class="form-control"
+    required
+>
+    <option value="">
+        Seleccione entrenador
+    </option>
+</select>
 
                                 </div>
 
@@ -792,6 +817,29 @@ document.addEventListener("DOMContentLoaded", function(){
             console.log(data);
 
 
+// =================================================
+// MOSTRAR ENTRENADORES DISPONIBLES
+// =================================================
+
+if(data.length === 0){
+
+    // No existe ningún entrenador activo asignado
+    // a la categoría seleccionada.
+    entrenador.innerHTML = `
+        <option value="">
+            No hay entrenadores asignados
+        </option>
+    `;
+
+    return;
+
+}
+
+
+// =================================================
+// CARGAR ENTRENADORES EN EL SELECT
+// =================================================
+
 data.forEach(function(ent){
 
     let option = document.createElement("option");
@@ -805,7 +853,13 @@ data.forEach(function(ent){
 });
 
 
-// ✅ Si solo existe un entrenador, seleccionarlo automáticamente
+// =================================================
+// SELECCIÓN AUTOMÁTICA
+// =================================================
+// Si solamente existe un entrenador para esta
+// categoría, se selecciona automáticamente.
+// =================================================
+
 if(data.length === 1){
 
     entrenador.value = data[0].id;

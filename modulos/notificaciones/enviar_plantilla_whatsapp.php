@@ -8,33 +8,15 @@
  * /modulos/notificaciones/enviar_plantilla_whatsapp.php
  *
  * Función:
- * Envía mensajes utilizando plantillas aprobadas por Meta
- * mediante WhatsApp Cloud API.
+ * Envía plantillas mediante WhatsApp Cloud API de Meta.
  *
- * IMPORTANTE:
- * - NO contiene directamente el Access Token.
- * - Utiliza config_whatsapp.php
- * - Permite enviar plantillas con variables:
+ * También permite:
  *
- *      {{1}}
- *      {{2}}
- *      {{3}}
- *      etc.
- *
- * Ejemplo:
- *
- * plantilla:
- *
- * Hola {{1}}, te recordamos que la mensualidad
- * de {{2}} vence el {{3}}.
- *
- * parámetros:
- *
- * [
- *     'Carlos',
- *     'Bellavista FC',
- *     '20/08/2026'
- * ]
+ * 1. Enviar variables de texto.
+ * 2. Subir un PDF a Meta.
+ * 3. Obtener el media_id del PDF.
+ * 4. Enviar el PDF dentro de una plantilla.
+ * 5. Utilizar el nombre real del archivo PDF.
  *
  * ================================================================
  */
@@ -44,82 +26,52 @@
    CARGAR CONFIGURACIÓN
    ================================================================ */
 
-/*
- * Cargamos las credenciales y configuración central
- * de WhatsApp Cloud API.
- *
- * El archivo contiene:
- *
- * - $whatsapp_token
- * - $whatsapp_phone_number_id
- * - $whatsapp_api_version
- * - $whatsapp_api_url
- */
 require_once __DIR__ . '/config_whatsapp.php';
 
 
 /* ================================================================
-   FUNCIÓN: enviarPlantillaWhatsApp()
+   FUNCIÓN PRINCIPAL
    ================================================================ */
 
 /**
- * Envía una plantilla de WhatsApp mediante Meta.
+ * Envía una plantilla de WhatsApp.
  *
  * @param string $numero
  * Número del destinatario en formato internacional.
  *
- * Ejemplo Colombia:
- *
- * 573128979466
- *
- *
  * @param string $nombre_plantilla
- * Nombre EXACTO de la plantilla creada en Meta.
- *
- * Ejemplo:
- *
- * bellavista_vencimiento_mensualidad
- *
+ * Nombre exacto de la plantilla aprobada en Meta.
  *
  * @param string $idioma
- * Código del idioma de la plantilla.
- *
- * Ejemplo:
- *
- * es
- *
+ * Código del idioma.
  *
  * @param array $parametros
- * Valores que reemplazarán:
- *
- * {{1}}
- * {{2}}
- * {{3}}
+ * Variables de texto de la plantilla.
  *
  * Ejemplo:
  *
  * [
- *     'Carlos',
- *     'Mensualidad',
- *     '20/08/2026'
+ *     'Carlos Pérez',
+ *     'Juan Pérez',
+ *     'Agosto 2026',
+ *     '120000'
  * ]
  *
+ * @param string|null $ruta_documento
+ * Ruta física del PDF que se desea adjuntar.
+ *
+ * Ejemplo:
+ *
+ * C:/xampp/htdocs/BFC-dev2/...
  *
  * @return array
- * Devuelve:
- *
- * [
- *     'ok' => true/false,
- *     'http_code' => 200,
- *     'error' => null,
- *     'respuesta' => [...]
- * ]
  */
 function enviarPlantillaWhatsApp(
     $numero,
     $nombre_plantilla,
     $idioma = 'es',
-    $parametros = []
+    $parametros = [],
+    $ruta_documento = null
 ) {
 
     /* ============================================================
@@ -128,6 +80,8 @@ function enviarPlantillaWhatsApp(
 
     global $whatsapp_token;
     global $whatsapp_api_url;
+    global $whatsapp_phone_number_id;
+    global $whatsapp_api_version;
     global $whatsapp_timeout;
 
 
@@ -135,9 +89,6 @@ function enviarPlantillaWhatsApp(
        VALIDAR TOKEN
        ============================================================ */
 
-    /*
-     * No hacemos la petición si el token no está configurado.
-     */
     if (
         empty($whatsapp_token) ||
         $whatsapp_token === 'PEGA_AQUI_TU_TOKEN_SEGURO'
@@ -146,8 +97,12 @@ function enviarPlantillaWhatsApp(
         return [
             'ok' => false,
             'http_code' => 0,
-            'error' => 'El Access Token de WhatsApp no está configurado.',
-            'respuesta' => null
+            'error' => [
+                'message' =>
+                    'El Access Token de WhatsApp no está configurado.'
+            ],
+            'respuesta' => null,
+            'respuesta_raw' => null
         ];
     }
 
@@ -156,16 +111,6 @@ function enviarPlantillaWhatsApp(
        VALIDAR NÚMERO
        ============================================================ */
 
-    /*
-     * Quitamos:
-     *
-     * +
-     * espacios
-     * -
-     * ()
-     *
-     * para dejar únicamente el número.
-     */
     $numero = str_replace(
         ['+', ' ', '-', '(', ')'],
         '',
@@ -173,22 +118,23 @@ function enviarPlantillaWhatsApp(
     );
 
 
-    /*
-     * El número debe contener solamente dígitos.
-     */
     if (!preg_match('/^[0-9]+$/', $numero)) {
 
         return [
             'ok' => false,
             'http_code' => 0,
-            'error' => 'El número de WhatsApp no tiene un formato válido.',
-            'respuesta' => null
+            'error' => [
+                'message' =>
+                    'El número de WhatsApp no tiene un formato válido.'
+            ],
+            'respuesta' => null,
+            'respuesta_raw' => null
         ];
     }
 
 
     /* ============================================================
-       VALIDAR NOMBRE DE PLANTILLA
+       VALIDAR PLANTILLA
        ============================================================ */
 
     $nombre_plantilla = trim($nombre_plantilla);
@@ -198,8 +144,12 @@ function enviarPlantillaWhatsApp(
         return [
             'ok' => false,
             'http_code' => 0,
-            'error' => 'El nombre de la plantilla no puede estar vacío.',
-            'respuesta' => null
+            'error' => [
+                'message' =>
+                    'El nombre de la plantilla no puede estar vacío.'
+            ],
+            'respuesta' => null,
+            'respuesta_raw' => null
         ];
     }
 
@@ -219,33 +169,13 @@ function enviarPlantillaWhatsApp(
        CONSTRUIR COMPONENTES
        ============================================================ */
 
-    /*
-     * Inicialmente no agregamos componentes.
-     *
-     * Si la plantilla NO tiene variables:
-     *
-     * components = []
-     *
-     * Si tiene variables:
-     *
-     * components = [
-     *     [
-     *         'type' => 'body',
-     *         'parameters' => [...]
-     *     ]
-     * ]
-     */
     $components = [];
 
 
     /* ============================================================
-       AGREGAR VARIABLES DE LA PLANTILLA
+       COMPONENTE BODY - VARIABLES DE TEXTO
        ============================================================ */
 
-    /*
-     * Si recibimos parámetros, los convertimos
-     * al formato requerido por WhatsApp Cloud API.
-     */
     if (!empty($parametros)) {
 
         $parameters = [];
@@ -259,10 +189,6 @@ function enviarPlantillaWhatsApp(
         }
 
 
-        /*
-         * Las variables de texto se envían
-         * dentro del componente body.
-         */
         $components[] = [
             'type' => 'body',
             'parameters' => $parameters
@@ -271,37 +197,369 @@ function enviarPlantillaWhatsApp(
 
 
     /* ============================================================
-       CONSTRUIR DATOS DE LA PETICIÓN
+       SUBIR DOCUMENTO A META
        ============================================================ */
 
-    /*
-     * Estructura principal requerida por
-     * WhatsApp Cloud API.
-     */
+    $media_id = null;
+
+    if (
+        $ruta_documento !== null &&
+        trim($ruta_documento) !== ''
+    ) {
+
+        /* --------------------------------------------------------
+           VERIFICAR EXISTENCIA DEL ARCHIVO
+           -------------------------------------------------------- */
+
+        if (!file_exists($ruta_documento)) {
+
+            return [
+                'ok' => false,
+                'http_code' => 0,
+                'error' => [
+                    'message' =>
+                        'El archivo PDF no existe.',
+                    'ruta_documento' =>
+                        $ruta_documento
+                ],
+                'respuesta' => null,
+                'respuesta_raw' => null
+            ];
+        }
+
+
+        /* --------------------------------------------------------
+           VERIFICAR QUE SEA UN ARCHIVO
+           -------------------------------------------------------- */
+
+        if (!is_file($ruta_documento)) {
+
+            return [
+                'ok' => false,
+                'http_code' => 0,
+                'error' => [
+                    'message' =>
+                        'La ruta indicada para el comprobante no corresponde a un archivo.',
+                    'ruta_documento' =>
+                        $ruta_documento
+                ],
+                'respuesta' => null,
+                'respuesta_raw' => null
+            ];
+        }
+
+
+        /* --------------------------------------------------------
+           OBTENER NOMBRE REAL DEL ARCHIVO
+           -------------------------------------------------------- */
+
+        $nombre_documento = basename($ruta_documento);
+
+
+        /* --------------------------------------------------------
+           VERIFICAR EXTENSIÓN PDF
+           -------------------------------------------------------- */
+
+        $extension = strtolower(
+            pathinfo(
+                $nombre_documento,
+                PATHINFO_EXTENSION
+            )
+        );
+
+        if ($extension !== 'pdf') {
+
+            return [
+                'ok' => false,
+                'http_code' => 0,
+                'error' => [
+                    'message' =>
+                        'El archivo que se intenta enviar no es un PDF.',
+                    'archivo' =>
+                        $nombre_documento
+                ],
+                'respuesta' => null,
+                'respuesta_raw' => null
+            ];
+        }
+
+
+        /* --------------------------------------------------------
+           URL PARA SUBIR MEDIA
+           -------------------------------------------------------- */
+
+        $url_media =
+            'https://graph.facebook.com/' .
+            $whatsapp_api_version .
+            '/' .
+            $whatsapp_phone_number_id .
+            '/media';
+
+
+        /* --------------------------------------------------------
+           CREAR ARCHIVO CURL
+           -------------------------------------------------------- */
+
+        $archivo_curl = curl_file_create(
+            $ruta_documento,
+            'application/pdf',
+            $nombre_documento
+        );
+
+
+        /* --------------------------------------------------------
+           DATOS PARA SUBIR EL PDF
+           -------------------------------------------------------- */
+
+        $datos_media = [
+            'messaging_product' => 'whatsapp',
+            'file' => $archivo_curl,
+            'type' => 'application/pdf'
+        ];
+
+
+        /* --------------------------------------------------------
+           CURL - SUBIR PDF A META
+           -------------------------------------------------------- */
+
+        $ch_media = curl_init(
+            $url_media
+        );
+
+
+        curl_setopt_array(
+            $ch_media,
+            [
+
+                CURLOPT_POST => true,
+
+                CURLOPT_RETURNTRANSFER => true,
+
+                CURLOPT_HTTPHEADER => [
+
+                    'Authorization: Bearer ' .
+                    $whatsapp_token
+
+                ],
+
+                CURLOPT_POSTFIELDS =>
+                    $datos_media,
+
+                CURLOPT_TIMEOUT =>
+                    $whatsapp_timeout,
+
+                CURLOPT_SSL_VERIFYPEER => true,
+
+                CURLOPT_SSL_VERIFYHOST => 2
+            ]
+        );
+
+
+        /* --------------------------------------------------------
+           EJECUTAR SUBIDA
+           -------------------------------------------------------- */
+
+        $respuesta_media =
+            curl_exec($ch_media);
+
+
+        /* --------------------------------------------------------
+           INFORMACIÓN HTTP
+           -------------------------------------------------------- */
+
+        $http_code_media =
+            curl_getinfo(
+                $ch_media,
+                CURLINFO_HTTP_CODE
+            );
+
+
+        $curl_error_media =
+            curl_error($ch_media);
+
+
+        curl_close($ch_media);
+
+
+        /* --------------------------------------------------------
+           ERROR DE CURL
+           -------------------------------------------------------- */
+
+        if (
+            $respuesta_media === false ||
+            !empty($curl_error_media)
+        ) {
+
+            return [
+                'ok' => false,
+                'http_code' => $http_code_media,
+                'error' => [
+                    'message' =>
+                        $curl_error_media !== ''
+                        ? $curl_error_media
+                        : 'No fue posible subir el PDF a Meta.',
+                    'archivo' =>
+                        $nombre_documento
+                ],
+                'respuesta' => null,
+                'respuesta_raw' =>
+                    $respuesta_media
+            ];
+        }
+
+
+        /* --------------------------------------------------------
+           CONVERTIR RESPUESTA DE META
+           -------------------------------------------------------- */
+
+        $respuesta_media_json =
+            json_decode(
+                $respuesta_media,
+                true
+            );
+
+
+        /* --------------------------------------------------------
+           VERIFICAR SUBIDA
+           -------------------------------------------------------- */
+
+        $media_exitosa = (
+            $http_code_media >= 200 &&
+            $http_code_media < 300
+        );
+
+
+        if (!$media_exitosa) {
+
+            if (
+                is_array($respuesta_media_json) &&
+                isset($respuesta_media_json['error'])
+            ) {
+
+                $error_media =
+                    $respuesta_media_json['error'];
+
+            } else {
+
+                $error_media = [
+                    'message' =>
+                        'Meta rechazó la subida del PDF.',
+                    'respuesta_raw' =>
+                        $respuesta_media
+                ];
+            }
+
+
+            return [
+                'ok' => false,
+                'http_code' => $http_code_media,
+                'error' => $error_media,
+                'respuesta' =>
+                    $respuesta_media_json,
+                'respuesta_raw' =>
+                    $respuesta_media
+            ];
+        }
+
+
+        /* --------------------------------------------------------
+           OBTENER MEDIA ID
+           -------------------------------------------------------- */
+
+        if (
+            !is_array($respuesta_media_json) ||
+            empty($respuesta_media_json['id'])
+        ) {
+
+            return [
+                'ok' => false,
+                'http_code' => $http_code_media,
+                'error' => [
+                    'message' =>
+                        'Meta aceptó la subida, pero no devolvió un media_id.',
+                    'respuesta_meta' =>
+                        $respuesta_media_json
+                ],
+                'respuesta' =>
+                    $respuesta_media_json,
+                'respuesta_raw' =>
+                    $respuesta_media
+            ];
+        }
+
+
+        $media_id =
+            $respuesta_media_json['id'];
+
+
+        /* --------------------------------------------------------
+           COMPONENTE DOCUMENT
+           -------------------------------------------------------- */
+
+        $components[] = [
+
+            'type' => 'header',
+
+            'parameters' => [
+
+                [
+                    'type' => 'document',
+
+                    'document' => [
+
+                        'id' => $media_id,
+
+                        'filename' =>
+                            $nombre_documento
+                    ]
+                ]
+
+            ]
+
+        ];
+    }
+
+
+    /* ============================================================
+       CONSTRUIR PETICIÓN FINAL
+       ============================================================ */
+
     $datos = [
-        'messaging_product' => 'whatsapp',
 
-        'to' => $numero,
+        'messaging_product' =>
+            'whatsapp',
 
-        'type' => 'template',
+        'to' =>
+            $numero,
+
+        'type' =>
+            'template',
 
         'template' => [
-            'name' => $nombre_plantilla,
+
+            'name' =>
+                $nombre_plantilla,
 
             'language' => [
-                'code' => $idioma
+
+                'code' =>
+                    $idioma
+
             ]
+
         ]
+
     ];
 
 
-    /*
-     * Si existen componentes, los agregamos
-     * a la plantilla.
-     */
+    /* ============================================================
+       AGREGAR COMPONENTES
+       ============================================================ */
+
     if (!empty($components)) {
 
-        $datos['template']['components'] = $components;
+        $datos['template']['components'] =
+            $components;
     }
 
 
@@ -315,76 +573,57 @@ function enviarPlantillaWhatsApp(
     );
 
 
-    /*
-     * Comprobar que JSON sea válido.
-     */
     if ($json_datos === false) {
 
         return [
             'ok' => false,
             'http_code' => 0,
-            'error' => 'No fue posible convertir los datos de la plantilla a JSON.',
-            'respuesta' => null
+            'error' => [
+                'message' =>
+                    'No fue posible convertir la petición de WhatsApp a JSON.'
+            ],
+            'respuesta' => null,
+            'respuesta_raw' => null
         ];
     }
 
 
     /* ============================================================
-       INICIAR CURL
+       ENVIAR PLANTILLA A META
        ============================================================ */
 
-    $ch = curl_init($whatsapp_api_url);
+    $ch = curl_init(
+        $whatsapp_api_url
+    );
 
-
-    /* ============================================================
-       CONFIGURAR CURL
-       ============================================================ */
 
     curl_setopt_array(
         $ch,
         [
 
-            /*
-             * Método HTTP.
-             */
             CURLOPT_POST => true,
 
-
-            /*
-             * Devuelve la respuesta de Meta.
-             */
             CURLOPT_RETURNTRANSFER => true,
 
-
-            /*
-             * Encabezados HTTP.
-             */
             CURLOPT_HTTPHEADER => [
 
-                'Authorization: Bearer ' . $whatsapp_token,
+                'Authorization: Bearer ' .
+                $whatsapp_token,
 
                 'Content-Type: application/json'
+
             ],
 
+            CURLOPT_POSTFIELDS =>
+                $json_datos,
 
-            /*
-             * Datos enviados a Meta.
-             */
-            CURLOPT_POSTFIELDS => $json_datos,
+            CURLOPT_TIMEOUT =>
+                $whatsapp_timeout,
 
-
-            /*
-             * Tiempo máximo de espera.
-             */
-            CURLOPT_TIMEOUT => $whatsapp_timeout,
-
-
-            /*
-             * Seguridad SSL.
-             */
             CURLOPT_SSL_VERIFYPEER => true,
 
             CURLOPT_SSL_VERIFYHOST => 2
+
         ]
     );
 
@@ -393,61 +632,65 @@ function enviarPlantillaWhatsApp(
        EJECUTAR PETICIÓN
        ============================================================ */
 
-    $respuesta = curl_exec($ch);
+    $respuesta =
+        curl_exec($ch);
 
 
     /* ============================================================
        INFORMACIÓN DE LA PETICIÓN
        ============================================================ */
 
-    $http_code = curl_getinfo(
-        $ch,
-        CURLINFO_HTTP_CODE
-    );
+    $http_code =
+        curl_getinfo(
+            $ch,
+            CURLINFO_HTTP_CODE
+        );
 
 
-    /*
-     * Capturamos cualquier error de cURL.
-     */
-    $curl_error = curl_error($ch);
+    $curl_error =
+        curl_error($ch);
 
-
-    /* ============================================================
-       CERRAR CURL
-       ============================================================ */
 
     curl_close($ch);
 
 
     /* ============================================================
-       MANEJAR ERROR CURL
+       ERROR CURL
        ============================================================ */
 
-    if ($respuesta === false || !empty($curl_error)) {
+    if (
+        $respuesta === false ||
+        !empty($curl_error)
+    ) {
 
         return [
             'ok' => false,
             'http_code' => $http_code,
-            'error' => $curl_error !== ''
-                ? $curl_error
-                : 'No fue posible comunicarse con Meta.',
-            'respuesta' => null
+            'error' => [
+                'message' =>
+                    $curl_error !== ''
+                    ? $curl_error
+                    : 'No fue posible comunicarse con Meta.'
+            ],
+            'respuesta' => null,
+            'respuesta_raw' => $respuesta
         ];
     }
 
 
     /* ============================================================
-       CONVERTIR RESPUESTA DE META
+       RESPUESTA DE META
        ============================================================ */
 
-    $respuesta_json = json_decode(
-        $respuesta,
-        true
-    );
+    $respuesta_json =
+        json_decode(
+            $respuesta,
+            true
+        );
 
 
     /* ============================================================
-       COMPROBAR RESULTADO HTTP
+       VERIFICAR RESULTADO
        ============================================================ */
 
     $exitoso = (
@@ -456,54 +699,67 @@ function enviarPlantillaWhatsApp(
     );
 
 
-/* ============================================================
-   DEVOLVER RESULTADO
-   ============================================================ */
+    /* ============================================================
+       ERROR DE META
+       ============================================================ */
 
-/*
- * Si Meta devuelve un error, mostramos el mensaje real
- * que viene desde WhatsApp Cloud API.
- *
- * Esto nos permitirá saber exactamente por qué Meta
- * está devolviendo HTTP 400 o HTTP 404.
- */
+    $error_meta = null;
 
-$error_meta = null;
+    if (!$exitoso) {
 
-if (!$exitoso) {
+        if (
+            is_array($respuesta_json) &&
+            isset($respuesta_json['error'])
+        ) {
 
-    if (
-        is_array($respuesta_json) &&
-        isset($respuesta_json['error'])
-    ) {
+            $error_meta =
+                $respuesta_json['error'];
 
-        $error_meta = $respuesta_json['error'];
+        } else {
 
-    } else {
+            $error_meta = [
 
-        $error_meta = [
-            'message' => 'Meta rechazó la solicitud.',
-            'respuesta_raw' => $respuesta
-        ];
+                'message' =>
+                    'Meta rechazó la solicitud.',
+
+                'respuesta_raw' =>
+                    $respuesta
+
+            ];
+        }
     }
-}
 
-return [
 
-    'ok' => $exitoso,
+    /* ============================================================
+       RESULTADO FINAL
+       ============================================================ */
 
-    'http_code' => $http_code,
+    return [
 
-    'error' => $error_meta,
+        'ok' =>
+            $exitoso,
 
-    'respuesta' => $respuesta_json,
+        'http_code' =>
+            $http_code,
 
-    /*
-     * Dejamos también la respuesta original de Meta
-     * para poder diagnosticar cualquier error.
-     */
-    'respuesta_raw' => $respuesta
-];
+        'error' =>
+            $error_meta,
+
+        'respuesta' =>
+            $respuesta_json,
+
+        'respuesta_raw' =>
+            $respuesta,
+
+        'media_id' =>
+            $media_id,
+
+        'archivo_documento' =>
+            isset($nombre_documento)
+                ? $nombre_documento
+                : null
+
+    ];
 }
 
 

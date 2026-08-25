@@ -86,7 +86,7 @@ $img_url = $url_base . '/' . $img_base;
 // FAVICON
 // =================================================
 
-$favicon_url = $url_base . '/favicon.ico';
+$favicon_url = $url_base . '/icono.ico';
 
 
 /*

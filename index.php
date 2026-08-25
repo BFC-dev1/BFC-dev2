@@ -76,6 +76,13 @@ if(!$inicio){
 
     <title>Bellavista FC</title>
 
+        <!-- FAVICON -->
+    <link
+        rel="icon"
+        type="image/x-icon"
+        href="<?= htmlspecialchars($favicon_url, ENT_QUOTES, 'UTF-8') ?>"
+    >
+
     <!-- CSS -->
 <link
     rel="stylesheet"

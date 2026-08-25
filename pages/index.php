@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once(__DIR__ . "/../includes/config.php");
 
 /*
 =========================
@@ -64,6 +65,13 @@ if(!$inicio){
     >
 
     <title>Bellavista FC</title>
+
+    <!-- FAVICON -->
+    <link
+        rel="icon"
+        type="image/x-icon"
+        href="/BFC-dev2/icono.ico"
+    >
 
     <!-- CSS -->
     <link
