@@ -540,13 +540,30 @@ body {
     color: #25D366;
 }
 
+/* YouTube */
+.iconos a:nth-child(3) i {
+    color: #FF0000;
+}
+
+
+/* Efecto al pasar el mouse */
 .iconos a:hover {
     transform: translateY(-5px);
     box-shadow: 0 8px 18px rgba(0, 0, 0, .25);
 }
 
-.iconos a:hover i {
-    color: #0A4FA3;
+
+/* Mantener el color original de cada red */
+.iconos a:nth-child(1):hover i {
+    color: #1877F2;
+}
+
+.iconos a:nth-child(2):hover i {
+    color: #25D366;
+}
+
+.iconos a:nth-child(3):hover i {
+    color: #FF0000;
 }
 
 /* responsive móviles 480px */
