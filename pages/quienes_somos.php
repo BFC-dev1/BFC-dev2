@@ -49,6 +49,13 @@ if(!$quienes){
 
     <title><?php echo $quienes['titulo']; ?> - Bellavista FC</title>
 
+    <!-- FAVICON -->
+<link
+    rel="icon"
+    type="image/x-icon"
+    href="/BFC-dev2/icono.ico"
+>
+
     <link rel="stylesheet" href="/BFC-dev2/assets/estilo.css">
 
     <link

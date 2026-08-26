@@ -31,6 +31,13 @@ $contacto = $stmt->fetch(PDO::FETCH_ASSOC);
 
     <title><?php echo $contacto['titulo']; ?> - Bellavista FC</title>
 
+    <!-- FAVICON -->
+<link
+    rel="icon"
+    type="image/x-icon"
+    href="/BFC-dev2/icono.ico"
+>
+
     <link rel="stylesheet" href="/BFC-dev2/assets/estilo.css">
 
     <!-- Font Awesome -->
