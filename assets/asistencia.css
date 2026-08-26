@@ -134,79 +134,142 @@
 
 .estado-icono {
     cursor: pointer;
+    display: inline-block;
+    padding: 4px;
 }
-
 
 .estado-icono input {
     display: none;
 }
 
-
 .estado-icono i {
-
-    width: 45px;
-    height: 45px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 22px;
-    transition: .3s;
-
+    font-size: 23px;
+    background: #fff;
+    transition: all .2s ease;
 }
 
 
-/* PRESENTE */
+/* =================================
+   ESTADOS NORMALES
+================================= */
 
 .estado-presente {
-
     color: #198754;
     border: 2px solid #198754;
+}
 
+.estado-ausente {
+    color: #dc3545;
+    border: 2px solid #dc3545;
+}
+
+.estado-tarde {
+    color: #ffc107;
+    border: 2px solid #ffc107;
 }
 
 
-.estado-icono input:checked+.estado-presente {
+/* =================================
+   ESTADO SELECCIONADO
+================================= */
 
+/* PRESENTE */
+.estado-icono input:checked+.estado-presente {
     background: #198754;
     color: white;
-
+    border: 3px solid #198754;
+    transform: scale(1.18);
+    box-shadow:
+        0 0 0 4px white,
+        0 0 0 7px #198754;
 }
-
 
 
 /* AUSENTE */
-
-.estado-ausente {
-
-    color: #dc3545;
-    border: 2px solid #dc3545;
-
-}
-
-
 .estado-icono input:checked+.estado-ausente {
-
     background: #dc3545;
     color: white;
-
+    border: 3px solid #dc3545;
+    transform: scale(1.18);
+    box-shadow:
+        0 0 0 4px white,
+        0 0 0 7px #dc3545;
 }
-
 
 
 /* TARDE */
-
-.estado-tarde {
-
-    color: #ffc107;
-    border: 2px solid #ffc107;
-
+.estado-icono input:checked+.estado-tarde {
+    background: #ffc107;
+    color: #111;
+    border: 3px solid #ffc107;
+    transform: scale(1.18);
+    box-shadow:
+        0 0 0 4px white,
+        0 0 0 7px #ffc107;
 }
 
 
-.estado-icono input:checked+.estado-tarde {
+/* =================================
+   LOS NO SELECCIONADOS SE ATENUAN
+================================= */
 
-    background: #ffc107;
-    color: #111;
+tr:has(input:checked) .estado-icono i {
+    opacity: .25;
+    transform: scale(.90);
+}
+
+tr:has(input:checked) .estado-icono input:checked+i {
+    opacity: 1;
+    transform: scale(1.18);
+}
+
+
+/* =================================
+   TEXTO DEL ESTADO SELECCIONADO
+================================= */
+
+td:has(input[value="presente"]:checked)::before {
+    color: #198754 !important;
+}
+
+td:has(input[value="ausente"]:checked)::before {
+    color: #dc3545 !important;
+}
+
+td:has(input[value="tarde"]:checked)::before {
+    color: #d39e00 !important;
+}
+
+
+/* =================================
+   HOVER
+================================= */
+
+.estado-icono:hover i {
+    transform: scale(1.08);
+}
+
+
+/* =================================
+   CELULAR
+================================= */
+
+@media (max-width: 768px) {
+
+    .estado-icono i {
+        width: 50px;
+        height: 50px;
+        font-size: 24px;
+    }
+
+    tr:has(input:checked) .estado-icono input:checked+i {
+        transform: scale(1.15);
+    }
 
 }
