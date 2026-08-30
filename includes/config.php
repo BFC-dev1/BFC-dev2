@@ -24,14 +24,20 @@ if (
     $host === 'localhost' ||
     str_starts_with($host, 'localhost:') ||
     $host === '127.0.0.1' ||
-    str_starts_with($host, '127.0.0.1:')
+    str_starts_with($host, '127.0.0.1:') ||
+    $host === '10.0.2.2' ||
+    str_starts_with($host, '10.0.2.2:')
 ) {
 
     /*
     =============================================
     LOCAL
 
+    Navegador:
     http://localhost/BFC-dev2/
+
+    Android:
+    http://10.0.2.2/BFC-dev2/
 
     CSS:
     /BFC-dev2/assets/
