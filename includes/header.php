@@ -17,9 +17,14 @@ if (session_status() === PHP_SESSION_NONE) {
 </div>
 
 <div class="menu-desplegable" id="menu">
+
+    <a href="<?= $url_base ?>/pages/quienes_somos.php">Quiénes somos</a>
+
     <a href="#">Competencias</a>
+
     <a href="#">Grupo Técnico</a>
-    <a href="/BFC-dev2/pages/contacto.php">Contacto</a>
+
+    <a href="<?= $url_base ?>/pages/contacto.php">Contacto</a>
 
 
 <?php if (isset($_SESSION['admin'])): ?>
