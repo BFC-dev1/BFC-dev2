@@ -164,3 +164,68 @@
     }
 
 }
+
+
+/* =========================================================
+   DOCUMENTOS DE DEPORTISTAS
+   ========================================================= */
+
+.documento-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.documento-info {
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
+}
+
+.documento-info small {
+    display: block;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.documento-botones {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+/* =========================================================
+   CELULARES
+   ========================================================= */
+
+@media (max-width: 576px) {
+
+    .documento-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .documento-info {
+        width: 100%;
+    }
+
+    .documento-botones {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: stretch;
+        gap: 6px;
+    }
+
+    .documento-botones .btn {
+        flex: 1 1 calc(33.333% - 6px);
+        min-width: 0;
+        white-space: nowrap;
+    }
+}

@@ -313,17 +313,38 @@ if ($txtid > 0) {
 
                             <?php if (count($documentos) > 0): ?>
                                 <?php foreach ($documentos as $doc): ?>
-                                    <div class="d-flex justify-content-between align-items-center border rounded p-2 mb-2 bg-white">
-                                        <div>
-                                            <span class="fw-bold text-danger">📄 Archivo</span><br>
-                                            <small class="text-muted"><?php echo htmlspecialchars($doc['archivo']); ?></small>
-                                        </div>
-                                        <div class="d-flex gap-2">
-                                            <a href="../../uploads/documentos/<?php echo htmlspecialchars($doc['archivo']); ?>" target="_blank" class="btn btn-primary btn-sm">👁 Ver</a>
-                                            <a href="../../uploads/documentos/<?php echo htmlspecialchars($doc['archivo']); ?>" download class="btn btn-success btn-sm">⬇ Descargar</a>
-                                            <a href="?id=<?php echo $txtid; ?>&eliminar_doc=<?php echo $doc['id']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar documento?')">🗑 Eliminar</a>
-                                        </div>
-                                    </div>
+<div class="documento-item border rounded p-2 mb-2 bg-white">
+
+    <div class="documento-info">
+        <span class="fw-bold text-danger">📄 Archivo</span><br>
+        <small class="text-muted">
+            <?php echo htmlspecialchars($doc['archivo']); ?>
+        </small>
+    </div>
+
+    <div class="documento-botones">
+
+        <a href="../../uploads/documentos/<?php echo htmlspecialchars($doc['archivo']); ?>"
+           target="_blank"
+           class="btn btn-primary btn-sm">
+            👁 Ver
+        </a>
+
+        <a href="../../uploads/documentos/<?php echo htmlspecialchars($doc['archivo']); ?>"
+           download
+           class="btn btn-success btn-sm">
+            ⬇ Descargar
+        </a>
+
+        <a href="?id=<?php echo $txtid; ?>&eliminar_doc=<?php echo $doc['id']; ?>"
+           class="btn btn-danger btn-sm"
+           onclick="return confirm('¿Eliminar documento?')">
+            🗑 Eliminar
+        </a>
+
+    </div>
+
+</div>
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <div class="alert alert-warning mb-0">No hay documentos adjuntos.</div>
