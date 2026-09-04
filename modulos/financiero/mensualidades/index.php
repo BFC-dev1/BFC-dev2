@@ -280,6 +280,24 @@ $total_vencidos = $conexion
 ==========================================================
 */
 
+/*
+----------------------------------------------------------
+ ACTUALIZAR ESTADOS VENCIDOS AUTOMÁTICAMENTE
+ Convierte a 'vencido' cualquier cuota 'pendiente' cuya
+ fecha de vencimiento sea menor a la fecha actual.
+----------------------------------------------------------
+*/
+
+$sql_actualizar_vencidos = "
+    UPDATE cuotas_mensuales
+    SET estado = 'vencido'
+    WHERE estado = 'pendiente'
+      AND fecha_vencimiento IS NOT NULL
+      AND fecha_vencimiento < CURDATE()
+";
+
+$conexion->exec($sql_actualizar_vencidos);
+
 
 /*
 ----------------------------------------------------------
@@ -781,12 +799,6 @@ include(
 
                     <?php
 
-                    /*
-                    ------------------------------------------------
-                    Generamos algunos años automáticamente.
-                    ------------------------------------------------
-                    */
-
                     $anio_inicio = 2025;
 
                     $anio_fin = max(
@@ -1147,159 +1159,136 @@ include(
                             </td>
 
 
-<!-- ==========================================
-     ACCIONES
-     ========================================== -->
+                            <!-- ==========================================
+                                 ACCIONES
+                            ========================================== -->
 
-<td class="text-center">
+                            <td class="text-center">
 
-    <?php
-    /*
-    =================================================
-    PREPARAR TELÉFONO PARA WHATSAPP
-    =================================================
-    */
+                                <?php
 
-    $telefono = preg_replace(
-        '/[^0-9]/',
-        '',
-        $c['telefono'] ?? ''
-    );
+                                $telefono = preg_replace(
+                                    '/[^0-9]/',
+                                    '',
+                                    $c['telefono'] ?? ''
+                                );
 
+                                $estado_texto = strtoupper($c['estado']);
 
-    /*
-    =================================================
-    MENSAJE DE WHATSAPP
-    =================================================
-    */
+                                $msg_wa =
+                                    "Hola " .
+                                    $c['deportista_nombre'] .
+                                    ", te recordamos que tienes una cuota mensual " .
+                                    $estado_texto .
+                                    " por valor de $" .
+                                    number_format($c['monto'], 2) .
+                                    ".";
 
-    $estado_texto = strtoupper($c['estado']);
-
-    $msg_wa =
-        "Hola " .
-        $c['deportista_nombre'] .
-        ", te recordamos que tienes una cuota mensual " .
-        $estado_texto .
-        " por valor de $" .
-        number_format($c['monto'], 2) .
-        ".";
+                                $url_wa = !empty($telefono)
+                                    ? "https://wa.me/" .
+                                      $telefono .
+                                      "?text=" .
+                                      urlencode($msg_wa)
+                                    : "#";
+                                ?>
 
 
-    /*
-    =================================================
-    URL DE WHATSAPP
-    =================================================
-    */
-
-    $url_wa = !empty($telefono)
-        ? "https://wa.me/" .
-          $telefono .
-          "?text=" .
-          urlencode($msg_wa)
-        : "#";
-    ?>
+                                <div class="d-flex justify-content-center gap-2 flex-wrap">
 
 
-    <div class="d-flex justify-content-center gap-2 flex-wrap">
+                                    <!-- ==================================================
+                                         BOTÓN PAGAR
+                                    ================================================== -->
+
+                                    <?php if (
+                                        $c['estado'] !== 'pagado'
+                                        && tiene_permiso('mensualidades')
+                                    ): ?>
+
+                                        <button
+                                            type="button"
+                                            class="btn btn-sm btn-success fw-bold"
+                                            onclick="abrirModalPago(
+                                                <?= (int) $c['id'] ?>,
+                                                '<?= htmlspecialchars(
+                                                    $c['deportista_nombre'],
+                                                    ENT_QUOTES,
+                                                    'UTF-8'
+                                                ) ?>',
+                                                <?= (float) $c['monto'] ?>
+                                            )">
+
+                                            <i class="fa-solid fa-dollar-sign"></i>
+                                            Pagar
+
+                                        </button>
+
+                                    <?php endif; ?>
 
 
-        <!-- ==================================================
-             BOTÓN PAGAR
-             SOLO USUARIOS CON PERMISO DE GESTIÓN
-             ================================================== -->
+                                    <!-- ==================================================
+                                         BOTÓN WHATSAPP
+                                    ================================================== -->
 
-        <?php if (
-            $c['estado'] !== 'pagado'
-            && tiene_permiso('mensualidades')
-        ): ?>
+                                    <?php if ($c['estado'] !== 'pagado'): ?>
 
-            <button
-                type="button"
-                class="btn btn-sm btn-success fw-bold"
-                onclick="abrirModalPago(
-                    <?= (int) $c['id'] ?>,
-                    '<?= htmlspecialchars(
-                        $c['deportista_nombre'],
-                        ENT_QUOTES,
-                        'UTF-8'
-                    ) ?>',
-                    <?= (float) $c['monto'] ?>
-                )">
+                                        <a
+                                            href="<?= htmlspecialchars($url_wa) ?>"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="btn btn-sm btn-outline-success
+                                            <?= empty($telefono) ? 'disabled' : '' ?>"
+                                            title="Enviar recordatorio por WhatsApp">
 
-                <i class="fa-solid fa-dollar-sign"></i>
-                Pagar
+                                            <i class="fa-brands fa-whatsapp"></i>
+                                            Recordar
 
-            </button>
+                                        </a>
 
-        <?php endif; ?>
+                                    <?php endif; ?>
 
 
-        <!-- ==================================================
-             BOTÓN WHATSAPP
-             SOLO CUOTAS NO PAGADAS
-             ================================================== -->
+                                    <!-- ==================================================
+                                         BOTÓN VER COMPROBANTE
+                                    ================================================== -->
 
-        <?php if ($c['estado'] !== 'pagado'): ?>
+                                    <?php if (
+                                        $c['estado'] === 'pagado'
+                                        && !empty($c['id_pago'])
+                                    ): ?>
 
-            <a
-                href="<?= htmlspecialchars($url_wa) ?>"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="btn btn-sm btn-outline-success
-                <?= empty($telefono) ? 'disabled' : '' ?>"
-                title="Enviar recordatorio por WhatsApp">
+                                        <a
+                                            href="<?= htmlspecialchars($url_base) ?>/modulos/financiero/mensualidades/comprobantes_pago/ver_comprobante.php?id=<?= (int) $c['id_pago'] ?>"
+                                            target="_blank"
+                                            class="btn btn-sm btn-outline-primary fw-bold"
+                                            title="Ver comprobante de pago">
 
-                <i class="fa-brands fa-whatsapp"></i>
-                Recordar
+                                            <i class="fa-solid fa-file-invoice"></i>
+                                            Comprobante
 
-            </a>
+                                        </a>
 
-        <?php endif; ?>
-
-
-        <!-- ==================================================
-             BOTÓN VER COMPROBANTE
-             SOLO CUOTAS PAGADAS
-             Y QUE TENGAN UNA TRANSACCIÓN REGISTRADA
-             ================================================== -->
-
-        <?php if (
-            $c['estado'] === 'pagado'
-            && !empty($c['id_pago'])
-        ): ?>
-
-<a
-    href="<?= htmlspecialchars($url_base) ?>/modulos/financiero/mensualidades/comprobantes_pago/ver_comprobante.php?id=<?= (int) $c['id_pago'] ?>"
-    target="_blank"
-    class="btn btn-sm btn-outline-primary fw-bold"
-    title="Ver comprobante de pago">
-
-    <i class="fa-solid fa-file-invoice"></i>
-    Comprobante
-
-</a>
-
-        <?php endif; ?>
+                                    <?php endif; ?>
 
 
-        <!-- ==================================================
-             INDICADOR PARA USUARIOS DE SOLO LECTURA
-             ================================================== -->
+                                    <!-- ==================================================
+                                         INDICADOR PARA USUARIOS DE SOLO LECTURA
+                                    ================================================== -->
 
-        <?php if (!tiene_permiso('mensualidades')): ?>
+                                    <?php if (!tiene_permiso('mensualidades')): ?>
 
-            <span class="badge bg-secondary d-flex align-items-center">
+                                        <span class="badge bg-secondary d-flex align-items-center">
 
-                Solo lectura
+                                            Solo lectura
 
-            </span>
+                                        </span>
 
-        <?php endif; ?>
+                                    <?php endif; ?>
 
 
-    </div>
+                                </div>
 
-</td>
+                            </td>
 
                         </tr>
 
@@ -1321,9 +1310,6 @@ include(
 
 <!-- =====================================================
      MODAL REGISTRAR PAGO
-
-     Solo se carga si el usuario tiene permiso
-     de gestión de mensualidades.
 ====================================================== -->
 
 <?php if (tiene_permiso('mensualidades')): ?>
@@ -1343,10 +1329,6 @@ include(
                 class="modal-content"
             >
 
-
-                <!-- =========================================
-                     CABECERA
-                ========================================== -->
 
                 <div
                     class="modal-header bg-success text-white"
@@ -1375,16 +1357,7 @@ include(
                 </div>
 
 
-                <!-- =========================================
-                     CUERPO
-                ========================================== -->
-
                 <div class="modal-body">
-
-
-                    <!-- =====================================
-                         ID DE CUOTA
-                    ====================================== -->
 
                     <input
                         type="hidden"
@@ -1392,10 +1365,6 @@ include(
                         id="modal_id_cuota"
                     >
 
-
-                    <!-- =====================================
-                         DEPORTISTA
-                    ====================================== -->
 
                     <div class="mb-3">
 
@@ -1416,10 +1385,6 @@ include(
 
                     </div>
 
-
-                    <!-- =====================================
-                         MONTO
-                    ====================================== -->
 
                     <div class="mb-3">
 
@@ -1443,10 +1408,6 @@ include(
 
                     </div>
 
-
-                    <!-- =====================================
-                         MÉTODO DE PAGO
-                    ====================================== -->
 
                     <div class="mb-3">
 
@@ -1489,12 +1450,7 @@ include(
                 </div>
 
 
-                <!-- =========================================
-                     PIE DEL MODAL
-                ========================================== -->
-
                 <div class="modal-footer">
-
 
                     <button
                         type="button"
@@ -1505,7 +1461,6 @@ include(
                         Cancelar
 
                     </button>
-
 
                     <button
                         type="submit"
@@ -1537,78 +1492,20 @@ include(
 
 <script>
 
-/*
-==========================================================
- ABRIR MODAL DE PAGO
-==========================================================
-
- Recibe:
-
- - idCuota
- - deportista
- - monto
-
- Y los coloca dentro del formulario.
-==========================================================
-*/
-
 function abrirModalPago(
     idCuota,
     deportista,
     monto
 ) {
 
-    /*
-    ------------------------------------------------------
-    ID DE LA CUOTA
-    ------------------------------------------------------
-    */
+    document.getElementById('modal_id_cuota').value = idCuota;
+    document.getElementById('modal_deportista').value = deportista;
+    document.getElementById('modal_monto').value = monto;
 
-    document.getElementById(
-        'modal_id_cuota'
-    ).value = idCuota;
-
-
-    /*
-    ------------------------------------------------------
-    NOMBRE DEL DEPORTISTA
-    ------------------------------------------------------
-    */
-
-    document.getElementById(
-        'modal_deportista'
-    ).value = deportista;
-
-
-    /*
-    ------------------------------------------------------
-    MONTO
-    ------------------------------------------------------
-    */
-
-    document.getElementById(
-        'modal_monto'
-    ).value = monto;
-
-
-    /*
-    ------------------------------------------------------
-    ABRIR MODAL
-    ------------------------------------------------------
-    */
-
-    const modalElemento =
-        document.getElementById('modalPago');
-
-
-    const modal =
-        new bootstrap.Modal(
-            modalElemento
-        );
-
+    const modalElemento = document.getElementById('modalPago');
+    const modal = new bootstrap.Modal(modalElemento);
 
     modal.show();
-
 }
 
 </script>
