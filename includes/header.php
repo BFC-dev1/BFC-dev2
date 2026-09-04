@@ -18,7 +18,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 <div class="menu-desplegable" id="menu">
 
-    <a href="#">Competencias</a>
+    <a href="<?= $url_base ?>/pages/competencias.php">Competencias</a>
 
     <a href="<?= $url_base ?>/pages/contacto.php">Contacto</a>
 
@@ -37,6 +37,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 <div class="nav">
     <div class="links">
+        <a href="<?= $url_base ?>/pages/competencias.php">Competencias</a>
         <a href="/BFC-dev2/pages/quienes_somos.php">Quienes somos</a>
         <a href="<?= $url_base ?>/pages/sede.php">Sede</a>
         <a href="/BFC-dev2/pages/contacto.php">Contactos</a>
