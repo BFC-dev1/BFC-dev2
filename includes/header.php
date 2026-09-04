@@ -24,6 +24,8 @@ if (session_status() === PHP_SESSION_NONE) {
 
     <a href="<?= $url_base ?>/pages/quienes_somos.php">Quiénes somos</a>
 
+    <a href="<?= $url_base ?>/pages/sede.php">Sede</a>
+
 
 <?php if (isset($_SESSION['admin'])): ?>
         <span>Hola, <?php echo $_SESSION['admin']; ?></span>
@@ -36,6 +38,7 @@ if (session_status() === PHP_SESSION_NONE) {
 <div class="nav">
     <div class="links">
         <a href="/BFC-dev2/pages/quienes_somos.php">Quienes somos</a>
+        <a href="<?= $url_base ?>/pages/sede.php">Sede</a>
         <a href="/BFC-dev2/pages/contacto.php">Contactos</a>
         <?php if(isset($_SESSION['admin'])): ?>
             <a href="../admin/dashboard.php">Dashboard</a>

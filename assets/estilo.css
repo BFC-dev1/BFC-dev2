@@ -421,8 +421,8 @@ body {
     }
 
     .card-contacto {
-        width: 90%;
-        padding: 200px;
+        width: 100%;
+        padding: 25px 20px;
     }
 
     .card {
@@ -449,15 +449,16 @@ body {
 
 .contenedor-contacto {
     background: var(--gris-fondo);
-    padding: 60px 20px;
-    display: flex;
-    justify-content: center;
+    padding: 40px 20px;
+    display: block;
+    width: 100%;
 }
 
 /* REUTILIZAS TODO */
 .card-contacto {
     transition: 0.3s;
-    width: 600px;
+    width: 100%;
+    max-width: none;
     padding: 40px;
     text-align: center;
     background: white;

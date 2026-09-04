@@ -630,6 +630,19 @@
 
                         </li>
 
+
+                        <li class="nav-item">
+
+    <a
+        href="<?= $url_base ?>/admin/edit_page_Content/editar_sede.php"
+        class="nav-link text-white"
+    >
+        <i class="fa-solid fa-location-dot"></i>
+        Sede
+    </a>
+
+</li>
+
                     </ul>
 
                 </div>
