@@ -346,24 +346,13 @@ $titulo_pagina = "Competencias";
                             <!-- FOTO -->
                             <!-- ================================= -->
 
-                            <div
-                                style="
-                                    margin-top: 20px;
-                                "
-                            >
+                            <div>
 
 
                                 <img
+                                    class="media-full-width"
                                     src="<?= $url_base ?>/uploads/competencias/<?= htmlspecialchars($foto['archivo']); ?>"
                                     alt="<?= htmlspecialchars($foto['descripcion'] ?? $competencia['nombre']); ?>"
-                                    style="
-                                        width: 100%;
-                                        max-width: 900px;
-                                        height: auto;
-                                        border-radius: 12px;
-                                        display: block;
-                                        margin: 0 auto;
-                                    "
                                 >
 
 
@@ -463,44 +452,23 @@ $titulo_pagina = "Competencias";
                             <?php endif; ?>
 
 
-                            <?php if($youtubeEmbed): ?>
+<?php if($youtubeEmbed): ?>
 
+    <!-- ================================= -->
+    <!-- VIDEO YOUTUBE -->
+    <!-- ================================= -->
 
-                                <!-- ================================= -->
-                                <!-- VIDEO YOUTUBE -->
-                                <!-- ================================= -->
+    <div class="video-container">
 
-                                <div
-                                    style="
-                                        width: 100%;
-                                        max-width: 900px;
-                                        margin: 20px auto;
-                                        position: relative;
-                                        padding-bottom: 56.25%;
-                                        height: 0;
-                                        overflow: hidden;
-                                        border-radius: 12px;
-                                    "
-                                >
+        <iframe
+            src="<?= htmlspecialchars($youtubeEmbed); ?>"
+            title="<?= htmlspecialchars($video['titulo'] ?? 'Video de Bellavista FC'); ?>"
+            allowfullscreen
+        ></iframe>
 
-                                    <iframe
-                                        src="<?= htmlspecialchars($youtubeEmbed); ?>"
-                                        title="<?= htmlspecialchars($video['titulo'] ?? 'Video de Bellavista FC'); ?>"
-                                        style="
-                                            position: absolute;
-                                            top: 0;
-                                            left: 0;
-                                            width: 100%;
-                                            height: 100%;
-                                            border: 0;
-                                        "
-                                        allowfullscreen
-                                    ></iframe>
+    </div>
 
-                                </div>
-
-
-                            <?php else: ?>
+<?php else: ?>
 
 
                                 <!-- ================================= -->

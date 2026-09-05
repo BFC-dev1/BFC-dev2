@@ -696,3 +696,103 @@ body {
     margin-bottom: 16px;
     /* separa de la tabla */
 }
+
+/* ================================================= */
+/* ESTILOS MULTIMEDIA RESPONSIVOS (COMPETENCIAS)     */
+/* ================================================= */
+
+.media-full-width {
+    width: 100% !important;
+    max-width: 900px !important;
+    height: auto !important;
+    border-radius: 12px;
+    display: block;
+    margin: 20px auto !important;
+}
+
+.video-container {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    overflow: hidden;
+}
+
+.video-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    border-radius: 8px;
+}
+
+/* Ajuste específico para dispositivos móviles */
+@media (max-width: 768px) {
+    .card-contacto {
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+    }
+
+    .media-full-width {
+        border-radius: 8px !important;
+    }
+}
+
+/* ================================================= */
+/* ESTILOS MULTIMEDIA RESPONSIVOS (COMPETENCIAS)     */
+/* ================================================= */
+
+.media-full-width {
+    width: 100% !important;
+    max-width: 900px !important;
+    height: auto !important;
+    border-radius: 12px;
+    display: block;
+    margin: 20px auto !important;
+}
+
+.video-container {
+    position: relative;
+    width: 100%;
+    max-width: 900px;
+    margin: 20px auto;
+    padding-bottom: 56.25%;
+    height: 0;
+    overflow: hidden;
+    border-radius: 12px;
+}
+
+.video-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+/* Ajuste absoluto para celulares y pantallas pequeñas */
+@media (max-width: 768px) {
+    .contenedor-contacto {
+        padding: 10px 0px !important;
+        /* Elimina los espacios laterales de la sección */
+    }
+
+    .card-contacto {
+        padding: 15px 5px !important;
+        /* Reduce al mínimo el margen interno de la tarjeta blanca */
+        border-radius: 0 !important;
+        /* Opcional: quita bordes redondeados en móvil para efecto full-width real */
+    }
+
+    .media-full-width {
+        border-radius: 0 !important;
+        /* Imágenes de borde a borde en móvil */
+    }
+
+    .video-container {
+        border-radius: 0 !important;
+        /* Videos de borde a borde en móvil */
+    }
+}
