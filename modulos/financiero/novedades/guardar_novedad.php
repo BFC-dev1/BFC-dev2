@@ -94,7 +94,9 @@ $tipo = trim($_POST['tipo'] ?? '');
 
 $concepto = trim($_POST['concepto'] ?? '');
 
-$monto = trim($_POST['monto'] ?? '');
+$monto_raw = trim($_POST['monto'] ?? '');
+// Elimina los puntos o comas de miles enviados desde el formulario con formato
+$monto = str_replace(['.', ','], '', $monto_raw);
 
 $fecha = trim($_POST['fecha'] ?? '');
 

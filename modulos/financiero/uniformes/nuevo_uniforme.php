@@ -178,7 +178,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $cantidad = $_POST['cantidad'] ?? 1;
 
-$valor = $_POST['valor'] ?? '';
+$valor_raw = $_POST['valor'] ?? '';
+// Eliminar cualquier punto o coma de miles antes de guardar
+$valor = str_replace(['.', ','], '', $valor_raw);
 
 $fecha_pedido = $_POST['fecha_pedido'] ?? '';
 
@@ -994,19 +996,16 @@ include(
                             </span>
 
 
-                            <input
-                                type="number"
-                                name="valor"
-                                id="valor"
-                                class="form-control"
-                                min="0"
-                                step="0.01"
-                                placeholder="0.00"
-                                value="<?= htmlspecialchars(
-                                    $valor
-                                ) ?>"
-                                required
-                            >
+<input
+    type="text"
+    name="valor"
+    id="valor"
+    class="form-control"
+    inputmode="numeric"
+    placeholder="0"
+    value="<?= htmlspecialchars($valor) ?>"
+    required
+>
 
                         </div>
 
@@ -1395,66 +1394,78 @@ el valor unitario de la columna "valor".
 -->
 
 <script>
-
 document.addEventListener(
     'DOMContentLoaded',
     function () {
 
-        const cantidad =
-            document.getElementById('cantidad');
+        const cantidad = document.getElementById('cantidad');
+        const valorInput = document.getElementById('valor');
+        const valorTotal = document.getElementById('valor_total');
 
-        const valor =
-            document.getElementById('valor');
+        // Función para formatear números con separador de miles
+        function formatearMiles(numero) {
+            if (isNaN(numero)) return '';
+            return Number(numero).toLocaleString('es-CO');
+        }
 
-        const valorTotal =
-            document.getElementById('valor_total');
-
+        // Si ya viene con valor (ej. error de validación previa), formatearlo al cargar
+        if (valorInput.value) {
+            let limpio = valorInput.value.replace(/\D/g, '');
+            if (limpio) {
+                valorInput.value = formatearMiles(limpio);
+            }
+        }
 
         function actualizarTotal() {
+            const cantidadNumero = parseFloat(cantidad.value) || 0;
+            
+            // Limpiar formato para obtener el valor numérico real
+            const valorLimpio = valorInput.value.replace(/\D/g, '');
+            const valorNumero = parseFloat(valorLimpio) || 0;
 
-            const cantidadNumero =
-                parseFloat(cantidad.value) || 0;
-
-            const valorNumero =
-                parseFloat(valor.value) || 0;
-
-
-            const total =
-                cantidadNumero *
-                valorNumero;
-
+            const total = cantidadNumero * valorNumero;
 
             valorTotal.textContent =
                 '$' +
                 total.toLocaleString(
                     'es-CO',
                     {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0
                     }
                 );
-
         }
 
+        // Evento para formatear mientras se escribe
+        valorInput.addEventListener('input', function (e) {
+            let cursorPosition = e.target.selectionStart;
+            let originalLength = e.target.value.length;
+
+            // Dejar solo números
+            let limpio = e.target.value.replace(/\D/g, '');
+
+            if (limpio !== '') {
+                e.target.value = formatearMiles(limpio);
+            } else {
+                e.target.value = '';
+            }
+
+            // Ajustar la posición del cursor para que no brinque al escribir
+            let newLength = e.target.value.length;
+            cursorPosition = cursorPosition + (newLength - originalLength);
+            e.target.setSelectionRange(cursorPosition, cursorPosition);
+
+            actualizarTotal();
+        });
 
         cantidad.addEventListener(
             'input',
             actualizarTotal
         );
 
-
-        valor.addEventListener(
-            'input',
-            actualizarTotal
-        );
-
-
         actualizarTotal();
-
     }
-
 );
-
 </script>
 
 

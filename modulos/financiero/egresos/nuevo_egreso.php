@@ -511,17 +511,16 @@ include("../../../template/header_modulos.php");
 
                         </span>
 
-                        <input
-                            type="number"
-                            id="monto"
-                            name="monto"
-                            class="form-control"
-                            min="0.01"
-                            step="0.01"
-                            placeholder="0.00"
-                            value="<?= htmlspecialchars($monto) ?>"
-                            required
-                        >
+<input
+    type="text"
+    id="monto"
+    name="monto"
+    class="form-control"
+    inputmode="numeric"
+    placeholder="0"
+    value="<?= htmlspecialchars($monto) ?>"
+    required
+>
 
                     </div>
 
@@ -704,6 +703,46 @@ include("../../../template/header_modulos.php");
     </div>
 
 </div>
+
+
+<script>
+document.addEventListener(
+    'DOMContentLoaded',
+    function () {
+        const montoInput = document.getElementById('monto');
+
+        function formatearMiles(numero) {
+            if (isNaN(numero)) return '';
+            return Number(numero).toLocaleString('es-CO');
+        }
+
+        // Si ya trae un valor previo (por ejemplo, al recuperar datos por GET tras un error)
+        if (montoInput.value) {
+            let limpio = montoInput.value.replace(/\D/g, '');
+            if (limpio) {
+                montoInput.value = formatearMiles(limpio);
+            }
+        }
+
+        montoInput.addEventListener('input', function (e) {
+            let cursorPosition = e.target.selectionStart;
+            let originalLength = e.target.value.length;
+
+            let limpio = e.target.value.replace(/\D/g, '');
+
+            if (limpio !== '') {
+                e.target.value = formatearMiles(limpio);
+            } else {
+                e.target.value = '';
+            }
+
+            let newLength = e.target.value.length;
+            cursorPosition = cursorPosition + (newLength - originalLength);
+            e.target.setSelectionRange(cursorPosition, cursorPosition);
+        });
+    }
+);
+</script>
 
 
 <?php

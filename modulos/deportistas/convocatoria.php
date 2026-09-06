@@ -611,6 +611,17 @@ include(
 
     <div class="container-fluid py-4">
 
+        <!-- =====================================
+             BOTÓN VOLVER AL DASHBOARD
+             ===================================== -->
+        <div class="mb-3">
+            <a
+                href="<?= htmlspecialchars($url_base, ENT_QUOTES, 'UTF-8') ?>/modulos/dashboard/index.php"
+                class="btn btn-outline-dark"
+            >
+                ← Volver al Dashboard
+            </a>
+        </div>
 
         <div class="card shadow p-4">
 

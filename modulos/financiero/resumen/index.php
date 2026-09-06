@@ -10,6 +10,7 @@
  - matriculas
  - uniformes
  - egresos_financieros
+ - novedades_financieras
 ====================================================================
 */
 
@@ -57,10 +58,6 @@ $base_url   = rtrim($url_base, '/');
 /* ================================================================
    MENSUALIDADES
    ================================================================ */
-/* ================================================================
-   MENSUALIDADES
-   ================================================================ */
-
 $stmt = $conexion->prepare("
     SELECT COUNT(*)
     FROM cuotas_mensuales
@@ -68,11 +65,8 @@ $stmt = $conexion->prepare("
       AND mes = ?
       AND anio = ?
 ");
-
 $stmt->execute([$filtro_mes, $filtro_anio]);
-
 $mensualidades_operaciones = (int) $stmt->fetchColumn();
-
 
 $stmt = $conexion->prepare("
     SELECT COALESCE(SUM(monto), 0)
@@ -81,11 +75,8 @@ $stmt = $conexion->prepare("
       AND mes = ?
       AND anio = ?
 ");
-
 $stmt->execute([$filtro_mes, $filtro_anio]);
-
 $total_mensualidades = (float) $stmt->fetchColumn();
-
 
 $stmt = $conexion->prepare("
     SELECT COUNT(*)
@@ -94,17 +85,12 @@ $stmt = $conexion->prepare("
       AND mes = ?
       AND anio = ?
 ");
-
 $stmt->execute([$filtro_mes, $filtro_anio]);
-
 $mensualidades_pendientes = (int) $stmt->fetchColumn();
 
 /* ================================================================
    MATRÍCULAS
-   El período financiero corresponde a la fecha de matrícula,
-   NO a la fecha en que se registró físicamente el pago.
    ================================================================ */
-
 $stmt = $conexion->prepare("
     SELECT COUNT(*)
     FROM matriculas
@@ -112,15 +98,8 @@ $stmt = $conexion->prepare("
       AND MONTH(fecha_matricula) = ?
       AND YEAR(fecha_matricula) = ?
 ");
-
-$stmt->execute([
-    $filtro_mes,
-    $filtro_anio
-]);
-
-$matriculas_operaciones =
-    (int) $stmt->fetchColumn();
-
+$stmt->execute([$filtro_mes, $filtro_anio]);
+$matriculas_operaciones = (int) $stmt->fetchColumn();
 
 $stmt = $conexion->prepare("
     SELECT COALESCE(SUM(monto), 0)
@@ -129,15 +108,8 @@ $stmt = $conexion->prepare("
       AND MONTH(fecha_matricula) = ?
       AND YEAR(fecha_matricula) = ?
 ");
-
-$stmt->execute([
-    $filtro_mes,
-    $filtro_anio
-]);
-
-$total_matriculas =
-    (float) $stmt->fetchColumn();
-
+$stmt->execute([$filtro_mes, $filtro_anio]);
+$total_matriculas = (float) $stmt->fetchColumn();
 
 $stmt = $conexion->prepare("
     SELECT COUNT(*)
@@ -145,18 +117,11 @@ $stmt = $conexion->prepare("
     WHERE estado = 'pendiente'
       AND anio = ?
 ");
-
-$stmt->execute([
-    $filtro_anio
-]);
-
-$matriculas_pendientes =
-    (int) $stmt->fetchColumn();
+$stmt->execute([$filtro_anio]);
+$matriculas_pendientes = (int) $stmt->fetchColumn();
 
 /* ================================================================
    UNIFORMES
-   La tabla no tiene fecha_pago. Para el período se usa fecha_pedido.
-   Solo los registros estado_pago='pagado' generan ingreso.
    ================================================================ */
 $stmt = $conexion->prepare("
     SELECT COUNT(*)
@@ -228,10 +193,45 @@ $stmt->execute([$filtro_mes, $filtro_anio]);
 $mayor_egreso = (float) $stmt->fetchColumn();
 
 /* ================================================================
+   NOVEDADES FINANCIERAS (Ajustes: Recargos +, Descuentos/Becas -)
+   ================================================================ */
+$stmt = $conexion->prepare("
+    SELECT COALESCE(SUM(monto), 0)
+    FROM novedades_financieras
+    WHERE tipo = 'RECARGO'
+      AND estado = 'ACTIVA'
+      AND MONTH(fecha) = ?
+      AND YEAR(fecha) = ?
+");
+$stmt->execute([$filtro_mes, $filtro_anio]);
+$novedades_recargos = (float) $stmt->fetchColumn();
+
+$stmt = $conexion->prepare("
+    SELECT COALESCE(SUM(monto), 0)
+    FROM novedades_financieras
+    WHERE tipo IN ('DESCUENTO', 'BECA', 'EXONERACION', 'AJUSTE')
+      AND estado = 'ACTIVA'
+      AND MONTH(fecha) = ?
+      AND YEAR(fecha) = ?
+");
+$stmt->execute([$filtro_mes, $filtro_anio]);
+$novedades_deduciones = (float) $stmt->fetchColumn();
+
+$stmt = $conexion->prepare("
+    SELECT COUNT(*)
+    FROM novedades_financieras
+    WHERE estado = 'ACTIVA'
+      AND MONTH(fecha) = ?
+      AND YEAR(fecha) = ?
+");
+$stmt->execute([$filtro_mes, $filtro_anio]);
+$novedades_operaciones = (int) $stmt->fetchColumn();
+
+/* ================================================================
    INDICADORES
    ================================================================ */
-$total_ingresos = $total_mensualidades + $total_matriculas + $total_uniformes;
-$total_operaciones = $mensualidades_operaciones + $matriculas_operaciones + $uniformes_operaciones + $egresos_operaciones;
+$total_ingresos = ($total_mensualidades + $total_matriculas + $total_uniformes + $novedades_recargos) - $novedades_deduciones;
+$total_operaciones = $mensualidades_operaciones + $matriculas_operaciones + $uniformes_operaciones + $egresos_operaciones + $novedades_operaciones;
 
 /* Balance SIEMPRE se recalcula con el período seleccionado. */
 $balance = $total_ingresos - $total_egresos;
@@ -491,7 +491,30 @@ include("../../../template/header_modulos.php");
                     </div>
                 </a>
             </div>
+
+            <!-- TARJETA DE NOVEDADES AGREGADA AQUÍ -->
+<div class="col-xl-3 col-md-6">
+    <a href="<?= htmlspecialchars($base_url) ?>/modulos/financiero/novedades/index.php" class="text-decoration-none text-dark">
+        <div class="card border-0 shadow-sm h-100 resumen-modulo-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <small class="text-muted fw-bold text-uppercase">Novedades (Neto)</small>
+                    <i class="fa-solid fa-file-circle-plus text-primary fs-4"></i>
+                </div>
+                <h4 class="fw-bold mb-1">
+                    <?php 
+                        $neto_novedades = $novedades_recargos - $novedades_deduciones;
+                        echo ($neto_novedades < 0 ? '-$' : '$') . number_format(abs($neto_novedades), 2, ',', '.');
+                    ?>
+                </h4>
+                <div class="small text-muted"><?= $novedades_operaciones ?> novedades aplicadas</div>
+                <div class="small text-success mt-2">+ Recargos: $<?= number_format($novedades_recargos, 2, ',', '.') ?></div>
+                <div class="small text-danger">- Descuentos/Ajustes: $<?= number_format($novedades_deduciones, 2, ',', '.') ?></div>
+                <div class="mt-3 small text-primary fw-semibold">Ver módulo <i class="fa-solid fa-arrow-right ms-1"></i></div>
+            </div>
         </div>
+    </a>
+</div>
 
         <!-- DISTRIBUCIÓN + SITUACIÓN FINANCIERA -->
         <div class="row g-3 mb-4">

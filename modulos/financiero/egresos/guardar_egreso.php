@@ -94,7 +94,9 @@ $categoria = trim($_POST['categoria'] ?? '');
 
 $concepto = trim($_POST['concepto'] ?? '');
 
-$monto = trim($_POST['monto'] ?? '');
+$monto_raw = trim($_POST['monto'] ?? '');
+// Elimina los puntos o comas de miles que envía el formulario con formato
+$monto = str_replace(['.', ','], '', $monto_raw);
 
 $metodo_pago = trim($_POST['metodo_pago'] ?? '');
 
@@ -121,27 +123,29 @@ $categorias_permitidas = [
 
     'Pago de administración',
 
-    'Compra de balones y material deportivo',
+    'Compra de balones',
+
+    'Compra de implementos deportivos',
 
     'Compra de uniformes',
 
-    'Mantenimiento de instalaciones',
+    'Transporte',
+
+    'Alimentación',
+
+    'Mantenimiento',
 
     'Servicios públicos',
 
-    'Transporte',
-
-    'Arbitraje y competencias',
-
-    'Inscripciones y torneos',
+    'Arriendo',
 
     'Publicidad y comunicaciones',
 
-    'Papelería e insumos',
+    'Inscripciones y competencias',
 
-    'Equipos y tecnología',
+    'Gastos médicos',
 
-    'Gastos bancarios',
+    'Papelería y suministros',
 
     'Otros gastos'
 
@@ -213,14 +217,29 @@ if (
     exit;
 }
 
-
 /*
 =========================================================
-10. VALIDAR CATEGORÍA
+10. VALIDAR CATEGORÍA (Con normalización de tildes)
 =========================================================
 */
 
-if (!in_array($categoria, $categorias_permitidas, true)) {
+function normalizarTexto($texto) {
+    $originales  = 'ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ';
+    $modificadas = 'AAAAAAACEEEEIIIIDNOOOOOOUUUUYDsaaaaaaaceeeeiiiidnoooooouuuuuyhy';
+    $texto = utf8_decode($texto);
+    $texto = strtr($texto, utf8_decode($originales), $modificadas);
+    return strtolower(utf8_encode($texto));
+}
+
+$categoria_valida = false;
+foreach ($categorias_permitidas as $cat_permitida) {
+    if (normalizarTexto($categoria) === normalizarTexto($cat_permitida)) {
+        $categoria_valida = true;
+        break;
+    }
+}
+
+if (!$categoria_valida) {
 
     header("Location: nuevo_egreso.php?error=categoria");
 

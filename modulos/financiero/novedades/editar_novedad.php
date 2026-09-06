@@ -87,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id_deportista = trim($_POST['id_deportista'] ?? '');
     $tipo          = trim($_POST['tipo'] ?? '');
     $concepto      = trim($_POST['concepto'] ?? '');
-    $monto         = trim($_POST['monto'] ?? '');
+    $monto_raw     = trim($_POST['monto'] ?? '');
     $fecha         = trim($_POST['fecha'] ?? '');
     $estado        = trim($_POST['estado'] ?? '');
     $observacion   = trim($_POST['observacion'] ?? '');
@@ -158,32 +158,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     /* -----------------------------------------------------
-       MONTO
+       MONTO (Limpieza de separadores de miles y puntos/comas)
        ----------------------------------------------------- */
-    if ($mensaje_error === '' && $monto === '') {
+    if ($mensaje_error === '' && $monto_raw === '') {
         $mensaje_error = "El monto es obligatorio.";
     }
 
-    if ($mensaje_error === '' && $monto !== '') {
-        $monto_normalizado = trim($monto);
+    if ($mensaje_error === '' && $monto_raw !== '') {
+        // Limpia puntos y comas de miles para dejar solo el número puro
+        $monto_limpio = str_replace(['.', ','], '', $monto_raw);
 
-        // 120.000,00 -> 120000.00
-        if (
-            strpos($monto_normalizado, ',') !== false &&
-            strpos($monto_normalizado, '.') !== false
-        ) {
-            $monto_normalizado = str_replace('.', '', $monto_normalizado);
-            $monto_normalizado = str_replace(',', '.', $monto_normalizado);
-        }
-        // 120000,00 -> 120000.00
-        elseif (strpos($monto_normalizado, ',') !== false) {
-            $monto_normalizado = str_replace(',', '.', $monto_normalizado);
-        }
-
-        if (!is_numeric($monto_normalizado)) {
+        if (!is_numeric($monto_limpio)) {
             $mensaje_error = "El monto ingresado no es válido.";
         } else {
-            $monto = (float) $monto_normalizado;
+            $monto = (float) $monto_limpio;
 
             if ($monto < 0) {
                 $mensaje_error = "El monto no puede ser negativo.";
@@ -341,7 +329,7 @@ $stmt = $conexion->prepare(
         d.nombre AS nombre_deportista
      FROM novedades_financieras n
      LEFT JOIN deportista d
-        ON d.id = n.id_deportista
+       ON d.id = n.id_deportista
      WHERE n.id = :id
      LIMIT 1"
 );
@@ -359,7 +347,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $novedad['id_deportista'] = $id_deportista;
     $novedad['tipo'] = $tipo;
     $novedad['concepto'] = $concepto;
-    $novedad['monto'] = $monto;
+    $novedad['monto'] = $monto_raw; // Mantiene lo que escribió el usuario para que no se pierda el formato al rellenar
     $novedad['fecha'] = $fecha;
     $novedad['estado'] = $estado;
     $novedad['observacion'] = $observacion;
@@ -443,6 +431,7 @@ include("../../../template/header_modulos.php");
         <form
             method="POST"
             action="editar_novedad.php?id=<?= (int) $novedad['id'] ?>"
+            autocomplete="off"
         >
 
             <input
@@ -557,20 +546,25 @@ include("../../../template/header_modulos.php");
                     >
                 </div>
 
-                <!-- MONTO -->
+                <!-- MONTO (Con formato de miles) -->
                 <div class="col-md-4">
                     <label class="form-label fw-bold">
                         Monto
                     </label>
 
-                    <input
-                        type="text"
-                        name="monto"
-                        class="form-control"
-                        value="<?= htmlspecialchars($novedad['monto'] ?? '') ?>"
-                        placeholder="0.00"
-                        required
-                    >
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input
+                            type="text"
+                            id="monto"
+                            name="monto"
+                            class="form-control"
+                            inputmode="numeric"
+                            value="<?= htmlspecialchars(is_numeric($novedad['monto'] ?? '') ? number_format($novedad['monto'], 0, '', '.') : ($novedad['monto'] ?? '')) ?>"
+                            placeholder="0"
+                            required
+                        >
+                    </div>
 
                     <small class="text-muted">
                         Ingresa el valor de la novedad.
@@ -619,6 +613,47 @@ include("../../../template/header_modulos.php");
         </form>
     </div>
 </div>
+
+<!-- Script para el formateo de miles en tiempo real en el campo Monto -->
+<script>
+document.addEventListener(
+    'DOMContentLoaded',
+    function () {
+        const montoInput = document.getElementById('monto');
+
+        function formatearMiles(numero) {
+            if (isNaN(numero)) return '';
+            return Number(numero).toLocaleString('es-CO');
+        }
+
+        if (montoInput && montoInput.value) {
+            let limpio = montoInput.value.replace(/\D/g, '');
+            if (limpio) {
+                montoInput.value = formatearMiles(limpio);
+            }
+        }
+
+        if (montoInput) {
+            montoInput.addEventListener('input', function (e) {
+                let cursorPosition = e.target.selectionStart;
+                let originalLength = e.target.value.length;
+
+                let limpio = e.target.value.replace(/\D/g, '');
+
+                if (limpio !== '') {
+                    e.target.value = formatearMiles(limpio);
+                } else {
+                    e.target.value = '';
+                }
+
+                let newLength = e.target.value.length;
+                cursorPosition = cursorPosition + (newLength - originalLength);
+                e.target.setSelectionRange(cursorPosition, cursorPosition);
+            });
+        }
+    }
+);
+</script>
 
 <?php
 
