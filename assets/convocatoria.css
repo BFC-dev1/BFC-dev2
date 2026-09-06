@@ -1,27 +1,72 @@
 /* ===========================
+   BELLAVISTA FC
    CONVOCATORIA
 =========================== */
+
+
+/*
+=================================================
+CONTENIDO PRINCIPAL
+=================================================
+*/
 
 .main-content {
     padding: 20px;
 }
 
+
+/*
+=================================================
+TARJETA PRINCIPAL
+=================================================
+*/
+
 .card {
     border-radius: 12px;
 }
+
+
+/*
+=================================================
+TÍTULO
+=================================================
+*/
 
 .card h2 {
     font-weight: 700;
     margin-bottom: 25px;
 }
 
+
+/*
+=================================================
+ETIQUETAS
+=================================================
+*/
+
 .form-label {
     font-weight: 600;
 }
 
+
+/*
+=================================================
+ TABLA RESPONSIVE
+=================================================
+*/
+
 .table-responsive {
     margin-top: 20px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
+
+
+/*
+=================================================
+TABLA
+=================================================
+*/
 
 .table th {
     white-space: nowrap;
@@ -32,45 +77,47 @@
     vertical-align: middle;
 }
 
+
+/*
+=================================================
+CHECKBOX CONVOCAR
+=================================================
+*/
+
 .jugador-check {
     transform: scale(1.2);
     cursor: pointer;
 }
 
+
+/*
+=================================================
+BOTÓN DESCARGAR
+=================================================
+*/
+
 .btn-success {
     min-width: 220px;
 }
+
+
+/*
+=================================================
+CONTENEDOR BOTÓN
+=================================================
+*/
 
 .text-end {
     margin-top: 25px;
 }
 
-@media (max-width: 768px) {
 
-    .card {
-        padding: 15px !important;
-    }
+/*
+=================================================
+COLUMNA CONVOCAR FIJA
+=================================================
+*/
 
-    h2 {
-        font-size: 1.4rem;
-    }
-
-    .table {
-        font-size: .85rem;
-    }
-
-    .btn-success {
-        width: 100%;
-    }
-
-}
-
-/* La tabla puede hacer scroll */
-.table-responsive {
-    overflow-x: auto;
-}
-
-/* Fijar la última columna (Convocar) */
 .table th:last-child,
 .table td:last-child {
     position: sticky;
@@ -81,9 +128,94 @@
     text-align: center;
 }
 
-/* Cabecera */
+
+/*
+=================================================
+CABECERA DE COLUMNA FIJA
+=================================================
+*/
+
 .table thead th:last-child {
     background: #212529;
     color: #fff;
     z-index: 10;
+}
+
+
+/*
+=================================================
+MÓVILES
+=================================================
+*/
+
+@media (max-width: 768px) {
+
+    .main-content {
+        padding: 10px;
+    }
+
+
+    .card {
+        padding: 15px !important;
+    }
+
+
+    .card h2 {
+        font-size: 1.4rem;
+    }
+
+
+    .table {
+        font-size: .85rem;
+        min-width: 950px;
+    }
+
+
+    .btn-success {
+        width: 100%;
+    }
+
+}
+
+
+/*
+=================================================
+TELÉFONOS PEQUEÑOS
+=================================================
+*/
+
+@media (max-width: 480px) {
+
+    .main-content {
+        padding: 5px;
+    }
+
+
+    .card {
+        padding: 12px !important;
+    }
+
+
+    .card h2 {
+        font-size: 1.25rem;
+    }
+
+
+    .table {
+        font-size: .8rem;
+        min-width: 950px;
+    }
+
+
+    .table th,
+    .table td {
+        padding: 7px;
+    }
+
+
+    .btn-success {
+        width: 100%;
+        min-width: 0;
+    }
+
 }
