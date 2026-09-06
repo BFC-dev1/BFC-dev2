@@ -796,3 +796,134 @@ body {
         /* Videos de borde a borde en móvil */
     }
 }
+
+/* Asegurar que el contenedor principal ocupe todo el ancho y centre su contenido */
+.contenedor-contacto {
+    width: 100%;
+    padding: 20px 10px;
+    /* Añade un respiro lateral seguro para móviles */
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+}
+
+/* Forzar a que la tarjeta de contenido seCentre y no se desborde */
+.card-contacto {
+    width: 100%;
+    max-width: 900px;
+    /* O el ancho máximo que prefieras */
+    margin: 0 auto;
+    /* Centrado automático horizontal */
+    box-sizing: border-box;
+}
+
+/* Ajuste específico para pantallas pequeñas (móviles) */
+@media (max-width: 768px) {
+    .contenedor-contacto {
+        padding: 15px 8px;
+        /* Evita que pegue los elementos totalmente al borde de la pantalla */
+    }
+
+    .card-contacto {
+        width: 100% !important;
+        margin: 0 auto !important;
+        padding: 15px 10px !important;
+        /* Padding interno simétrico para que el texto no quede corrido */
+    }
+
+    /* Asegurar que las imágenes y contenedores multimedia no fuercen el scroll horizontal */
+    .media-full-width,
+    .video-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 15px auto !important;
+    }
+}
+
+
+/* Corrección de alineación y centrado para APK / pantallas móviles */
+.contenedor-contacto {
+    width: 100%;
+    padding: 20px 10px;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+}
+
+.card-contacto {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+    .contenedor-contacto {
+        padding: 15px 8px;
+    }
+
+    .card-contacto {
+        width: 100% !important;
+        margin: 0 auto !important;
+        padding: 15px 10px !important;
+    }
+
+    .media-full-width,
+    .video-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 15px auto !important;
+    }
+}
+
+
+/* Forzar un tamaño de video más grande y responsivo en móviles */
+@media (max-width: 768px) {
+    .video-container {
+        width: 100% !important;
+        /* Aumentamos el porcentaje base para que el alto del reproductor sea mayor */
+        padding-bottom: 75% !important;
+        /* Relación más alta tipo 4:3 o ajustable, o déjalo en 66% si prefieres */
+        max-width: 100% !important;
+        margin: 20px 0 !important;
+    }
+
+    .video-container iframe {
+        width: 100% !important;
+        height: 100% !important;
+        left: 0 !important;
+        top: 0 !important;
+    }
+}
+
+
+/* Corrección global y definitiva para el ancho de tarjetas y videos en móviles/web */
+@media (max-width: 1024px) {
+    .contenedor-contacto {
+        width: 100% !important;
+        padding: 10px 5px !important;
+    }
+
+    .card-contacto {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 auto !important;
+        padding: 20px 10px !important;
+        box-sizing: border-box !important;
+    }
+
+    .video-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding-bottom: 56.25% !important;
+        /* Mantiene la proporción correcta de YouTube */
+        margin: 15px auto !important;
+    }
+
+    .video-container iframe {
+        width: 100% !important;
+        height: 100% !important;
+        left: 0 !important;
+        top: 0 !important;
+    }
+}
