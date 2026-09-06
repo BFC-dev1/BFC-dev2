@@ -135,7 +135,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_POST['concepto'] ?? ""
     );
 
-    $monto = trim(
+    $monto_raw = trim(
         $_POST['monto'] ?? ""
     );
 
@@ -186,23 +186,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     /*
     -----------------------------------------------------
-    VALIDAR MONTO
+    VALIDAR MONTO (Limpieza de separadores de miles)
     -----------------------------------------------------
     */
 
-    elseif ($monto === "") {
+    elseif ($monto_raw === "") {
 
         $mensajeError = "El monto es obligatorio.";
     }
 
-    elseif (!is_numeric($monto)) {
+    else {
+        // Limpiamos puntos y comas de miles para evaluar el número limpio
+        $monto_limpio = str_replace(['.', ','], '', $monto_raw);
 
-        $mensajeError = "El monto debe ser un valor numérico.";
-    }
+        if (!is_numeric($monto_limpio)) {
 
-    elseif ((float) $monto <= 0) {
+            $mensajeError = "El monto debe ser un valor numérico.";
+        }
 
-        $mensajeError = "El monto debe ser mayor que cero.";
+        elseif ((float) $monto_limpio <= 0) {
+
+            $mensajeError = "El monto debe ser mayor que cero.";
+        }
+        
+        else {
+            $monto = (float) $monto_limpio;
+        }
     }
 
 
@@ -212,7 +221,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     -----------------------------------------------------
     */
 
-    elseif ($metodo_pago === "") {
+    if ($mensajeError === "" && $metodo_pago === "") {
 
         $mensajeError = "Selecciona un método de pago.";
     }
@@ -225,6 +234,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     */
 
     elseif (
+        $mensajeError === "" &&
         !in_array(
             $metodo_pago,
             [
@@ -326,7 +336,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     ':concepto' => $concepto,
 
-                    ':monto' => (float) $monto,
+                    ':monto' => $monto,
 
                     ':metodo_pago' => $metodo_pago,
 
@@ -345,16 +355,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 AUDITORÍA
                 =========================================
                 */
-
-                /*
-                 * Intentamos registrar la modificación
-                 * utilizando la función de auditoría
-                 * existente.
-                 *
-                 * Si la función disponible en tu sistema
-                 * utiliza otra firma, el registro principal
-                 * ya habrá sido actualizado correctamente.
-                 */
 
                 if (function_exists('registrar_auditoria')) {
 
@@ -453,7 +453,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $concepto = $egreso['concepto'];
 
-    $monto = $egreso['monto'];
+    // Si viene de la BD numérico, lo formateamos con separadores de miles para que el input lo muestre ordenado
+    $monto = is_numeric($egreso['monto']) ? number_format($egreso['monto'], 0, '', '.') : $egreso['monto'];
 
     $metodo_pago = $egreso['metodo_pago'];
 
@@ -599,7 +600,7 @@ include("../../../template/header_modulos.php");
                 <span class="fw-bold">
 
                     $<?= number_format(
-                        (float) $monto,
+                        (float) str_replace(['.', ','], ['', '.'], $monto),
                         2,
                         '.',
                         ','
@@ -623,6 +624,7 @@ include("../../../template/header_modulos.php");
             <form
                 method="POST"
                 action="editar_egreso.php?id=<?= $id ?>"
+                autocomplete="off"
             >
 
 
@@ -750,7 +752,7 @@ include("../../../template/header_modulos.php");
 
 
                     <!-- =================================
-                         MONTO
+                         MONTO (Con formato de miles)
                          ================================= -->
 
                     <div class="col-md-6">
@@ -775,13 +777,13 @@ include("../../../template/header_modulos.php");
                             </span>
 
                             <input
-                                type="number"
+                                type="text"
                                 id="monto"
                                 name="monto"
                                 class="form-control"
-                                min="0.01"
-                                step="0.01"
+                                inputmode="numeric"
                                 value="<?= htmlspecialchars($monto) ?>"
+                                placeholder="0"
                                 required
                             >
 
@@ -928,6 +930,48 @@ include("../../../template/header_modulos.php");
 
 
 </div>
+
+
+<!-- Script para formatear los miles en tiempo real en el input de Monto -->
+<script>
+document.addEventListener(
+    'DOMContentLoaded',
+    function () {
+        const montoInput = document.getElementById('monto');
+
+        function formatearMiles(numero) {
+            if (isNaN(numero)) return '';
+            return Number(numero).toLocaleString('es-CO');
+        }
+
+        if (montoInput && montoInput.value) {
+            let limpio = montoInput.value.replace(/\D/g, '');
+            if (limpio) {
+                montoInput.value = formatearMiles(limpio);
+            }
+        }
+
+        if (montoInput) {
+            montoInput.addEventListener('input', function (e) {
+                let cursorPosition = e.target.selectionStart;
+                let originalLength = e.target.value.length;
+
+                let limpio = e.target.value.replace(/\D/g, '');
+
+                if (limpio !== '') {
+                    e.target.value = formatearMiles(limpio);
+                } else {
+                    e.target.value = '';
+                }
+
+                let newLength = e.target.value.length;
+                cursorPosition = cursorPosition + (newLength - originalLength);
+                e.target.setSelectionRange(cursorPosition, cursorPosition);
+            });
+        }
+    }
+);
+</script>
 
 
 <?php
