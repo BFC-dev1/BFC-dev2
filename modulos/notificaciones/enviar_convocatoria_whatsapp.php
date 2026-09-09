@@ -18,6 +18,7 @@ FUNCIONES:
 6. Obtener el media_id.
 7. Enviar el template bellavista_convocatoria.
 8. Eliminar inmediatamente el archivo temporal.
+9. Devolver información detallada del proceso.
 
 IMPORTANTE:
 
@@ -56,6 +57,25 @@ function enviarConvocatoriaWhatsApp(
 
     /*
     =====================================================
+    VARIABLES DE CONFIGURACIÓN
+
+    Las variables fueron declaradas en:
+
+        config_whatsapp.php
+
+    Como están fuera de esta función, debemos
+    importarlas explícitamente mediante global.
+    =====================================================
+    */
+
+    global
+        $whatsapp_token,
+        $whatsapp_api_url,
+        $whatsapp_timeout;
+
+
+    /*
+    =====================================================
     VALIDAR TOKEN
     =====================================================
     */
@@ -66,12 +86,37 @@ function enviarConvocatoriaWhatsApp(
     ) {
 
         return [
-            'ok' => false,
-            'http_code' => 0,
-            'error' => 'No existe el token de WhatsApp.',
-            'respuesta' => null,
-            'respuesta_raw' => null,
-            'media_id' => null
+
+            'ok' =>
+                false,
+
+            'http_code' =>
+                0,
+
+            'error' =>
+                'No existe el token de WhatsApp.',
+
+            'respuesta' =>
+                null,
+
+            'respuesta_raw' =>
+                null,
+
+            'media_id' =>
+                null,
+
+            'http_media' =>
+                0,
+
+            'error_media' =>
+                'No se pudo iniciar la operación porque no existe el token.',
+
+            'respuesta_media' =>
+                null,
+
+            'respuesta_media_raw' =>
+                null
+
         ];
     }
 
@@ -88,12 +133,37 @@ function enviarConvocatoriaWhatsApp(
     ) {
 
         return [
-            'ok' => false,
-            'http_code' => 0,
-            'error' => 'No existe la URL de WhatsApp Cloud API.',
-            'respuesta' => null,
-            'respuesta_raw' => null,
-            'media_id' => null
+
+            'ok' =>
+                false,
+
+            'http_code' =>
+                0,
+
+            'error' =>
+                'No existe la URL de WhatsApp Cloud API.',
+
+            'respuesta' =>
+                null,
+
+            'respuesta_raw' =>
+                null,
+
+            'media_id' =>
+                null,
+
+            'http_media' =>
+                0,
+
+            'error_media' =>
+                'No existe la URL de WhatsApp Cloud API.',
+
+            'respuesta_media' =>
+                null,
+
+            'respuesta_media_raw' =>
+                null
+
         ];
     }
 
@@ -143,12 +213,37 @@ function enviarConvocatoriaWhatsApp(
     if ($numero === '') {
 
         return [
-            'ok' => false,
-            'http_code' => 0,
-            'error' => 'Número de WhatsApp vacío.',
-            'respuesta' => null,
-            'respuesta_raw' => null,
-            'media_id' => null
+
+            'ok' =>
+                false,
+
+            'http_code' =>
+                0,
+
+            'error' =>
+                'Número de WhatsApp vacío.',
+
+            'respuesta' =>
+                null,
+
+            'respuesta_raw' =>
+                null,
+
+            'media_id' =>
+                null,
+
+            'http_media' =>
+                0,
+
+            'error_media' =>
+                null,
+
+            'respuesta_media' =>
+                null,
+
+            'respuesta_media_raw' =>
+                null
+
         ];
     }
 
@@ -165,33 +260,86 @@ function enviarConvocatoriaWhatsApp(
     ) {
 
         return [
-            'ok' => false,
-            'http_code' => 0,
-            'error' => 'El PDF recibido no es válido.',
-            'respuesta' => null,
-            'respuesta_raw' => null,
-            'media_id' => null
+
+            'ok' =>
+                false,
+
+            'http_code' =>
+                0,
+
+            'error' =>
+                'El PDF recibido no es válido.',
+
+            'respuesta' =>
+                null,
+
+            'respuesta_raw' =>
+                null,
+
+            'media_id' =>
+                null,
+
+            'http_media' =>
+                0,
+
+            'error_media' =>
+                'El PDF recibido no es válido.',
+
+            'respuesta_media' =>
+                null,
+
+            'respuesta_media_raw' =>
+                null
+
         ];
     }
 
 
-/*
-=========================================================
-VALIDAR PARÁMETROS DEL TEMPLATE
-=========================================================
-*/
+    /*
+    =====================================================
+    VALIDAR PARÁMETROS DEL TEMPLATE
+    =====================================================
+    */
 
-if (count($parametros) !== 6) {
+    if (
+        count($parametros) !== 6
+    ) {
 
-    return [
-        'ok' => false,
-        'http_code' => 0,
-        'error' => 'La plantilla bellavista_convocatoria requiere exactamente 6 parámetros.',
-        'respuesta' => null,
-        'respuesta_raw' => null,
-        'media_id' => null
-    ];
-}
+        return [
+
+            'ok' =>
+                false,
+
+            'http_code' =>
+                0,
+
+            'error' =>
+                'La plantilla bellavista_convocatoria requiere exactamente 6 parámetros.',
+
+            'respuesta' =>
+                null,
+
+            'respuesta_raw' =>
+                null,
+
+            'media_id' =>
+                null,
+
+            'http_media' =>
+                0,
+
+            'error_media' =>
+                'Cantidad incorrecta de parámetros.',
+
+            'respuesta_media' =>
+                null,
+
+            'respuesta_media_raw' =>
+                null
+
+        ];
+    }
+
 
     /*
     =====================================================
@@ -199,13 +347,18 @@ if (count($parametros) !== 6) {
     =====================================================
     */
 
-    $nombre_pdf = trim(
-        (string) $nombre_pdf
-    );
+    $nombre_pdf =
+        trim(
+            (string) $nombre_pdf
+        );
 
-    if ($nombre_pdf === '') {
 
-        $nombre_pdf = 'convocatoria.pdf';
+    if (
+        $nombre_pdf === ''
+    ) {
+
+        $nombre_pdf =
+            'convocatoria.pdf';
     }
 
 
@@ -223,10 +376,11 @@ if (count($parametros) !== 6) {
     =====================================================
     */
 
-    $archivo_temporal = tempnam(
-        sys_get_temp_dir(),
-        'bfc_conv_'
-    );
+    $archivo_temporal =
+        tempnam(
+            sys_get_temp_dir(),
+            'bfc_conv_'
+        );
 
 
     /*
@@ -235,15 +389,42 @@ if (count($parametros) !== 6) {
     =====================================================
     */
 
-    if ($archivo_temporal === false) {
+    if (
+        $archivo_temporal === false
+    ) {
 
         return [
-            'ok' => false,
-            'http_code' => 0,
-            'error' => 'No fue posible crear el archivo temporal.',
-            'respuesta' => null,
-            'respuesta_raw' => null,
-            'media_id' => null
+
+            'ok' =>
+                false,
+
+            'http_code' =>
+                0,
+
+            'error' =>
+                'No fue posible crear el archivo temporal.',
+
+            'respuesta' =>
+                null,
+
+            'respuesta_raw' =>
+                null,
+
+            'media_id' =>
+                null,
+
+            'http_media' =>
+                0,
+
+            'error_media' =>
+                'No fue posible crear el archivo temporal.',
+
+            'respuesta_media' =>
+                null,
+
+            'respuesta_media_raw' =>
+                null
+
         ];
     }
 
@@ -254,10 +435,11 @@ if (count($parametros) !== 6) {
     =====================================================
     */
 
-    $resultado_archivo = file_put_contents(
-        $archivo_temporal,
-        $pdf
-    );
+    $resultado_archivo =
+        file_put_contents(
+            $archivo_temporal,
+            $pdf
+        );
 
 
     /*
@@ -266,19 +448,46 @@ if (count($parametros) !== 6) {
     =====================================================
     */
 
-    if ($resultado_archivo === false) {
+    if (
+        $resultado_archivo === false
+    ) {
 
         @unlink(
             $archivo_temporal
         );
 
         return [
-            'ok' => false,
-            'http_code' => 0,
-            'error' => 'No fue posible preparar el PDF.',
-            'respuesta' => null,
-            'respuesta_raw' => null,
-            'media_id' => null
+
+            'ok' =>
+                false,
+
+            'http_code' =>
+                0,
+
+            'error' =>
+                'No fue posible preparar el PDF.',
+
+            'respuesta' =>
+                null,
+
+            'respuesta_raw' =>
+                null,
+
+            'media_id' =>
+                null,
+
+            'http_media' =>
+                0,
+
+            'error_media' =>
+                'No fue posible preparar el PDF.',
+
+            'respuesta_media' =>
+                null,
+
+            'respuesta_media_raw' =>
+                null
+
         ];
     }
 
@@ -301,14 +510,15 @@ if (count($parametros) !== 6) {
     =====================================================
     */
 
-    $url_media = preg_replace(
-        '/\/messages\/?$/',
-        '/media',
-        rtrim(
-            $whatsapp_api_url,
-            '/'
-        )
-    );
+    $url_media =
+        preg_replace(
+            '/\/messages\/?$/',
+            '/media',
+            rtrim(
+                $whatsapp_api_url,
+                '/'
+            )
+        );
 
 
     /*
@@ -317,11 +527,12 @@ if (count($parametros) !== 6) {
     =====================================================
     */
 
-    $archivo_curl = curl_file_create(
-        $archivo_temporal,
-        'application/pdf',
-        $nombre_pdf
-    );
+    $archivo_curl =
+        curl_file_create(
+            $archivo_temporal,
+            'application/pdf',
+            $nombre_pdf
+        );
 
 
     /*
@@ -337,6 +548,7 @@ if (count($parametros) !== 6) {
 
         'file' =>
             $archivo_curl
+
     ];
 
 
@@ -346,9 +558,10 @@ if (count($parametros) !== 6) {
     =====================================================
     */
 
-    $ch = curl_init(
-        $url_media
-    );
+    $ch =
+        curl_init(
+            $url_media
+        );
 
 
     curl_setopt_array(
@@ -384,9 +597,10 @@ if (count($parametros) !== 6) {
     =====================================================
     */
 
-    $respuesta_media = curl_exec(
-        $ch
-    );
+    $respuesta_media =
+        curl_exec(
+            $ch
+        );
 
 
     /*
@@ -395,15 +609,17 @@ if (count($parametros) !== 6) {
     =====================================================
     */
 
-    $http_media = curl_getinfo(
-        $ch,
-        CURLINFO_HTTP_CODE
-    );
+    $http_media =
+        curl_getinfo(
+            $ch,
+            CURLINFO_HTTP_CODE
+        );
 
 
-    $error_curl_media = curl_error(
-        $ch
-    );
+    $error_curl_media =
+        curl_error(
+            $ch
+        );
 
 
     /*
@@ -437,10 +653,22 @@ if (count($parametros) !== 6) {
     =====================================================
     */
 
-    $datos_media = json_decode(
-        $respuesta_media,
-        true
-    );
+    $datos_media =
+        json_decode(
+            $respuesta_media,
+            true
+        );
+
+
+    /*
+    =====================================================
+    OBTENER ERROR DE MEDIA
+    =====================================================
+    */
+
+    $error_meta_media =
+        $datos_media['error']['message']
+        ?? null;
 
 
     /*
@@ -458,8 +686,14 @@ if (count($parametros) !== 6) {
     ) {
 
         return [
-            'ok' => false,
 
+            'ok' =>
+                false,
+
+            /*
+             * Para mantener compatibilidad
+             * con el diagnóstico existente.
+             */
             'http_code' =>
                 $http_media,
 
@@ -467,8 +701,9 @@ if (count($parametros) !== 6) {
                 $error_curl_media !== ''
                     ? $error_curl_media
                     : (
-                        $datos_media['error']['message']
-                        ?? 'No fue posible subir el PDF a WhatsApp.'
+                        $error_meta_media
+                        ??
+                        'No fue posible subir el PDF a WhatsApp.'
                     ),
 
             'respuesta' =>
@@ -478,7 +713,30 @@ if (count($parametros) !== 6) {
                 $respuesta_media,
 
             'media_id' =>
-                null
+                null,
+
+            /*
+             * Información específica
+             * de la operación MEDIA.
+             */
+            'http_media' =>
+                $http_media,
+
+            'error_media' =>
+                $error_curl_media !== ''
+                    ? $error_curl_media
+                    : (
+                        $error_meta_media
+                        ??
+                        'No fue posible subir el PDF a WhatsApp.'
+                    ),
+
+            'respuesta_media' =>
+                $datos_media,
+
+            'respuesta_media_raw' =>
+                $respuesta_media
+
         ];
     }
 
@@ -626,7 +884,7 @@ if (count($parametros) !== 6) {
         'template' => [
 
             'name' =>
-    'bellavista_convocatoria',
+                'bellavista_convocatoria',
 
             'language' => [
 
@@ -647,8 +905,6 @@ if (count($parametros) !== 6) {
     =====================================================
     URL DE ENVÍO
 
-    IMPORTANTE:
-
     Se utiliza directamente:
 
         $whatsapp_api_url
@@ -656,21 +912,13 @@ if (count($parametros) !== 6) {
     proveniente de:
 
         config_whatsapp.php
-
-    NO se utiliza:
-
-        $phone_number_id
-
-    NO se utiliza:
-
-        $whatsapp_access_token
-
     =====================================================
     */
 
-    $ch = curl_init(
-        $whatsapp_api_url
-    );
+    $ch =
+        curl_init(
+            $whatsapp_api_url
+        );
 
 
     /*
@@ -678,6 +926,61 @@ if (count($parametros) !== 6) {
     CONFIGURAR CURL - ENVÍO DEL TEMPLATE
     =====================================================
     */
+
+    $json_mensaje =
+        json_encode(
+            $mensaje,
+            JSON_UNESCAPED_UNICODE
+        );
+
+
+    /*
+    =====================================================
+    VALIDAR JSON
+    =====================================================
+    */
+
+    if (
+        $json_mensaje === false
+    ) {
+
+        return [
+
+            'ok' =>
+                false,
+
+            'http_code' =>
+                0,
+
+            'error' =>
+                'No fue posible convertir el mensaje de convocatoria a JSON.',
+
+            'respuesta' =>
+                null,
+
+            'respuesta_raw' =>
+                null,
+
+            'media_id' =>
+                $media_id,
+
+            'http_media' =>
+                $http_media,
+
+            'error_media' =>
+                $error_curl_media !== ''
+                    ? $error_curl_media
+                    : $error_meta_media,
+
+            'respuesta_media' =>
+                $datos_media,
+
+            'respuesta_media_raw' =>
+                $respuesta_media
+
+        ];
+    }
+
 
     curl_setopt_array(
         $ch,
@@ -687,10 +990,7 @@ if (count($parametros) !== 6) {
                 true,
 
             CURLOPT_POSTFIELDS =>
-                json_encode(
-                    $mensaje,
-                    JSON_UNESCAPED_UNICODE
-                ),
+                $json_mensaje,
 
             CURLOPT_HTTPHEADER => [
 
@@ -717,9 +1017,10 @@ if (count($parametros) !== 6) {
     =====================================================
     */
 
-    $respuesta = curl_exec(
-        $ch
-    );
+    $respuesta =
+        curl_exec(
+            $ch
+        );
 
 
     /*
@@ -728,10 +1029,11 @@ if (count($parametros) !== 6) {
     =====================================================
     */
 
-    $http_code = curl_getinfo(
-        $ch,
-        CURLINFO_HTTP_CODE
-    );
+    $http_code =
+        curl_getinfo(
+            $ch,
+            CURLINFO_HTTP_CODE
+        );
 
 
     /*
@@ -740,9 +1042,10 @@ if (count($parametros) !== 6) {
     =====================================================
     */
 
-    $error_curl = curl_error(
-        $ch
-    );
+    $error_curl =
+        curl_error(
+            $ch
+        );
 
 
     /*
@@ -762,10 +1065,11 @@ if (count($parametros) !== 6) {
     =====================================================
     */
 
-    $datos_respuesta = json_decode(
-        $respuesta,
-        true
-    );
+    $datos_respuesta =
+        json_decode(
+            $respuesta,
+            true
+        );
 
 
     /*
@@ -775,8 +1079,10 @@ if (count($parametros) !== 6) {
     */
 
     $ok = (
+
         $http_code >= 200 &&
         $http_code < 300
+
     );
 
 
@@ -793,22 +1099,44 @@ if (count($parametros) !== 6) {
 
     /*
     =====================================================
-    DEVOLVER RESULTADO
+    ERROR FINAL
+    =====================================================
+    */
+
+    $error_final =
+        $error_curl !== ''
+            ? $error_curl
+            : $error_meta;
+
+
+    /*
+    =====================================================
+    DEVOLVER RESULTADO COMPLETO
     =====================================================
     */
 
     return [
 
+        /*
+        -------------------------------------------------
+        RESULTADO GENERAL
+        -------------------------------------------------
+        */
+
         'ok' =>
             $ok,
+
+        /*
+        -------------------------------------------------
+        ENVÍO DEL TEMPLATE
+        -------------------------------------------------
+        */
 
         'http_code' =>
             $http_code,
 
         'error' =>
-            $error_curl !== ''
-                ? $error_curl
-                : $error_meta,
+            $error_final,
 
         'respuesta' =>
             $datos_respuesta,
@@ -816,8 +1144,47 @@ if (count($parametros) !== 6) {
         'respuesta_raw' =>
             $respuesta,
 
+        /*
+        -------------------------------------------------
+        MEDIA
+        -------------------------------------------------
+        */
+
         'media_id' =>
-            $media_id
+            $media_id,
+
+        'http_media' =>
+            $http_media,
+
+        'error_media' =>
+            $error_curl_media !== ''
+                ? $error_curl_media
+                : $error_meta_media,
+
+        'respuesta_media' =>
+            $datos_media,
+
+        'respuesta_media_raw' =>
+            $respuesta_media,
+
+        /*
+        -------------------------------------------------
+        INFORMACIÓN ADICIONAL
+        -------------------------------------------------
+        */
+
+        'numero' =>
+            $numero,
+
+        'nombre_pdf' =>
+            $nombre_pdf
 
     ];
 }
+
+
+/*
+=========================================================
+FIN DEL ARCHIVO
+=========================================================
+*/
