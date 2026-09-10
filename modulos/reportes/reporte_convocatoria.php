@@ -69,7 +69,7 @@ Por ahora debe permanecer TRUE.
 =================================================
 */
 
-$modo_diagnostico = true;
+$modo_diagnostico = false;
 
 
 /*
@@ -232,6 +232,51 @@ FUNCIÓN ESCAPAR HTML
 
 function escaparHtml($texto)
 {
+    /*
+    =================================================
+    CONVERTIR ARRAYS A JSON
+    =================================================
+
+    Algunas respuestas de la API de Meta llegan
+    como arrays.
+
+    htmlspecialchars() necesita recibir texto,
+    por eso convertimos los arrays a JSON antes
+    de mostrarlos en el diagnóstico.
+    =================================================
+    */
+
+    if (is_array($texto)) {
+
+        $texto = json_encode(
+            $texto,
+            JSON_PRETTY_PRINT |
+            JSON_UNESCAPED_UNICODE |
+            JSON_UNESCAPED_SLASHES
+        );
+
+    }
+
+
+    /*
+    =================================================
+    PROTEGER CONTRA VALORES NULL
+    =================================================
+    */
+
+    if ($texto === null) {
+
+        $texto = '';
+
+    }
+
+
+    /*
+    =================================================
+    ESCAPAR HTML
+    =================================================
+    */
+
     return htmlspecialchars(
         (string)$texto,
         ENT_QUOTES,
@@ -374,7 +419,7 @@ $html = '
 <style>
 
 body {
-    font-family: DejaVu Sans, sans-serif;
+    font-family: Arial, sans-serif;
     font-size: 10px;
     color: #222;
 }

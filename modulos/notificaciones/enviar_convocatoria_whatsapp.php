@@ -376,11 +376,109 @@ function enviarConvocatoriaWhatsApp(
     =====================================================
     */
 
-    $archivo_temporal =
-        tempnam(
-            sys_get_temp_dir(),
-            'bfc_conv_'
-        );
+/*
+=====================================================
+CREAR ARCHIVO TEMPORAL
+
+InfinityFree puede impedir la escritura en:
+
+    sys_get_temp_dir()
+
+Por eso utilizamos una carpeta temporal
+perteneciente al propio proyecto.
+
+La carpeta debe existir en:
+
+    /modulos/financiero/comprobantes_pago/
+    comprobantes/tmp/
+
+El archivo se elimina después de subir
+el PDF a Meta.
+=====================================================
+*/
+
+$directorio_temporal =
+    __DIR__ .
+    "/../financiero/comprobantes_pago/comprobantes/tmp";
+
+
+/*
+=====================================================
+VERIFICAR DIRECTORIO TEMPORAL
+=====================================================
+*/
+
+if (
+    !is_dir($directorio_temporal)
+) {
+
+    @mkdir(
+        $directorio_temporal,
+        0755,
+        true
+    );
+}
+
+
+/*
+=====================================================
+VERIFICAR QUE EL DIRECTORIO SEA ESCRIBIBLE
+=====================================================
+*/
+
+if (
+    !is_dir($directorio_temporal) ||
+    !is_writable($directorio_temporal)
+) {
+
+    return [
+
+        'ok' =>
+            false,
+
+        'http_code' =>
+            0,
+
+        'error' =>
+            'La carpeta temporal no existe o no tiene permisos de escritura.',
+
+        'respuesta' =>
+            null,
+
+        'respuesta_raw' =>
+            null,
+
+        'media_id' =>
+            null,
+
+        'http_media' =>
+            0,
+
+        'error_media' =>
+            'No se puede escribir en: ' .
+            $directorio_temporal,
+
+        'respuesta_media' =>
+            null,
+
+        'respuesta_media_raw' =>
+            null
+
+    ];
+}
+
+
+/*
+=====================================================
+CREAR ARCHIVO TEMPORAL
+=====================================================
+*/
+
+$archivo_temporal =
+    tempnam(
+        $directorio_temporal,
+        'bfc_conv_'
+    );
 
 
     /*
@@ -884,7 +982,7 @@ function enviarConvocatoriaWhatsApp(
         'template' => [
 
             'name' =>
-                'bellavista_convocatoria',
+                'bellavista_convocatoria_pdf',
 
             'language' => [
 
