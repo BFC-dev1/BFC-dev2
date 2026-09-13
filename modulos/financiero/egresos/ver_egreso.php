@@ -1,5 +1,4 @@
 <?php
-
 /*
 =========================================================
 VER EGRESO FINANCIERO
@@ -137,6 +136,46 @@ if (!$egreso) {
 
 /*
 =========================================================
+5.1. CONSULTAR ASISTENCIAS LIGADAS (SI ES PAGO DE ENTRENADORES)
+=========================================================
+*/
+
+$asistencias_pagadas = [];
+$nombre_entrenador = '';
+
+function normalizarTextoLocal($texto) {
+    $originales  = 'ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ';
+    $modificadas = 'AAAAAAACEEEEIIIIDNOOOOOOUUUUYDsaaaaaaaceeeeiiiidnoooooouuuuuyhy';
+    $texto = utf8_decode($texto);
+    $texto = strtr($texto, utf8_decode($originales), $modificadas);
+    return strtolower(utf8_encode($texto));
+}
+
+if (normalizarTextoLocal($egreso['categoria']) === normalizarTextoLocal('Pago de entrenadores')) {
+    $sql_asist = "
+        SELECT 
+            a.fecha, 
+            a.hora_entrada, 
+            a.hora_salida, 
+            a.horas_trabajadas,
+            u.nombre AS entrenador_nombre
+        FROM asistencia_entrenador a
+        INNER JOIN usuario u ON a.usuario_id = u.id
+        WHERE a.egreso_id = ?
+        ORDER BY a.fecha DESC
+    ";
+    $stmt_asist = $conexion->prepare($sql_asist);
+    $stmt_asist->execute([$id]);
+    $asistencias_pagadas = $stmt_asist->fetchAll(PDO::FETCH_ASSOC);
+
+    if (!empty($asistencias_pagadas)) {
+        $nombre_entrenador = $asistencias_pagadas[0]['entrenador_nombre'];
+    }
+}
+
+
+/*
+=========================================================
 6. DATOS DEL HEADER
 =========================================================
 */
@@ -250,7 +289,7 @@ include("../../../template/header_modulos.php");
          TARJETA PRINCIPAL
          ================================================= -->
 
-    <div class="card shadow-sm border-0">
+    <div class="card shadow-sm border-0 mb-4">
 
 
         <!-- =============================================
@@ -397,11 +436,6 @@ include("../../../template/header_modulos.php");
                     <div class="border rounded p-3 bg-light">
 
                         <?php
-
-                        /*
-                         * Mostramos el método de pago
-                         * con una etiqueta visual.
-                         */
 
                         $metodo = strtolower(
                             trim($egreso['metodo_pago'] ?? '')
@@ -625,7 +659,8 @@ include("../../../template/header_modulos.php");
 
                     <small class="text-muted">
 
-                        <strong>
+                        <strong
+>
 
                             Última actualización:
 
@@ -655,4 +690,57 @@ include("../../../template/header_modulos.php");
     </div>
 
 
+    <!-- =================================================
+         SECCIÓN DINÁMICA: ASISTENCIAS PAGADAS DE ENTRENADOR
+         ================================================= -->
+    <?php if (normalizarTextoLocal($egreso['categoria']) === normalizarTextoLocal('Pago de entrenadores')): ?>
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-primary text-white">
+                <i class="fa-solid fa-user-check me-2"></i> Entrenador Beneficiario y Asistencias Cubiertas
+            </div>
+            <div class="card-body">
+                <?php if (!empty($nombre_entrenador)): ?>
+                    <p class="mb-3"><strong>Entrenador:</strong> <span class="badge bg-dark fs-6"><?= htmlspecialchars($nombre_entrenador) ?></span></p>
+                <?php endif; ?>
+
+                <?php if (!empty($asistencias_pagadas)): ?>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered table-striped text-center align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Fecha de Asistencia</th>
+                                    <th>Entrada / Salida</th>
+                                    <th>Horas Trabajadas</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($asistencias_pagadas as $asist): ?>
+                                    <tr>
+                                        <td class="fw-bold"><?= date('d/m/Y', strtotime($asist['fecha'])) ?></td>
+                                        <td><?= $asist['hora_entrada'] ?> - <?= $asist['hora_salida'] ?></td>
+                                        <td><span class="badge bg-success"><?= number_format($asist['horas_trabajadas'], 2) ?> hrs</span></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php else: ?>
+                    <div class="alert alert-warning mb-0">
+                        <i class="fa-solid fa-triangle-exclamation me-2"></i> Este egreso está categorizado como "Pago de entrenadores", pero no tiene asistencias asociadas directamente (o fueron desvinculadas).
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    <?php endif; ?>
+
+
 </div>
+
+<?php 
+/*
+=========================================================
+8. CARGAR FOOTER DEL MÓDULO
+=========================================================
+*/
+include("../../../template/footer_modulos.php");
+?>

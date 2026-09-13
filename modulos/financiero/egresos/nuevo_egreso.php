@@ -222,6 +222,18 @@ $modulo_actual = 'Financiero';
 $submodulo_actual = 'Egresos';
 
 
+// Obtener entrenadores activos usando la misma lógica robusta del módulo de asistencias
+$stmt_ent = $conexion->prepare("
+    SELECT u.id, u.nombre 
+    FROM usuario u
+    INNER JOIN rol r ON u.rol_id = r.id
+    WHERE LOWER(r.nombre) = 'entrenador' AND u.estado = 'activo'
+    ORDER BY u.nombre ASC
+");
+$stmt_ent->execute();
+$entrenadores = $stmt_ent->fetchAll(PDO::FETCH_ASSOC);
+
+
 /*
  * Cargamos el header general.
  */
@@ -404,6 +416,7 @@ include("../../../template/header_modulos.php");
                         name="categoria"
                         class="form-select"
                         required
+                        onchange="toggleSeccionEntrenador()"
                     >
 
                         <option value="">
@@ -439,6 +452,35 @@ include("../../../template/header_modulos.php");
 
                 </div>
 
+            </div>
+
+
+            <!-- =================================================
+                 SECCIÓN DINÁMICA: PAGO DE ENTRENADORES
+                 ================================================= -->
+            <div class="card bg-light border-0 shadow-sm mt-4 d-none" id="seccionEntrenador">
+                <div class="card-body">
+                    <h6 class="fw-bold text-primary mb-3">
+                        <i class="fa-solid fa-user-check me-2"></i>Detalle de Asistencias a Pagar
+                    </h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="selectEntrenador" class="form-label fw-bold">Seleccionar Entrenador:</label>
+                            <select id="selectEntrenador" name="entrenador_id" class="form-select" data-url="<?= $url_base ?>/modulos/asistencia_entrenadores/obtener_asistencias_pendientes.php" onchange="cargarAsistenciasPendientes()">
+                                <option value="">-- Seleccione un entrenador --</option>
+                                <?php foreach($entrenadores as $ent): ?>
+                                    <option value="<?= $ent['id'] ?>"><?= htmlspecialchars($ent['nombre']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Seleccione las asistencias a incluir en este egreso:</label>
+                            <div id="contenedorAsistencias" class="table-responsive bg-white border rounded p-3" style="max-height: 250px; overflow-y: auto;">
+                                <span class="text-muted">Seleccione un entrenador para consultar sus asistencias pendientes...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
 
@@ -742,6 +784,86 @@ document.addEventListener(
         });
     }
 );
+
+function toggleSeccionEntrenador() {
+    let cat = document.getElementById("categoria").value;
+    let sec = document.getElementById("seccionEntrenador");
+    if (cat === 'Pago de entrenadores') {
+        sec.classList.remove("d-none");
+    } else {
+        sec.classList.add("d-none");
+        document.getElementById("selectEntrenador").value = "";
+        document.getElementById("contenedorAsistencias").innerHTML = '<span class="text-muted">Seleccione un entrenador para consultar sus asistencias pendientes...</span>';
+    }
+}
+
+// Inyectamos la URL base desde la configuración general de PHP
+const URL_BASE = "<?= $url_base ?>";
+
+function cargarAsistenciasPendientes() {
+    let select = document.getElementById("selectEntrenador");
+    let entrenador_id = select.value;
+    let contenedor = document.getElementById("contenedorAsistencias");
+
+    if (!entrenador_id) {
+        contenedor.innerHTML = '<span class="text-muted">Seleccione un entrenador para consultar sus asistencias pendientes...</span>';
+        return;
+    }
+
+    contenedor.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Cargando asistencias pendientes...';
+
+    // Construcción dinámica adaptable tanto para local (XAMPP) como para producción (Web)
+    let urlEndpoint = `${window.location.origin}${URL_BASE}/modulos/entrenador/obtener_asistencias_pendientes.php?usuario_id=${entrenador_id}`;
+
+    fetch(urlEndpoint)
+    .then(res => res.json())
+    .then(res => {
+        if (res.status === 'ok') {
+            if (res.data.length === 0) {
+                contenedor.innerHTML = '<span class="text-success fw-bold"><i class="fa-solid fa-circle-check me-1"></i>Este entrenador no tiene asistencias pendientes de pago.</span>';
+                return;
+            }
+
+            let html = `
+                <table class="table table-sm table-hover align-middle text-center mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th><input type="checkbox" onchange="seleccionarTodos(this)"></th>
+                            <th>Fecha</th>
+                            <th>Entrada / Salida</th>
+                            <th>Horas</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+            res.data.forEach(row => {
+                html += `
+                    <tr>
+                        <td><input type="checkbox" name="asistencias_ids[]" value="${row.id}" class="check-asistencia"></td>
+                        <td class="fw-bold">${row.fecha_formateada}</td>
+                        <td>${row.hora_entrada ? row.hora_entrada : '--'} - ${row.hora_salida ? row.hora_salida : '--'}</td>
+                        <td><span class="badge bg-primary px-2">${parseFloat(row.horas_trabajadas || 0).toFixed(2)} hrs</span></td>
+                    </tr>`;
+            });
+
+            html += `</tbody></table>`;
+            contenedor.innerHTML = html;
+        } else {
+            contenedor.innerHTML = `<span class="text-danger">${res.mensaje}</span>`;
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        contenedor.innerHTML = '<span class="text-danger">Error de comunicación al consultar asistencias.</span>';
+    });
+}
+
+function seleccionarTodos(source) {
+    let checkboxes = document.getElementsByName('asistencias_ids[]');
+    for (let i = 0; i < checkboxes.length; i++) {
+        checkboxes[i].checked = source.checked;
+    }
+}
 </script>
 
 

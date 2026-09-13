@@ -6,222 +6,73 @@ MÓDULO FINANCIERO - EGRESOS
 SISTEMA: BELLAVISTA FC
 ARCHIVO: guardar_egreso.php
 =========================================================
-
-RESPONSABILIDADES:
-
-- Verificar sesión y permisos.
-- Recibir los datos enviados por nuevo_egreso.php.
-- Validar la información.
-- Validar categoría.
-- Validar método de pago.
-- Insertar el egreso en egresos_financieros.
-- Guardar el usuario que realizó el registro.
-- Registrar la operación en auditoría.
-- Redirigir al listado de egresos.
-
-TABLA:
-
-egresos_financieros
-=========================================================
-*/
-
-
-/*
-=========================================================
-1. CONFIGURACIÓN Y PERMISOS
-=========================================================
 */
 
 require_once("../../../includes/verificar_roles.php");
 require_once("../../../includes/config.php");
 
-
-/*
----------------------------------------------------------
-VALIDAR PERMISO DE GESTIÓN DE EGRESOS
----------------------------------------------------------
-*/
-
 if (!tiene_permiso('egresos')) {
-
     header("Location: " . $url_base . "/index.php");
-
     exit;
 }
-
-
-/*
-=========================================================
-2. AUDITORÍA
-=========================================================
-*/
 
 include("../../../modulos/auditoria/funciones/registrar_auditoria.php");
-
-
-/*
-=========================================================
-3. CONEXIÓN A BASE DE DATOS
-=========================================================
-*/
-
 include("../../../modulos/conexion_modulos.php");
 
-
-/*
-=========================================================
-4. VERIFICAR MÉTODO HTTP
-=========================================================
-*/
-
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-
     header("Location: index.php");
-
     exit;
 }
-
-
-/*
-=========================================================
-5. RECIBIR DATOS DEL FORMULARIO
-=========================================================
-*/
 
 $fecha = trim($_POST['fecha'] ?? '');
-
 $categoria = trim($_POST['categoria'] ?? '');
-
 $concepto = trim($_POST['concepto'] ?? '');
-
 $monto_raw = trim($_POST['monto'] ?? '');
-// Elimina los puntos o comas de miles que envía el formulario con formato
 $monto = str_replace(['.', ','], '', $monto_raw);
-
 $metodo_pago = trim($_POST['metodo_pago'] ?? '');
-
 $observacion = trim($_POST['observacion'] ?? '');
-
-
-/*
-=========================================================
-6. CATEGORÍAS PERMITIDAS
-=========================================================
-
-Las categorías pertenecen directamente al campo
-"categoria" de egresos_financieros.
-
-NO se utiliza una tabla categoria_egreso.
-=========================================================
-*/
+$asistencias_ids = $_POST['asistencias_ids'] ?? [];
 
 $categorias_permitidas = [
-
     'Pago de deportistas',
-
     'Pago de entrenadores',
-
     'Pago de administración',
-
     'Compra de balones',
-
     'Compra de implementos deportivos',
-
     'Compra de uniformes',
-
     'Transporte',
-
     'Alimentación',
-
     'Mantenimiento',
-
     'Servicios públicos',
-
     'Arriendo',
-
     'Publicidad y comunicaciones',
-
     'Inscripciones y competencias',
-
     'Gastos médicos',
-
     'Papelería y suministros',
-
     'Otros gastos'
-
 ];
-
-
-/*
-=========================================================
-7. MÉTODOS DE PAGO PERMITIDOS
-=========================================================
-*/
 
 $metodos_pago_permitidos = [
-
     'Efectivo',
-
     'Transferencia bancaria',
-
     'Nequi',
-
     'Daviplata',
-
     'PSE',
-
     'Tarjeta débito',
-
     'Tarjeta crédito',
-
     'Cheque'
-
 ];
 
-
-/*
-=========================================================
-8. VALIDAR CAMPOS OBLIGATORIOS
-=========================================================
-*/
-
-if (
-    empty($fecha) ||
-    empty($categoria) ||
-    empty($concepto) ||
-    empty($monto) ||
-    empty($metodo_pago)
-) {
-
+if (empty($fecha) || empty($categoria) || empty($concepto) || empty($monto) || empty($metodo_pago)) {
     header("Location: nuevo_egreso.php?error=campos");
-
     exit;
 }
-
-
-/*
-=========================================================
-9. VALIDAR FECHA
-=========================================================
-*/
 
 $fecha_objeto = DateTime::createFromFormat('Y-m-d', $fecha);
-
-if (
-    !$fecha_objeto ||
-    $fecha_objeto->format('Y-m-d') !== $fecha
-) {
-
+if (!$fecha_objeto || $fecha_objeto->format('Y-m-d') !== $fecha) {
     header("Location: nuevo_egreso.php?error=fecha");
-
     exit;
 }
-
-/*
-=========================================================
-10. VALIDAR CATEGORÍA (Con normalización de tildes)
-=========================================================
-*/
 
 function normalizarTexto($texto) {
     $originales  = 'ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ';
@@ -240,114 +91,32 @@ foreach ($categorias_permitidas as $cat_permitida) {
 }
 
 if (!$categoria_valida) {
-
     header("Location: nuevo_egreso.php?error=categoria");
-
     exit;
 }
-
-
-/*
-=========================================================
-11. VALIDAR MÉTODO DE PAGO
-=========================================================
-*/
 
 if (!in_array($metodo_pago, $metodos_pago_permitidos, true)) {
-
     header("Location: nuevo_egreso.php?error=metodo");
-
     exit;
 }
-
-
-/*
-=========================================================
-12. VALIDAR CONCEPTO
-=========================================================
-*/
 
 if (mb_strlen($concepto) > 255) {
-
     header("Location: nuevo_egreso.php?error=concepto");
-
     exit;
 }
 
-
-/*
-=========================================================
-13. VALIDAR MONTO
-=========================================================
-*/
-
-if (
-    !is_numeric($monto) ||
-    (float)$monto <= 0
-) {
-
+if (!is_numeric($monto) || (float)$monto <= 0) {
     header("Location: nuevo_egreso.php?error=monto");
-
     exit;
 }
 
-
-/*
-=========================================================
-14. NORMALIZAR MONTO
-=========================================================
-*/
-
-$monto = number_format(
-    (float)$monto,
-    2,
-    '.',
-    ''
-);
-
-
-/*
-=========================================================
-15. USUARIO QUE REALIZA EL REGISTRO
-=========================================================
-
-El sistema actual utiliza:
-
-$_SESSION['id']
-
-para identificar al usuario que realiza
-la operación financiera.
-=========================================================
-*/
-
+$monto = number_format((float)$monto, 2, '.', '');
 $usuario_id = $_SESSION['id'] ?? null;
 
-
-/*
-=========================================================
-16. INSERTAR EGRESO
-=========================================================
-*/
-
 try {
-
-    /*
-    -----------------------------------------------------
-    INICIAR TRANSACCIÓN
-    -----------------------------------------------------
-    */
-
     $conexion->beginTransaction();
 
-
-    /*
-    -----------------------------------------------------
-    INSERTAR EN egresos_financieros
-    -----------------------------------------------------
-    */
-
     $stmt = $conexion->prepare("
-
         INSERT INTO egresos_financieros
         (
             fecha,
@@ -358,7 +127,6 @@ try {
             observacion,
             usuario_id
         )
-
         VALUES
         (
             :fecha,
@@ -369,202 +137,63 @@ try {
             :observacion,
             :usuario_id
         )
-
     ");
 
-
-    /*
-    -----------------------------------------------------
-    EJECUTAR INSERT
-    -----------------------------------------------------
-    */
-
     $stmt->execute([
-
-        ':fecha' =>
-            $fecha,
-
-        ':categoria' =>
-            $categoria,
-
-        ':concepto' =>
-            $concepto,
-
-        ':monto' =>
-            $monto,
-
-        ':metodo_pago' =>
-            $metodo_pago,
-
-        ':observacion' =>
-            !empty($observacion)
-                ? $observacion
-                : null,
-
-        ':usuario_id' =>
-            $usuario_id
-
+        ':fecha' => $fecha,
+        ':categoria' => $categoria,
+        ':concepto' => $concepto,
+        ':monto' => $monto,
+        ':metodo_pago' => $metodo_pago,
+        ':observacion' => !empty($observacion) ? $observacion : null,
+        ':usuario_id' => $usuario_id
     ]);
-
-
-    /*
-    =====================================================
-    17. OBTENER ID DEL EGRESO
-    =====================================================
-    */
 
     $egreso_id = $conexion->lastInsertId();
 
+    if (normalizarTexto($categoria) === normalizarTexto('Pago de entrenadores') && !empty($asistencias_ids)) {
+        $stmt_update_asistencia = $conexion->prepare("
+            UPDATE asistencia_entrenador 
+            SET pagado = 1, egreso_id = ? 
+            WHERE id = ?
+        ");
 
-    /*
-    =====================================================
-    18. PREPARAR AUDITORÍA
-    =====================================================
-    */
+        foreach ($asistencias_ids as $asistencia_id) {
+            $stmt_update_asistencia->execute([$egreso_id, $asistencia_id]);
+        }
+    }
 
     $cambios = [
-
-        'fecha' => [
-
-            'antes' => null,
-
-            'despues' => $fecha
-
-        ],
-
-        'categoria' => [
-
-            'antes' => null,
-
-            'despues' => $categoria
-
-        ],
-
-        'concepto' => [
-
-            'antes' => null,
-
-            'despues' => $concepto
-
-        ],
-
-        'monto' => [
-
-            'antes' => null,
-
-            'despues' => $monto
-
-        ],
-
-        'metodo_pago' => [
-
-            'antes' => null,
-
-            'despues' => $metodo_pago
-
-        ],
-
-        'observacion' => [
-
-            'antes' => null,
-
-            'despues' => $observacion
-
-        ],
-
-        'usuario_id' => [
-
-            'antes' => null,
-
-            'despues' => $usuario_id
-
-        ]
-
+        'fecha' => ['antes' => null, 'despues' => $fecha],
+        'categoria' => ['antes' => null, 'despues' => $categoria],
+        'concepto' => ['antes' => null, 'despues' => $concepto],
+        'monto' => ['antes' => null, 'despues' => $monto],
+        'metodo_pago' => ['antes' => null, 'despues' => $metodo_pago],
+        'observacion' => ['antes' => null, 'despues' => $observacion],
+        'usuario_id' => ['antes' => null, 'despues' => $usuario_id]
     ];
 
-
-    /*
-    =====================================================
-    19. REGISTRAR AUDITORÍA
-    =====================================================
-    */
-
     registrarAuditoria(
-
         $conexion,
-
         'egresos_financieros',
-
         $egreso_id,
-
         'CREAR',
-
         $cambios,
-
         'Registro de egreso financiero: ' . $concepto
-
     );
-
-
-    /*
-    =====================================================
-    20. CONFIRMAR TRANSACCIÓN
-    =====================================================
-    */
 
     $conexion->commit();
 
-
-    /*
-    =====================================================
-    21. REDIRECCIÓN
-    =====================================================
-    */
-
-    header(
-        "Location: index.php?registrado=1"
-    );
-
+    header("Location: index.php?registrado=1");
     exit;
 
-
-}
-
-
-/*
-=========================================================
-22. MANEJO DE ERRORES
-=========================================================
-*/
-
-catch (Exception $e) {
-
-
-    /*
-    -----------------------------------------------------
-    SI LA TRANSACCIÓN SIGUE ABIERTA, DESHACER CAMBIOS
-    -----------------------------------------------------
-    */
-
+} catch (Exception $e) {
     if ($conexion->inTransaction()) {
-
         $conexion->rollBack();
-
     }
-
-
-    /*
-    -----------------------------------------------------
-    REGRESAR AL FORMULARIO
-    -----------------------------------------------------
-    */
-
-    header(
-        "Location: nuevo_egreso.php?error=guardar"
-    );
-
+    
+    // Mostramos el mensaje exacto para detectar cualquier posible detalle
+    echo "Error detallado en base de datos: " . $e->getMessage();
     exit;
-
 }
-
 ?>
