@@ -21,16 +21,32 @@ $menu_modulo = [];
 
 include("../../template/header_modulos.php");
 
-$fecha_inicio  = $_GET['fecha_inicio'] ?? date('Y-m-01');
-$fecha_fin     = $_GET['fecha_fin'] ?? date('Y-m-t'); 
-$entrenador_id = $_GET['entrenador_id'] ?? '';
+$fecha_inicio = $_GET['fecha_inicio'] ?? date('Y-m-01');
+$fecha_fin    = $_GET['fecha_fin'] ?? date('Y-m-t');
+
+/*
+=========================================================
+IDENTIFICAR USUARIO Y ROL ACTUAL
+=========================================================
+*/
+
+$usuario_actual_id = $_SESSION['id_usuario'] ?? $_SESSION['id'] ?? 0;
+$rol_actual_id     = $_SESSION['rol_id'] ?? 0;
+
+/*
+=========================================================
+FILTRO DE ENTRENADOR
+=========================================================
+- Si es entrenador (rol 3), solo ve su propio reporte.
+- Si es administrador, ve a todos los entrenadores del sistema sin restricciones.
+*/
 
 $sql_entrenador = "";
 $params = [$fecha_inicio, $fecha_fin];
 
-if (!empty($entrenador_id)) {
+if ($rol_actual_id == 3) {
     $sql_entrenador = " AND u.id = ? ";
-    $params[] = $entrenador_id;
+    $params[] = $usuario_actual_id;
 }
 
 // Agrupamos por u.id para evitar duplicados en la tabla principal
@@ -50,16 +66,6 @@ $stmt = $conexion->prepare("
 ");
 $stmt->execute($params);
 $reporte = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-$stmt_e = $conexion->query("
-    SELECT u.id, u.nombre 
-    FROM usuario u
-    INNER JOIN rol r ON u.rol_id = r.id
-    WHERE LOWER(r.nombre) = 'entrenador' AND u.estado = 'activo'
-    GROUP BY u.id
-    ORDER BY u.nombre ASC
-");
-$lista_entrenadores = $stmt_e->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <div class="usuarios-toolbar mb-4">
@@ -77,26 +83,15 @@ $lista_entrenadores = $stmt_e->fetchAll(PDO::FETCH_ASSOC);
 <div class="card mb-4 shadow-sm">
     <div class="card-body">
         <form method="GET" action="reporte_entrenadores.php" class="row g-3 align-items-end">
-            <div class="col-12 col-md-3">
+            <div class="col-12 col-md-4">
                 <label class="form-label fw-bold">Fecha Inicio:</label>
                 <input type="date" id="fecha_inicio" name="fecha_inicio" class="form-control" value="<?= htmlspecialchars($fecha_inicio) ?>">
             </div>
-            <div class="col-12 col-md-3">
+            <div class="col-12 col-md-4">
                 <label class="form-label fw-bold">Fecha Fin:</label>
                 <input type="date" id="fecha_fin" name="fecha_fin" class="form-control" value="<?= htmlspecialchars($fecha_fin) ?>">
             </div>
-            <div class="col-12 col-md-3">
-                <label class="form-label fw-bold">Entrenador:</label>
-                <select name="entrenador_id" class="form-select">
-                    <option value="">-- Todos los Entrenadores --</option>
-                    <?php foreach($lista_entrenadores as $e): ?>
-                        <option value="<?= $e['id'] ?>" <?= $entrenador_id == $e['id'] ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($e['nombre']) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="col-12 col-md-3 d-flex gap-2">
+            <div class="col-12 col-md-4 d-flex gap-2">
                 <button type="submit" class="btn btn-primary w-100">
                     <i class="fa-solid fa-filter"></i> Filtrar
                 </button>
@@ -228,7 +223,6 @@ function verDetalle(usuario_id, nombre) {
                 else if (item.estado === 'abierta') badgeClass = 'bg-info text-dark';
                 else if (item.estado === 'ausente') badgeClass = 'bg-danger';
 
-                // Definir etiqueta visual para el pago
                 let badgePago = (item.pagado == 1) 
                     ? '<span class="badge bg-success">Pagado</span>' 
                     : '<span class="badge bg-warning text-dark">Pendiente</span>';
