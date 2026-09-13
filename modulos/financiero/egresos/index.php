@@ -1075,15 +1075,14 @@ include("../../../template/header_modulos.php");
 
                             </td>
 
-
 <!-- ==================================
      ACCIONES
      ================================== -->
-<td class="text-center">
+<td>
 
     <?php if (tiene_permiso('egresos')): ?>
 
-        <div class="d-flex justify-content-center align-items-center gap-1">
+        <div class="d-flex justify-content-center align-items-center gap-1 flex-nowrap">
 
             <!-- ==========================================
                  VER EGRESO
@@ -1093,10 +1092,8 @@ include("../../../template/header_modulos.php");
                 class="btn btn-sm btn-outline-secondary"
                 title="Ver detalle del egreso"
             >
-                <i class="fa-solid fa-eye"></i>
-                <span class="d-none d-lg-inline ms-1">
-                    Ver
-                </span>
+                <i class="fa-solid fa-eye me-1"></i>
+                Ver
             </a>
 
 
@@ -1108,10 +1105,8 @@ include("../../../template/header_modulos.php");
                 class="btn btn-sm btn-outline-primary"
                 title="Editar egreso"
             >
-                <i class="fa-solid fa-pen"></i>
-                <span class="d-none d-lg-inline ms-1">
-                    Editar
-                </span>
+                <i class="fa-solid fa-pen me-1"></i>
+                Editar
             </a>
 
 
@@ -1122,24 +1117,16 @@ include("../../../template/header_modulos.php");
                 href="eliminar_egreso.php?id=<?= (int) $e['id'] ?>"
                 class="btn btn-sm btn-outline-danger"
                 title="Eliminar egreso"
-                onclick="return confirm(
-                    '¿Estás seguro de eliminar este egreso?'
-                );"
+                onclick="return confirm('¿Está seguro de eliminar este egreso?');"
             >
-                <i class="fa-solid fa-trash"></i>
-                <span class="d-none d-lg-inline ms-1">
-                    Eliminar
-                </span>
+                <i class="fa-solid fa-trash me-1"></i>
+                Eliminar
             </a>
 
         </div>
 
-
     <?php else: ?>
 
-        <!-- ==========================================
-             USUARIO SIN PERMISO DE GESTIÓN
-             ========================================== -->
         <span class="badge bg-secondary">
             Solo lectura
         </span>

@@ -126,9 +126,9 @@ $nombre_usuario_sesion = $_SESSION['usuario'] ?? $_SESSION['user'] ?? $_SESSION[
                     <button class="btn btn-primary btn-sm" title="Guardar Cambios" onclick="guardar(<?= $id ?>)">
                         <i class="fa-solid fa-floppy-disk"></i> Guardar
                     </button>
-                    <button class="btn btn-danger btn-sm" title="Eliminar Registro" onclick="limpiar(<?= $id ?>)">
-                        <i class="fa-solid fa-trash"></i>
-                    </button>
+<button class="btn btn-danger btn-sm" title="Eliminar Registro" onclick="limpiar(<?= $id ?>)">
+    <i class="fa-solid fa-trash me-1"></i> Eliminar
+</button>
                 </div>
             </td>
         </tr>
