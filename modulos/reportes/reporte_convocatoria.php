@@ -74,16 +74,45 @@ $modo_diagnostico = false;
 
 /*
 =================================================
-VALIDAR MÉTODO
+VALIDAR MÉTODO (SOPORTE POST Y GET PARA APK)
 =================================================
 */
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    $fecha = trim($_POST['fecha'] ?? '');
+    $rival = trim($_POST['rival'] ?? '');
+    $hora  = trim($_POST['hora'] ?? '');
+    $lugar = trim($_POST['lugar'] ?? '');
+    $notas = trim($_POST['notas'] ?? '');
+
+    $categoria_id = $_POST['categoria_id']
+        ?? ($_SESSION['convocatoria_categoria_id'] ?? '');
+
+    /* GUARDAR DATOS EN SESIÓN PARA PERMITIR DESCARGAS POSTERIORES */
+    $_SESSION['convocatoria_fecha'] = $fecha;
+    $_SESSION['convocatoria_rival'] = $rival;
+    $_SESSION['convocatoria_hora']  = $hora;
+    $_SESSION['convocatoria_lugar'] = $lugar;
+    $_SESSION['convocatoria_notas'] = $notas;
+    $_SESSION['convocatoria_categoria_id'] = $categoria_id;
+
+} else if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_SESSION['convocatoria_fecha'])) {
+
+    /* SI VIENE POR GET (DESCARGA APK/NAVEGADOR), USAMOS LA SESIÓN EXISTENTE */
+    $fecha = $_SESSION['convocatoria_fecha'];
+    $rival = $_SESSION['convocatoria_rival'];
+    $hora  = $_SESSION['convocatoria_hora'];
+    $lugar = $_SESSION['convocatoria_lugar'];
+    $notas = $_SESSION['convocatoria_notas'];
+    $categoria_id = $_SESSION['convocatoria_categoria_id'];
+
+} else {
 
     http_response_code(405);
 
     echo "<h2>Acceso no permitido</h2>";
-    echo "<p>Este archivo debe ejecutarse mediante POST.</p>";
+    echo "<p>Este archivo debe ejecutarse mediante POST o contar con una sesión activa.</p>";
 
     exit;
 }
@@ -109,36 +138,6 @@ if (empty($deportistas)) {
 
     exit;
 }
-
-
-/*
-=================================================
-DATOS DE LA CONVOCATORIA
-=================================================
-*/
-
-$fecha = trim($_POST['fecha'] ?? '');
-$rival = trim($_POST['rival'] ?? '');
-$hora  = trim($_POST['hora'] ?? '');
-$lugar = trim($_POST['lugar'] ?? '');
-$notas = trim($_POST['notas'] ?? '');
-
-$categoria_id = $_POST['categoria_id']
-    ?? ($_SESSION['convocatoria_categoria_id'] ?? '');
-
-
-/*
-=================================================
-GUARDAR DATOS EN SESIÓN
-=================================================
-*/
-
-$_SESSION['convocatoria_fecha'] = $fecha;
-$_SESSION['convocatoria_rival'] = $rival;
-$_SESSION['convocatoria_hora']  = $hora;
-$_SESSION['convocatoria_lugar'] = $lugar;
-$_SESSION['convocatoria_notas'] = $notas;
-$_SESSION['convocatoria_categoria_id'] = $categoria_id;
 
 
 /*
@@ -232,20 +231,6 @@ FUNCIÓN ESCAPAR HTML
 
 function escaparHtml($texto)
 {
-    /*
-    =================================================
-    CONVERTIR ARRAYS A JSON
-    =================================================
-
-    Algunas respuestas de la API de Meta llegan
-    como arrays.
-
-    htmlspecialchars() necesita recibir texto,
-    por eso convertimos los arrays a JSON antes
-    de mostrarlos en el diagnóstico.
-    =================================================
-    */
-
     if (is_array($texto)) {
 
         $texto = json_encode(
@@ -257,25 +242,11 @@ function escaparHtml($texto)
 
     }
 
-
-    /*
-    =================================================
-    PROTEGER CONTRA VALORES NULL
-    =================================================
-    */
-
     if ($texto === null) {
 
         $texto = '';
 
     }
-
-
-    /*
-    =================================================
-    ESCAPAR HTML
-    =================================================
-    */
 
     return htmlspecialchars(
         (string)$texto,
@@ -695,7 +666,7 @@ $nombre_pdf =
 
 /*
 =================================================
-ENVIAR WHATSAPP
+ENVIAR WHATSAPP (SOLO SI SE ENVÍA POR POST)
 =================================================
 */
 
@@ -705,232 +676,182 @@ $total_intentos = 0;
 $total_exitosos = 0;
 $total_fallidos = 0;
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-foreach ($deportistas as $indice => $deportista) {
+    foreach ($deportistas as $indice => $deportista) {
 
-
-    /*
-    =============================================
-    DATOS DEL JUGADOR
-    =============================================
-    */
-
-    $nombre_deportista = trim(
-        $deportista['nombre']
-        ?? $deportista['nombre_completo']
-        ?? $deportista['deportista']
-        ?? ''
-    );
+        $nombre_deportista = trim(
+            $deportista['nombre']
+            ?? $deportista['nombre_completo']
+            ?? $deportista['deportista']
+            ?? ''
+        );
 
 
-    $telefono = trim(
-        $deportista['telefono']
-        ?? $deportista['celular']
-        ?? $deportista['telefono_acudiente']
-        ?? ''
-    );
+        $telefono = trim(
+            $deportista['telefono']
+            ?? $deportista['celular']
+            ?? $deportista['telefono_acudiente']
+            ?? ''
+        );
 
 
-    $categoria_jugador = trim(
-        $deportista['categoria_nombre']
-        ?? $deportista['categoria']
-        ?? ''
-    );
+        $categoria_jugador = trim(
+            $deportista['categoria_nombre']
+            ?? $deportista['categoria']
+            ?? ''
+        );
 
 
-    /*
-    =============================================
-    VALIDAR TELÉFONO
-    =============================================
-    */
+        if ($telefono === '') {
 
-    if ($telefono === '') {
+            $resultados_whatsapp[$indice] = [
+
+                'nombre' => $nombre_deportista,
+
+                'telefono' => '',
+
+                'ok' => false,
+
+                'http_code' => 0,
+
+                'error' => 'El deportista no tiene teléfono.',
+
+                'respuesta' => null,
+
+                'respuesta_raw' => null,
+
+                'http_media' => 0,
+
+                'error_media' => null,
+
+                'respuesta_media' => null,
+
+                'respuesta_media_raw' => null,
+
+                'media_id' => null
+            ];
+
+
+            $total_intentos++;
+            $total_fallidos++;
+
+            continue;
+        }
+
+
+        $parametros_whatsapp = [
+
+            $nombre_deportista,
+
+            $rival,
+
+            $fecha_formateada,
+
+            $hora_formateada,
+
+            $lugar,
+
+            $categoria_jugador
+        ];
+
+
+        $resultado = enviarConvocatoriaWhatsApp(
+
+            $telefono,
+
+            $parametros_whatsapp,
+
+            $pdf_generado,
+
+            $nombre_pdf
+
+        );
+
+
+        $resultado_ok = $resultado['ok'] ?? false;
+
 
         $resultados_whatsapp[$indice] = [
 
-            'nombre' => $nombre_deportista,
+            'nombre' =>
+                $nombre_deportista,
 
-            'telefono' => '',
+            'telefono' =>
+                $telefono,
 
-            'ok' => false,
+            'ok' =>
+                $resultado_ok,
 
-            'http_code' => 0,
+            'http_code' =>
+                $resultado['http_code'] ?? 0,
 
-            'error' => 'El deportista no tiene teléfono.',
+            'error' =>
+                $resultado['error'] ?? null,
 
-            'respuesta' => null,
+            'respuesta' =>
+                $resultado['respuesta'] ?? null,
 
-            'respuesta_raw' => null,
+            'respuesta_raw' =>
+                $resultado['respuesta_raw'] ?? null,
 
-            'http_media' => 0,
+            'http_media' =>
+                $resultado['http_media'] ?? 0,
 
-            'error_media' => null,
+            'error_media' =>
+                $resultado['error_media'] ?? null,
 
-            'respuesta_media' => null,
+            'respuesta_media' =>
+                $resultado['respuesta_media'] ?? null,
 
-            'respuesta_media_raw' => null,
+            'respuesta_media_raw' =>
+                $resultado['respuesta_media_raw'] ?? null,
 
-            'media_id' => null
+            'media_id' =>
+                $resultado['media_id'] ?? null
         ];
 
 
         $total_intentos++;
-        $total_fallidos++;
 
-        continue;
+
+        if ($resultado_ok) {
+
+            $total_exitosos++;
+
+        } else {
+
+            $total_fallidos++;
+        }
     }
 
 
-    /*
-    =============================================
-    PARÁMETROS DE LA PLANTILLA
-    =============================================
+    /* GUARDAR RESULTADOS EN SESIÓN */
 
-    Orden esperado:
+    $_SESSION['resultados_whatsapp_convocatoria']
+        = $resultados_whatsapp;
 
-    1. Nombre jugador
-    2. Rival
-    3. Fecha
-    4. Hora
-    5. Lugar
-    6. Categoría
-    =============================================
-    */
 
-    $parametros_whatsapp = [
+    $_SESSION['resumen_whatsapp_convocatoria'] = [
 
-        $nombre_deportista,
+        'total_intentos' =>
+            $total_intentos,
 
-        $rival,
+        'total_exitosos' =>
+            $total_exitosos,
 
-        $fecha_formateada,
+        'total_fallidos' =>
+            $total_fallidos,
 
-        $hora_formateada,
-
-        $lugar,
-
-        $categoria_jugador
+        'nombre_pdf' =>
+            $nombre_pdf
     ];
-
-
-    /*
-    =============================================
-    ENVIAR
-    =============================================
-    */
-
-    $resultado = enviarConvocatoriaWhatsApp(
-
-        $telefono,
-
-        $parametros_whatsapp,
-
-        $pdf_generado,
-
-        $nombre_pdf
-
-    );
-
-
-    /*
-    =============================================
-    GUARDAR RESULTADO COMPLETO
-    =============================================
-    */
-
-    $resultado_ok = $resultado['ok'] ?? false;
-
-
-    $resultados_whatsapp[$indice] = [
-
-        'nombre' =>
-            $nombre_deportista,
-
-        'telefono' =>
-            $telefono,
-
-        'ok' =>
-            $resultado_ok,
-
-        'http_code' =>
-            $resultado['http_code'] ?? 0,
-
-        'error' =>
-            $resultado['error'] ?? null,
-
-        'respuesta' =>
-            $resultado['respuesta'] ?? null,
-
-        'respuesta_raw' =>
-            $resultado['respuesta_raw'] ?? null,
-
-        'http_media' =>
-            $resultado['http_media'] ?? 0,
-
-        'error_media' =>
-            $resultado['error_media'] ?? null,
-
-        'respuesta_media' =>
-            $resultado['respuesta_media'] ?? null,
-
-        'respuesta_media_raw' =>
-            $resultado['respuesta_media_raw'] ?? null,
-
-        'media_id' =>
-            $resultado['media_id'] ?? null
-    ];
-
-
-    $total_intentos++;
-
-
-    if ($resultado_ok) {
-
-        $total_exitosos++;
-
-    } else {
-
-        $total_fallidos++;
-    }
 }
 
 
 /*
 =================================================
-GUARDAR RESULTADOS EN SESIÓN
-=================================================
-*/
-
-$_SESSION['resultados_whatsapp_convocatoria']
-    = $resultados_whatsapp;
-
-
-$_SESSION['resumen_whatsapp_convocatoria'] = [
-
-    'total_intentos' =>
-        $total_intentos,
-
-    'total_exitosos' =>
-        $total_exitosos,
-
-    'total_fallidos' =>
-        $total_fallidos,
-
-    'nombre_pdf' =>
-        $nombre_pdf
-];
-
-
-/*
-=================================================
 MODO DIAGNÓSTICO
-=================================================
-
-IMPORTANTE:
-
-Durante esta prueba NO descargamos el PDF.
-
-Mostramos toda la información devuelta por Meta.
 =================================================
 */
 
@@ -1747,17 +1668,6 @@ if ($modo_diagnostico === true) {
 /*
 =================================================
 DESCARGA NORMAL DEL PDF
-=================================================
-
-ESTA PARTE NO SE EJECUTA MIENTRAS:
-
-$modo_diagnostico = true
-
-Cuando terminemos las pruebas, cambiaremos:
-
-$modo_diagnostico = false;
-
-y volverá a descargar el PDF.
 =================================================
 */
 
