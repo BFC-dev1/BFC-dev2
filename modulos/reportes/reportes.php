@@ -335,86 +335,80 @@ if (!in_array($tipo, $tiposPermitidos, true)) {
 
 <!-- =========================================================
      REPORTE DE ASISTENCIAS
-
-     Esta sección solamente aparece cuando:
-
-     reportes.php?tipo=asistencias
 ========================================================= -->
 
 <?php if ($tipo === 'asistencias'): ?>
 
 <div class="card border-0 rounded-4 p-4 shadow-sm">
 
-        <h5 class="fw-bold mb-3">
-            <i class="fa-solid fa-calendar-check me-2 text-warning"></i>
-            Asistencias
-        </h5>
+    <h5 class="fw-bold mb-3">
+        <i class="fa-solid fa-calendar-check me-2 text-warning"></i>
+        Asistencias
+    </h5>
 
-        <p class="text-muted mb-4">
-            Genera reportes filtrados por fecha y categoría.
-        </p>
+    <p class="text-muted mb-4">
+        Genera reportes filtrados por rango de fechas y categoría.
+    </p>
 
-        <form method="GET" action="export_asistencias.php" class="row g-3">
+    <form method="GET" action="export_asistencias.php" class="row g-3">
 
-            <!-- FECHA -->
-            <div class="col-md-4">
+        <!-- FECHA INICIO -->
+        <div class="col-md-3">
+            <label class="fw-semibold mb-2">
+                Fecha Inicio
+            </label>
+            <input 
+                type="date" 
+                name="fecha_inicio" 
+                class="form-control rounded-3" 
+                value="<?= date('Y-m-01'); ?>"
+                required
+            >
+        </div>
 
-                <label class="fw-semibold mb-2">
-                    Fecha
-                </label>
+        <!-- FECHA FIN -->
+        <div class="col-md-3">
+            <label class="fw-semibold mb-2">
+                Fecha Fin
+            </label>
+            <input 
+                type="date" 
+                name="fecha_fin" 
+                class="form-control rounded-3" 
+                value="<?= date('Y-m-d'); ?>"
+                required
+            >
+        </div>
 
-                <input 
-                    type="date" 
-                    name="fecha" 
-                    class="form-control rounded-3" 
-                    required
-                >
+        <!-- CATEGORIA -->
+        <div class="col-md-3">
+            <label class="fw-semibold mb-2">
+                Categoría
+            </label>
+            <select name="categoria_id" class="form-select rounded-3">
+                <option value="">Todas</option>
+                <?php
+                $cats = $conexion->query("SELECT id, nombre FROM categoria ORDER BY nombre ASC");
+                while($c = $cats->fetch(PDO::FETCH_ASSOC)){
+                    echo "
+                        <option value='{$c['id']}'>
+                            ".htmlspecialchars($c['nombre'])."
+                        </option>
+                    ";
+                }
+                ?>
+            </select>
+        </div>
 
-            </div>
+        <!-- BOTON EXPORTAR -->
+        <div class="col-md-3 d-flex align-items-end">
+            <button type="submit" class="btn btn-success w-100 rounded-pill">
+                <i class="fa-solid fa-file-export me-2"></i>
+                Exportar asistencias
+            </button>
+        </div>
 
-            <!-- CATEGORIA -->
-            <div class="col-md-4">
-
-                <label class="fw-semibold mb-2">
-                    Categoría
-                </label>
-
-                <select name="categoria_id" class="form-control rounded-3">
-
-                    <option value="">Todas</option>
-
-                    <?php
-                    $cats = $conexion->query("SELECT id, nombre FROM categoria");
-
-                    while($c = $cats->fetch(PDO::FETCH_ASSOC)){
-
-                        echo "
-                            <option value='{$c['id']}'>
-                                {$c['nombre']}
-                            </option>
-                        ";
-                    }
-                    ?>
-
-                </select>
-
-            </div>
-
-            <!-- BOTON -->
-            <div class="col-md-4 d-flex align-items-end">
-
-                <button class="btn btn-success w-100 rounded-pill">
-
-                    <i class="fa-solid fa-file-export me-2"></i>
-                    Exportar asistencias
-
-                </button>
-
-            </div>
-
-        </form>
-
-    </div>
+    </form>
 
 </div>
 
