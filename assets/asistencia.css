@@ -1,275 +1,237 @@
-/* ===== CONTENEDOR ===== */
-.container h4 {
-    font-size: 1.5rem;
-}
+/* =========================================================
+   BARRA SUPERIOR Y HERRAMIENTAS
+   ========================================================= */
 
-/* ===== TABLA ===== */
-.table {
-    background: #fff;
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.table th {
-    background-color: #212529;
-    color: white;
-}
-
-.table td,
-.table th {
-    vertical-align: middle;
-}
-
-/* ===== BOTÓN LIMPIAR ===== */
-.btn-outline-secondary {
-    border-radius: 8px;
-    width: 40px;
-    height: 40px;
-}
-
-/* ===== RESPONSIVE ===== */
-@media (max-width: 768px) {
-
-    table thead {
-        display: none;
-    }
-
-    table,
-    table tbody,
-    table tr,
-    table td {
-        display: block;
-        width: 100%;
-    }
-
-    table tr {
-        margin-bottom: 15px;
-        border: 1px solid #ddd;
-        border-radius: 12px;
-        padding: 10px;
-        background: #fff;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-    }
-
-    table td {
-        text-align: left !important;
-        padding: 8px;
-    }
-
-    table td::before {
-        content: attr(data-label);
-        font-weight: bold;
-        display: block;
-        margin-bottom: 5px;
-        color: #555;
-    }
-
-    .btn-outline-secondary {
-        width: 100%;
-        height: auto;
-        padding: 10px;
-    }
-
-}
-
-/* ===== CONTROLES ===== */
-@media (max-width: 768px) {
-    .d-flex {
-        flex-direction: column !important;
-    }
-}
-
-/* ===== AJUSTES MOVIL DASHBOARD ===== */
-
-@media (max-width:768px) {
-
-    body {
-        overflow-x: hidden;
-    }
-
-
-    /* Sidebar cerrado */
-    .sidebar {
-        position: fixed;
-        top: 0;
-        left: 0;
-        height: 100vh;
-        transform: translateX(-100%);
-        transition: .3s ease;
-        z-index: 1000;
-    }
-
-
-    /* Sidebar abierto */
-    .sidebar.active {
-        transform: translateX(0);
-    }
-
-
-    /* Contenido ocupa toda la pantalla */
-    #contenido,
-    .main-content {
-        width: 100% !important;
-        margin-left: 0 !important;
-        padding: 15px;
-    }
-
-
-    /* Tabla asistencia */
-    .table-responsive {
-        width: 100%;
-        overflow-x: auto;
-    }
-
-
-    .table {
-        width: 100%;
-    }
-
-}
-
-/* =================================
-   ICONOS ESTADO ASISTENCIA
-================================= */
-
-.estado-icono {
-    cursor: pointer;
-    display: inline-block;
-    padding: 4px;
-}
-
-.estado-icono input {
-    display: none;
-}
-
-.estado-icono i {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    display: inline-flex;
+.entrenadores-toolbar {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
     align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.entrenadores-acciones {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.entrenadores-busqueda {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.entrenadores-input-busqueda {
+    width: 220px;
+}
+
+/* =========================================================
+   CABECERA DE ENTRENADOR (DESKTOP)
+   ========================================================= */
+
+.cabecera-entrenador-superior {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.entrenador-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.cabecera-entrenador-botones {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+/* INPUTS Y BOTONES DE TABLA DESKTOP */
+.tabla-turnos .input-hora {
+    max-width: 130px;
+    margin: 0 auto;
+}
+
+.tabla-turnos .input-obs {
+    max-width: 220px;
+    margin: 0 auto;
+}
+
+.turnos-botones {
+    display: flex;
     justify-content: center;
-    font-size: 23px;
-    background: #fff;
-    transition: all .2s ease;
+    align-items: center;
+    gap: 6px;
 }
 
-
-/* =================================
-   ESTADOS NORMALES
-================================= */
-
-.estado-presente {
-    color: #198754;
-    border: 2px solid #198754;
-}
-
-.estado-ausente {
-    color: #dc3545;
-    border: 2px solid #dc3545;
-}
-
-.estado-tarde {
-    color: #ffc107;
-    border: 2px solid #ffc107;
-}
-
-
-/* =================================
-   ESTADO SELECCIONADO
-================================= */
-
-/* PRESENTE */
-.estado-icono input:checked+.estado-presente {
-    background: #198754;
-    color: white;
-    border: 3px solid #198754;
-    transform: scale(1.18);
-    box-shadow:
-        0 0 0 4px white,
-        0 0 0 7px #198754;
-}
-
-
-/* AUSENTE */
-.estado-icono input:checked+.estado-ausente {
-    background: #dc3545;
-    color: white;
-    border: 3px solid #dc3545;
-    transform: scale(1.18);
-    box-shadow:
-        0 0 0 4px white,
-        0 0 0 7px #dc3545;
-}
-
-
-/* TARDE */
-.estado-icono input:checked+.estado-tarde {
-    background: #ffc107;
-    color: #111;
-    border: 3px solid #ffc107;
-    transform: scale(1.18);
-    box-shadow:
-        0 0 0 4px white,
-        0 0 0 7px #ffc107;
-}
-
-
-/* =================================
-   LOS NO SELECCIONADOS SE ATENUAN
-================================= */
-
-tr:has(input:checked) .estado-icono i {
-    opacity: .25;
-    transform: scale(.90);
-}
-
-tr:has(input:checked) .estado-icono input:checked+i {
-    opacity: 1;
-    transform: scale(1.18);
-}
-
-
-/* =================================
-   TEXTO DEL ESTADO SELECCIONADO
-================================= */
-
-td:has(input[value="presente"]:checked)::before {
-    color: #198754 !important;
-}
-
-td:has(input[value="ausente"]:checked)::before {
-    color: #dc3545 !important;
-}
-
-td:has(input[value="tarde"]:checked)::before {
-    color: #d39e00 !important;
-}
-
-
-/* =================================
-   HOVER
-================================= */
-
-.estado-icono:hover i {
-    transform: scale(1.08);
-}
-
-
-/* =================================
-   CELULAR
-================================= */
+/* =========================================================
+   RESPONSIVE - CELULARES Y APK (MEDIA QUERY <= 768px)
+   ========================================================= */
 
 @media (max-width: 768px) {
 
-    .estado-icono i {
-        width: 50px;
-        height: 50px;
-        font-size: 24px;
+    /* BARRA SUPERIOR MÓVIL */
+    .entrenadores-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
     }
 
-    tr:has(input:checked) .estado-icono input:checked+i {
-        transform: scale(1.15);
+    .entrenadores-acciones,
+    .entrenadores-busqueda {
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
     }
 
+    .entrenadores-acciones .btn,
+    .entrenadores-input-busqueda {
+        width: 100% !important;
+        min-height: 44px;
+        font-size: 16px;
+    }
+
+    /* CABECERA EN TARJETA MÓVIL */
+    .cabecera-entrenador-superior {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .entrenador-info {
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+
+    .entrenador-horas-resumen {
+        font-size: 15px;
+        margin-top: 4px;
+    }
+
+    .cabecera-entrenador-botones {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 10px !important;
+    }
+
+    .cabecera-entrenador-botones .btn {
+        width: 100%;
+        min-height: 42px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+    }
+
+    /* OCULTAR ENCABEZADO DE LA TABLA */
+    .tabla-turnos thead {
+        display: none !important;
+    }
+
+    /* QUITAR COMPORTAMIENTO NATIVO DE TABLA */
+    .tabla-turnos,
+    .tabla-turnos tbody,
+    .tabla-turnos tr,
+    .tabla-turnos td {
+        display: block !important;
+        width: 100% !important;
+    }
+
+    /* SUBFILAS / TURNOS TRANSFORMADOS EN TARJETAS */
+    .tabla-turnos tbody tr {
+        margin: 12px;
+        padding: 12px;
+        background: #ffffff;
+        border: 1px solid #dee2e6;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    }
+
+    /* CELDAS EN TARJETA DE TURNO */
+    .tabla-turnos tbody td {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 8px 0 !important;
+        border: none !important;
+        border-bottom: 1px solid #eee !important;
+        text-align: right !important;
+    }
+
+    .tabla-turnos tbody td:last-child {
+        border-bottom: none !important;
+    }
+
+    /* ETIQUETA 'data-label' A LA IZQUIERDA */
+    .tabla-turnos tbody td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        text-align: left;
+        flex: 0 0 40%;
+        color: #495057;
+        font-size: 14px;
+    }
+
+    /* CELDA TURNO (TITULO DE LA SUBTARJETA) */
+    .tabla-turnos tbody td.celda-turno {
+        display: block !important;
+        text-align: left !important;
+        font-size: 16px;
+        font-weight: 700;
+        border-bottom: 2px solid #0d6efd !important;
+        padding-bottom: 8px !important;
+    }
+
+    .tabla-turnos tbody td.celda-turno::before {
+        display: none !important;
+    }
+
+    /* CELDAS Y BANDERAS SIN ETIQUETA EXTRA EN ACCIONES */
+    .tabla-turnos tbody td.celda-acciones::before {
+        display: none !important;
+    }
+
+    .tabla-turnos tbody td.celda-acciones {
+        padding-top: 12px !important;
+    }
+
+    /* CONTROLES E INPUTS TÁCTILES EN MÓVIL */
+    .tabla-turnos .input-hora {
+        max-width: 100% !important;
+        width: 140px !important;
+        min-height: 38px;
+        font-size: 15px;
+    }
+
+    .tabla-turnos .input-obs {
+        max-width: 100% !important;
+        width: 180px !important;
+        min-height: 38px;
+        font-size: 14px;
+    }
+
+    /* BOTONES GUARDAR/ELIMINAR OCUPAN EL ANCHO EN MÓVIL */
+    .turnos-botones {
+        width: 100%;
+        display: flex;
+        gap: 8px;
+    }
+
+    .turnos-botones .btn {
+        flex: 1;
+        min-height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+    }
 }

@@ -54,8 +54,8 @@ $stmt = $conexion->prepare("
     SELECT 
         u.id AS usuario_id,
         u.nombre AS entrenador_nombre,
-        COUNT(CASE WHEN a.estado IN ('cerrada', 'abierta') THEN 1 END) AS dias_asistidos,
-        COUNT(CASE WHEN a.estado = 'ausente' THEN 1 END) AS dias_ausentes,
+        COUNT(DISTINCT CASE WHEN a.estado IN ('cerrada', 'abierta') THEN a.fecha END) AS dias_asistidos,
+        COUNT(DISTINCT CASE WHEN a.estado = 'ausente' THEN a.fecha END) AS dias_ausentes,
         IFNULL(SUM(a.horas_trabajadas), 0) AS total_horas
     FROM usuario u
     INNER JOIN rol r ON u.rol_id = r.id

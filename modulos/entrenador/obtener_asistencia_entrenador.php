@@ -8,6 +8,7 @@ $fecha = $_GET['fecha'] ?? date('Y-m-d');
 
 $stmt = $conexion->prepare("
     SELECT 
+        id,
         usuario_id,
         TIME_FORMAT(hora_entrada, '%H:%i') AS hora_entrada,
         TIME_FORMAT(hora_salida, '%H:%i') AS hora_salida,
@@ -16,7 +17,7 @@ $stmt = $conexion->prepare("
         observaciones
     FROM asistencia_entrenador
     WHERE fecha = ?
-    ORDER BY usuario_id ASC
+    ORDER BY usuario_id ASC, id ASC
 ");
 
 $stmt->execute([$fecha]);

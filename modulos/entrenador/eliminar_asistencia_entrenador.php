@@ -12,13 +12,12 @@ include("../conexion_modulos.php");
 
 header('Content-Type: application/json; charset=utf-8');
 
-$usuario_id = $_POST['usuario_id'] ?? null;
-$fecha      = $_POST['fecha'] ?? null;
+$id = $_POST['id'] ?? null;
 
-if (empty($usuario_id) || empty($fecha)) {
+if (empty($id)) {
     echo json_encode([
         "status"  => "error",
-        "mensaje" => "Datos requeridos incompletos."
+        "mensaje" => "ID de registro no proporcionado."
     ], JSON_UNESCAPED_UNICODE);
     exit;
 }
@@ -26,9 +25,9 @@ if (empty($usuario_id) || empty($fecha)) {
 try {
     $stmt = $conexion->prepare("
         DELETE FROM asistencia_entrenador 
-        WHERE usuario_id = ? AND fecha = ?
+        WHERE id = ?
     ");
-    $stmt->execute([$usuario_id, $fecha]);
+    $stmt->execute([$id]);
 
     echo json_encode(["status" => "ok"], JSON_UNESCAPED_UNICODE);
 } catch (PDOException $e) {

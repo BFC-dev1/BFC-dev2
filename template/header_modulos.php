@@ -325,10 +325,10 @@ if (!empty($submodulo_actual)) {
 <link
     rel="stylesheet"
     href="<?= htmlspecialchars(
-        $css_url,
+        $url_base . '/' . $css_base . '/modulos.css',
         ENT_QUOTES,
         'UTF-8'
-    ); ?>/modulos.css"
+    ); ?>"
 >
 
 

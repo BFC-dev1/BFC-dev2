@@ -8,8 +8,9 @@ ARCHIVO: guardar_asistencia_entrenador.php
 
 RESPONSABILIDADES:
 
-- Registrar asistencia de un entrenador.
-- Actualizar una asistencia existente.
+- Registrar una nueva asistencia de un entrenador.
+- Permitir múltiples marcaciones para el mismo entrenador
+  en la misma fecha.
 - Determinar automáticamente el estado:
     - abierta
     - cerrada
@@ -18,6 +19,18 @@ RESPONSABILIDADES:
 - Evitar jornadas con 0 horas.
 - Mantener intacta la información de pago.
 - Permitir que MySQL calcule horas_trabajadas.
+
+IMPORTANTE:
+
+Cada llamada a este archivo CREA una NUEVA marcación.
+
+La edición de una marcación existente se realiza mediante:
+
+    actualizar_asistencia_entrenador.php
+
+La eliminación de una marcación existente se realiza mediante:
+
+    eliminar_asistencia_entrenador.php
 =========================================================
 */
 
@@ -25,6 +38,7 @@ require_once(__DIR__ . "/../../includes/config.php");
 include("../conexion_modulos.php");
 
 header('Content-Type: application/json; charset=utf-8');
+
 
 /*
 =========================================================
@@ -164,12 +178,27 @@ try {
 
     /*
     =====================================================
-    5. GUARDAR / ACTUALIZAR ASISTENCIA
+    5. INSERTAR NUEVA MARCACIÓN
     =====================================================
-    
+
     IMPORTANTE:
 
-    No modificamos:
+    NO utilizamos:
+
+        ON DUPLICATE KEY UPDATE
+
+    porque ahora un entrenador puede tener múltiples
+    registros el mismo día.
+
+    Ejemplo:
+
+        08:00 - 12:00
+        14:00 - 18:00
+        19:00 - 21:00
+
+    Cada período tendrá un ID diferente.
+
+    Tampoco modificamos:
 
         estado_pago
         egreso_id
@@ -178,8 +207,8 @@ try {
     Esos campos serán administrados posteriormente por
     el proceso financiero.
 
-    La columna horas_trabajadas también queda fuera del
-    INSERT porque MySQL la calcula automáticamente.
+    La columna horas_trabajadas queda fuera del INSERT
+    porque MySQL la calcula automáticamente.
     =====================================================
     */
 
@@ -202,13 +231,6 @@ try {
             ?,
             ?
         )
-
-        ON DUPLICATE KEY UPDATE
-
-            hora_entrada  = VALUES(hora_entrada),
-            hora_salida   = VALUES(hora_salida),
-            estado        = VALUES(estado),
-            observaciones = VALUES(observaciones)
     ");
 
     $stmt->execute([
@@ -223,13 +245,24 @@ try {
 
     /*
     =====================================================
-    6. RESPUESTA EXITOSA
+    6. OBTENER ID DE LA NUEVA MARCACIÓN
+    =====================================================
+    */
+
+    $nuevo_id = $conexion->lastInsertId();
+
+
+    /*
+    =====================================================
+    7. RESPUESTA EXITOSA
     =====================================================
     */
 
     echo json_encode([
-        "status"  => "ok",
-        "mensaje" => "Asistencia guardada correctamente."
+        "status"       => "ok",
+        "mensaje"      => "Asistencia guardada correctamente.",
+        "id"           => (int)$nuevo_id,
+        "estado"       => $estado
     ], JSON_UNESCAPED_UNICODE);
 
 
@@ -237,7 +270,7 @@ try {
 
     /*
     =====================================================
-    7. ERROR DE BASE DE DATOS
+    8. ERROR DE BASE DE DATOS
     =====================================================
     */
 
@@ -246,3 +279,4 @@ try {
         "mensaje" => "Error BD: " . $e->getMessage()
     ], JSON_UNESCAPED_UNICODE);
 }
+
