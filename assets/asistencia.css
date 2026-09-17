@@ -1,13 +1,32 @@
 /* =========================================================
-   BARRA SUPERIOR Y HERRAMIENTAS
+   BELLAVISTA FC
+   ASISTENCIA DE ENTRENADORES
+   ARCHIVO: asistencia.css
    ========================================================= */
 
+/* =========================================================
+   1. CONFIGURACIÓN GENERAL
+   ========================================================= */
+html,
+body {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+#contenedor_entrenadores {
+    width: 100%;
+    max-width: 100%;
+}
+
+/* =========================================================
+   2. BARRA SUPERIOR
+   ========================================================= */
 .entrenadores-toolbar {
     width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 15px;
+    gap: 16px;
     margin-bottom: 20px;
 }
 
@@ -24,25 +43,64 @@
     gap: 8px;
 }
 
+.entrenadores-busqueda label {
+    white-space: nowrap;
+}
+
 .entrenadores-input-busqueda {
     width: 220px;
 }
 
+.entrenadores-acciones .btn {
+    min-height: 40px;
+    border-radius: 7px;
+    font-weight: 500;
+}
+
 /* =========================================================
-   CABECERA DE ENTRENADOR (DESKTOP)
+   3. TARJETA PRINCIPAL DEL ENTRENADOR
    ========================================================= */
+#contenedor_entrenadores>.card {
+    width: 100%;
+    border: 1px solid #e1e5e9 !important;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 2px 7px rgba(0, 0, 0, 0.05) !important;
+    margin-bottom: 16px !important;
+}
+
+#contenedor_entrenadores .card-header {
+    background: #212529 !important;
+    color: #ffffff;
+    border-bottom: none;
+    padding: 12px 16px;
+}
 
 .cabecera-entrenador-superior {
+    width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    width: 100%;
+    gap: 16px;
 }
 
 .entrenador-info {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
+    min-width: 0;
+}
+
+.entrenador-nombre {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.entrenador-horas-resumen {
+    font-size: 14px;
+    white-space: nowrap;
 }
 
 .cabecera-entrenador-botones {
@@ -52,15 +110,90 @@
     gap: 8px;
 }
 
-/* INPUTS Y BOTONES DE TABLA DESKTOP */
+.cabecera-entrenador-superior .btn {
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+.entrenador-info .badge {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+
+#contenedor_entrenadores .card-body {
+    background: #ffffff;
+}
+
+/* =========================================================
+   4. TABLA DE TURNOS - ESCRITORIO
+   ========================================================= */
+.tabla-turnos {
+    width: 100%;
+    margin-bottom: 0 !important;
+    vertical-align: middle;
+}
+
+.tabla-turnos thead th {
+    background: #f5f6f7;
+    color: #495057;
+    font-size: 13px;
+    font-weight: 600;
+    border-bottom: 1px solid #dee2e6;
+    padding: 10px 8px;
+    white-space: nowrap;
+}
+
+.tabla-turnos tbody td {
+    padding: 9px 8px;
+    border-bottom: 1px solid #edf0f2;
+    color: #343a40;
+    font-size: 14px;
+}
+
+.tabla-turnos tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.tabla-turnos tbody tr:hover {
+    background: #fafbfc;
+}
+
+.tabla-turnos .celda-turno {
+    font-weight: 600;
+    color: #212529;
+}
+
 .tabla-turnos .input-hora {
+    width: 130px;
     max-width: 130px;
     margin: 0 auto;
+    min-height: 36px;
+    border-radius: 6px;
+    font-size: 14px;
 }
 
 .tabla-turnos .input-obs {
+    width: 220px;
     max-width: 220px;
     margin: 0 auto;
+    min-height: 36px;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.tabla-turnos input:focus,
+.entrenadores-input-busqueda:focus {
+    box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.12);
+}
+
+.tabla-turnos .badge {
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 8px;
+    border-radius: 6px;
 }
 
 .turnos-botones {
@@ -70,74 +203,253 @@
     gap: 6px;
 }
 
-/* =========================================================
-   RESPONSIVE - CELULARES Y APK (MEDIA QUERY <= 768px)
-   ========================================================= */
+.btn-accion-tabla {
+    min-height: 35px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+}
 
+#contenedor_entrenadores .collapse {
+    background: #ffffff;
+}
+
+.tabla-turnos td[colspan] {
+    color: #6c757d;
+    padding: 22px 12px !important;
+    font-size: 14px;
+}
+
+/* =========================================================
+   5. REPORTE Y MODAL DETALLE
+   ========================================================= */
+.reporte-entrenadores-movil {
+    display: none;
+}
+
+.reporte-entrenador-card {
+    border: 1px solid #e1e5e9;
+    border-radius: 10px;
+    background: #ffffff;
+    overflow: hidden;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.reporte-entrenador-card-header {
+    background: #212529;
+    color: #ffffff;
+    padding: 11px 14px;
+}
+
+.reporte-entrenador-card-header .nombre {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.reporte-entrenador-card-body {
+    padding: 14px;
+}
+
+.reporte-dato {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 0;
+    border-bottom: 1px solid #eeeeee;
+}
+
+.reporte-dato:last-child {
+    border-bottom: none;
+}
+
+.reporte-dato-label {
+    font-weight: 600;
+    color: #555555;
+}
+
+.reporte-dato-valor {
+    text-align: right;
+}
+
+.reporte-btn-detalle {
+    width: 100%;
+    margin-top: 12px;
+}
+
+.detalle-asistencia-desktop {
+    display: block;
+}
+
+.detalle-asistencia-movil {
+    display: none;
+}
+
+.detalle-marcacion-card {
+    border: 1px solid #e1e5e9;
+    border-radius: 10px;
+    background: #ffffff;
+    overflow: hidden;
+    margin-bottom: 11px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
+}
+
+.detalle-marcacion-header {
+    background: #212529;
+    color: #ffffff;
+    padding: 10px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.detalle-marcacion-fecha {
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.detalle-marcacion-body {
+    padding: 12px;
+}
+
+.detalle-marcacion-dato {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid #eeeeee;
+}
+
+.detalle-marcacion-dato:last-child {
+    border-bottom: none;
+}
+
+.detalle-marcacion-label {
+    font-weight: 600;
+    color: #555555;
+    font-size: 13px;
+}
+
+.detalle-marcacion-valor {
+    text-align: right;
+    font-size: 13px;
+}
+
+.detalle-observacion {
+    margin-top: 10px;
+    padding: 9px 10px;
+    background: #f8f9fa;
+    border-radius: 7px;
+    font-size: 13px;
+    color: #555555;
+}
+
+.detalle-observacion strong {
+    display: block;
+    margin-bottom: 4px;
+    color: #343a40;
+}
+
+
+/* =========================================================
+   6. RESPONSIVE SIMÉTRICO PARA MÓVILES (<= 768px)
+   ========================================================= */
 @media (max-width: 768px) {
 
-    /* BARRA SUPERIOR MÓVIL */
+    /* BARRA SUPERIOR */
     .entrenadores-toolbar {
         flex-direction: column;
         align-items: stretch;
-        gap: 12px;
+        gap: 10px;
+        margin-bottom: 16px;
     }
 
     .entrenadores-acciones,
     .entrenadores-busqueda {
+        width: 100%;
         flex-direction: column;
         align-items: stretch;
-        width: 100%;
+        gap: 6px;
+    }
+
+    .entrenadores-busqueda label {
+        text-align: center;
+        font-weight: bold;
     }
 
     .entrenadores-acciones .btn,
     .entrenadores-input-busqueda {
         width: 100% !important;
-        min-height: 44px;
-        font-size: 16px;
+        min-height: 42px;
+        text-align: center;
     }
 
-    /* CABECERA EN TARJETA MÓVIL */
+    /* CABECERA DE LA TARJETA DEL ENTRENADOR (SIMETRÍA CENTRADA) */
     .cabecera-entrenador-superior {
         flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
+        align-items: center;
+        text-align: center;
+        gap: 12px;
+        padding: 4px 0;
     }
 
     .entrenador-info {
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
         width: 100%;
-        justify-content: space-between;
-        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .entrenador-info .btn {
+        width: 100%;
+        max-width: 280px;
+    }
+
+    .entrenador-nombre {
+        white-space: normal;
+        text-align: center;
+        font-size: 1.1rem !important;
+        font-weight: bold;
+        word-break: break-word;
+    }
+
+    .entrenador-info .badge {
+        font-size: 0.8rem;
+        padding: 6px 12px;
     }
 
     .entrenador-horas-resumen {
-        font-size: 15px;
-        margin-top: 4px;
+        background-color: rgba(255, 255, 255, 0.1);
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        text-align: center;
+        width: 100%;
+        max-width: 280px;
     }
 
     .cabecera-entrenador-botones {
-        width: 100%;
         display: flex;
         flex-direction: column;
+        width: 100%;
         gap: 8px;
-        margin-top: 10px !important;
     }
 
     .cabecera-entrenador-botones .btn {
         width: 100%;
         min-height: 42px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 15px;
     }
 
-    /* OCULTAR ENCABEZADO DE LA TABLA */
+    /* TABLA DE TURNOS PASA A CARDS VERTICALES CENTRADAS */
     .tabla-turnos thead {
         display: none !important;
     }
 
-    /* QUITAR COMPORTAMIENTO NATIVO DE TABLA */
     .tabla-turnos,
     .tabla-turnos tbody,
     .tabla-turnos tr,
@@ -146,84 +458,78 @@
         width: 100% !important;
     }
 
-    /* SUBFILAS / TURNOS TRANSFORMADOS EN TARJETAS */
     .tabla-turnos tbody tr {
-        margin: 12px;
-        padding: 12px;
+        margin: 12px 0;
+        padding: 14px;
         background: #ffffff;
-        border: 1px solid #dee2e6;
+        border: 1px solid #e1e5e9;
         border-radius: 10px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
     }
 
-    /* CELDAS EN TARJETA DE TURNO */
     .tabla-turnos tbody td {
         display: flex !important;
+        flex-direction: column !important;
         align-items: center !important;
-        justify-content: space-between !important;
+        justify-content: center !important;
+        text-align: center !important;
         padding: 8px 0 !important;
         border: none !important;
-        border-bottom: 1px solid #eee !important;
-        text-align: right !important;
+        border-bottom: 1px dashed #e9ecef !important;
     }
 
     .tabla-turnos tbody td:last-child {
         border-bottom: none !important;
     }
 
-    /* ETIQUETA 'data-label' A LA IZQUIERDA */
     .tabla-turnos tbody td::before {
         content: attr(data-label);
         font-weight: 700;
-        text-align: left;
-        flex: 0 0 40%;
-        color: #495057;
-        font-size: 14px;
+        color: #6c757d;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+        width: 100%;
+        text-align: center;
     }
 
-    /* CELDA TURNO (TITULO DE LA SUBTARJETA) */
     .tabla-turnos tbody td.celda-turno {
-        display: block !important;
-        text-align: left !important;
-        font-size: 16px;
-        font-weight: 700;
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: #0d6efd;
         border-bottom: 2px solid #0d6efd !important;
         padding-bottom: 8px !important;
+        margin-bottom: 6px;
     }
 
     .tabla-turnos tbody td.celda-turno::before {
         display: none !important;
     }
 
-    /* CELDAS Y BANDERAS SIN ETIQUETA EXTRA EN ACCIONES */
-    .tabla-turnos tbody td.celda-acciones::before {
-        display: none !important;
+    .tabla-turnos .input-hora,
+    .tabla-turnos .input-obs {
+        width: 100% !important;
+        max-width: 280px !important;
+        text-align: center !important;
+        min-height: 40px;
     }
 
     .tabla-turnos tbody td.celda-acciones {
         padding-top: 12px !important;
     }
 
-    /* CONTROLES E INPUTS TÁCTILES EN MÓVIL */
-    .tabla-turnos .input-hora {
-        max-width: 100% !important;
-        width: 140px !important;
-        min-height: 38px;
-        font-size: 15px;
+    .tabla-turnos tbody td.celda-acciones::before {
+        display: none !important;
     }
 
-    .tabla-turnos .input-obs {
-        max-width: 100% !important;
-        width: 180px !important;
-        min-height: 38px;
-        font-size: 14px;
-    }
-
-    /* BOTONES GUARDAR/ELIMINAR OCUPAN EL ANCHO EN MÓVIL */
     .turnos-botones {
-        width: 100%;
-        display: flex;
+        display: flex !important;
+        flex-direction: row;
         gap: 8px;
+        width: 100%;
+        max-width: 280px;
+        justify-content: center;
     }
 
     .turnos-botones .btn {
@@ -232,6 +538,37 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 14px;
+    }
+
+    /* REPORTE Y MODAL RESPONSIVE */
+    .reporte-entrenadores-desktop,
+    .detalle-asistencia-desktop {
+        display: none !important;
+    }
+
+    .reporte-entrenadores-movil,
+    .detalle-asistencia-movil {
+        display: block;
+        width: 100%;
+    }
+
+    #modalDetalle .modal-dialog {
+        margin: 8px;
+        max-width: calc(100% - 16px);
+    }
+}
+
+/* =========================================================
+   7. MEJORAS TÁCTILES
+   ========================================================= */
+@media (hover: none) and (pointer: coarse) {
+    .btn {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .tabla-turnos input,
+    .entrenadores-input-busqueda {
+        font-size: 16px;
+        /* Evita zoom automático en iOS */
     }
 }
