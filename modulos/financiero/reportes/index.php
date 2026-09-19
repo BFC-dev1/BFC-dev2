@@ -35,7 +35,7 @@ include("../../../template/header_modulos.php");
         background: #ffffff;
         border: 1px solid #e2e8f0;
         box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.05);
-        min-height: 580px;
+        min-height: 600px;
     }
 
     /* FONDO DE DASHBOARD SIMULADO */
@@ -54,21 +54,22 @@ include("../../../template/header_modulos.php");
         padding: 20px;
     }
 
-    /* OVERLAY GLASSMORPHISM */
+    /* OVERLAY GLASSMORPHISM - RESPONSIVO CON FLEXBOX */
     .teaser-overlay {
         position: absolute;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background: radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.88) 0%, rgba(248, 250, 252, 0.98) 100%);
+        background: radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.92) 0%, rgba(248, 250, 252, 0.98) 100%);
         backdrop-filter: blur(8px);
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 40px 24px;
+        padding: 40px 20px;
         text-align: center;
+        overflow-y: auto; /* Permite scroll interno si la pantalla es muy pequeña */
     }
 
     /* BADGE CLUB */
@@ -92,9 +93,9 @@ include("../../../template/header_modulos.php");
         background: #ffffff;
         border: 1px solid #e2e8f0;
         border-radius: 20px;
-        padding: 20px 24px;
+        padding: 16px 20px;
         box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04);
-        margin: 20px 0 28px 0;
+        margin: 16px 0 24px 0;
     }
 
     .pitch-track {
@@ -111,7 +112,7 @@ include("../../../template/header_modulos.php");
 
     .pitch-fill {
         height: 100%;
-        width: 80%; /* Porcentaje de avance de la barra */
+        width: 80%;
         background: linear-gradient(90deg, #2563eb 0%, #f97316 100%);
         border-radius: 14px 0 0 14px;
     }
@@ -129,7 +130,7 @@ include("../../../template/header_modulos.php");
     /* CONTENEDOR DE CR7 Y EL BALÓN */
     .runner-sprite-wrapper {
         position: absolute;
-        left: 80%; /* Sincronizado con el avance de la barra */
+        left: 80%;
         bottom: 2px;
         transform: translateX(-60%);
         z-index: 3;
@@ -138,14 +139,12 @@ include("../../../template/header_modulos.php");
         gap: 2px;
     }
 
-    /* ANIMACIÓN DE FÍSICA Y SPRINT DE CR7 (HACIA LA DERECHA) */
     .cr7-runner-svg {
         width: 58px;
         height: 64px;
         animation: cr7TorsoBounce 0.32s ease-in-out infinite alternate;
     }
 
-    /* ANIMACIÓN DE ZANCADA POTENTE TIPO CR7 */
     .leg-back-cr7 {
         transform-origin: 24px 28px;
         animation: cr7LegBack 0.32s ease-in-out infinite alternate;
@@ -191,7 +190,6 @@ include("../../../template/header_modulos.php");
         100% { transform: rotate(50deg); }
     }
 
-    /* BALÓN OFICIAL RODANDO */
     .ball-svg {
         width: 20px;
         height: 20px;
@@ -216,17 +214,17 @@ include("../../../template/header_modulos.php");
     /* CHIPS DE FUNCIONES */
     .features-teaser-grid {
         display: flex;
-        gap: 12px;
+        gap: 10px;
         justify-content: center;
         flex-wrap: wrap;
-        margin-bottom: 12px;
+        margin-bottom: 8px;
         max-width: 600px;
     }
 
     .feature-chip {
         background: #ffffff;
         border: 1px solid #e2e8f0;
-        padding: 8px 14px;
+        padding: 6px 12px;
         border-radius: 10px;
         font-size: 13px;
         font-weight: 600;
@@ -246,6 +244,29 @@ include("../../../template/header_modulos.php");
     .btn-dclub-orange:hover {
         background-color: #ea580c;
         color: #ffffff;
+    }
+
+    /* --- REGLAS ESPECIALES PARA DISPOSITIVOS MÓVILES --- */
+    @media (max-width: 768px) {
+        .saas-card {
+            min-height: auto;
+        }
+        .teaser-overlay {
+            position: relative;
+            padding: 30px 16px 40px 16px;
+        }
+        .dashboard-preview-bg {
+            display: none; /* Ocualta el fondo borroso en móvil para ahorrar espacio */
+        }
+        .action-buttons-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .action-buttons-container .btn {
+            width: 100%; /* Botones a ancho completo en celular */
+        }
     }
 </style>
 
