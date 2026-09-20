@@ -3,12 +3,10 @@ session_start();
 
 /*
 =================================================
-CONFIGURACIÓN GENERAL
+CONFIGURACIÓN GENERAL Y CONEXIÓN
 =================================================
 */
 require_once(__DIR__ . "/../includes/config.php");
-
-// Conexión PDO
 require_once(__DIR__ . "/../includes/conexion.php");
 
 /** @var PDO $conexion */
@@ -21,11 +19,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $usuario = trim($_POST['usuario'] ?? "");
     $password = trim($_POST['password'] ?? "");
 
-    // Validar campos
+    // Validar campos vacíos
     if (empty($usuario) || empty($password)) {
-
         $error = "Completa todos los campos.";
-
     } else {
 
         /*
@@ -33,48 +29,45 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         CONSULTAR USUARIO
         =================================================
         */
-
         $sql = "
             SELECT
-                u.*,
+                u.id,
+                u.usuario,
+                u.password,
+                u.nombre,
+                u.estado,
+                u.rol_id,
                 r.nombre AS rol_nombre
-
             FROM usuario u
-
             LEFT JOIN rol r
                 ON u.rol_id = r.id
-
             WHERE u.usuario = :usuario
+            LIMIT 1
         ";
 
         $stmt = $conexion->prepare($sql);
-
-        $stmt->bindParam(":usuario", $usuario);
-
+        $stmt->bindParam(":usuario", $usuario, PDO::PARAM_STR);
         $stmt->execute();
 
         $admin = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // Verificar usuario
-        if (!$admin) {
+        /*
+        =================================================
+        VERIFICAR USUARIO Y CONTRASEÑA CON password_verify
+        =================================================
+        */
+        if ($admin && password_verify($password, $admin['password'])) {
 
-            $error = "Usuario no encontrado.";
-
-        } else {
-
-            // Verificar estado del usuario
-            if ($admin['estado'] != 'activo') {
-
+            // Verificar si el usuario está activo
+            if ($admin['estado'] !== 'activo') {
                 $error = "Usuario inactivo. Contacte al administrador del sistema.";
-
-            } elseif ($password == $admin['password']) {
+            } else {
 
                 /*
                 =================================================
                 REGENERAR EL ID DE SESIÓN
                 =================================================
                 */
-
                 session_regenerate_id(true);
 
                 /*
@@ -82,7 +75,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 CONSULTAR PERMISOS DEL ROL
                 =================================================
                 */
-
                 $sqlPermisos = "
                     SELECT p.modulo
                     FROM permiso p
@@ -92,7 +84,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 ";
 
                 $stmtPermisos = $conexion->prepare($sqlPermisos);
-
                 $stmtPermisos->execute([
                     ':rol_id' => $admin['rol_id']
                 ]);
@@ -101,10 +92,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 /*
                 =================================================
-                GUARDAR DATOS DEL USUARIO EN LA SESIÓN
+                GUARDAR DATOS EN LA SESIÓN
                 =================================================
                 */
-
                 $_SESSION['id_usuario'] = $admin['id'];
                 $_SESSION['usuario']    = $admin['usuario'];
                 $_SESSION['nombre']     = $admin['nombre'];
@@ -117,16 +107,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 REDIRECCIÓN AL DASHBOARD
                 =================================================
                 */
-
                 header("Location: " . $url_base . "/modulos/dashboard/index.php");
-
                 exit;
-
-            } else {
-
-                $error = "Contraseña incorrecta.";
-
             }
+
+        } else {
+            $error = "Usuario o contraseña incorrectos.";
         }
     }
 }
@@ -136,138 +122,70 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <html lang="es">
 
 <head>
-
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar sesión - Bellavista FC</title>
 
     <!-- FAVICON -->
-    <link
-        rel="icon"
-        type="image/x-icon"
-        href="<?= $favicon_url ?>"
-    >
+    <link rel="icon" type="image/x-icon" href="<?= $favicon_url ?>">
 
     <!-- CSS GENERAL -->
-    <link
-        rel="stylesheet"
-        href="<?= $url_base ?>/<?= $css_base ?>/estilo.css"
-    >
+    <link rel="stylesheet" href="<?= $url_base ?>/<?= $css_base ?>/estilo.css">
 
     <!-- CSS DEL LOGIN -->
-    <link
-        rel="stylesheet"
-        href="<?= $url_base ?>/<?= $css_base ?>/login.css"
-    >
-
+    <link rel="stylesheet" href="<?= $url_base ?>/<?= $css_base ?>/login.css">
 </head>
 
 <body>
 
 <?php include("../includes/header.php"); ?>
 
-
 <main class="login-page">
 
     <section class="login-card">
 
-
-        <!-- =================================================
-             LOGO Y ENCABEZADO
-             ================================================= -->
-
+        <!-- LOGO Y ENCABEZADO -->
         <div class="login-header">
-
-<div class="login-logo">
-    <img
-        src="<?= $img_url ?>/logo1.png"
-        alt="Bellavista FC"
-        style="display:block !important; width:120px !important; height:auto !important; opacity:1 !important;"
-    >
-</div>
-
+            <div class="login-logo">
+                <img
+                    src="<?= $img_url ?>/logo1.png"
+                    alt="Bellavista FC"
+                    style="display:block !important; width:120px !important; height:auto !important; opacity:1 !important;"
+                >
             </div>
-
-
             <h1>Iniciar sesión</h1>
-
-            <p>
-                Accede al sistema de Bellavista FC
-            </p>
-
+            <p>Accede al sistema de Bellavista FC</p>
         </div>
 
-
-        <!-- =================================================
-             ERROR
-             ================================================= -->
-
+        <!-- MENSAJE DE ERROR -->
         <?php if (!empty($error)): ?>
-
             <div class="login-error">
-
                 <span class="login-error-icon">
-
-                    <!-- Icono de advertencia SVG -->
-                    <svg
-                        viewBox="0 0 24 24"
-                        aria-hidden="true"
-                    >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
                         <path d="M12 3L2.5 20h19L12 3z"></path>
                         <path d="M12 9v5"></path>
                         <path d="M12 17.5h.01"></path>
                     </svg>
-
                 </span>
-
                 <span>
                     <?= htmlspecialchars($error) ?>
                 </span>
-
             </div>
-
         <?php endif; ?>
 
-
-        <!-- =================================================
-             FORMULARIO
-             ================================================= -->
-
-        <form
-            method="POST"
-            class="login-form"
-        >
-
+        <!-- FORMULARIO -->
+        <form method="POST" class="login-form">
 
             <!-- USUARIO -->
-
             <div class="login-field">
-
-                <label for="usuario">
-                    Usuario
-                </label>
-
+                <label for="usuario">Usuario</label>
                 <div class="login-input-container">
-
                     <span class="login-input-icon">
-
-                        <!-- Icono usuario SVG -->
-                        <svg
-                            viewBox="0 0 24 24"
-                            aria-hidden="true"
-                        >
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
                             <circle cx="12" cy="8" r="4"></circle>
                             <path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"></path>
                         </svg>
-
                     </span>
-
-
                     <input
                         type="text"
                         id="usuario"
@@ -276,44 +194,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         autocomplete="username"
                         required
                     >
-
                 </div>
-
             </div>
 
-
             <!-- CONTRASEÑA -->
-
             <div class="login-field">
-
-                <label for="password">
-                    Contraseña
-                </label>
-
+                <label for="password">Contraseña</label>
                 <div class="login-input-container">
-
                     <span class="login-input-icon">
-
-                        <!-- Icono candado SVG -->
-                        <svg
-                            viewBox="0 0 24 24"
-                            aria-hidden="true"
-                        >
-                            <rect
-                                x="5"
-                                y="10"
-                                width="14"
-                                height="10"
-                                rx="2"
-                            ></rect>
-
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <rect x="5" y="10" width="14" height="10" rx="2"></rect>
                             <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
-
                         </svg>
-
                     </span>
-
-
                     <input
                         type="password"
                         id="password"
@@ -322,49 +215,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         autocomplete="current-password"
                         required
                     >
-
                 </div>
-
             </div>
 
-
-            <!-- BOTÓN -->
-
-            <button
-                type="submit"
-                class="login-button"
-            >
-
-                <span>
-                    Entrar
-                </span>
-
+            <!-- BOTÓN ENTRAR -->
+            <button type="submit" class="login-button">
+                <span>Entrar</span>
                 <span class="login-button-arrow">
-
-                    <!-- Flecha SVG -->
-                    <svg
-                        viewBox="0 0 24 24"
-                        aria-hidden="true"
-                    >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
                         <path d="M5 12h13"></path>
                         <path d="M13 6l6 6-6 6"></path>
                     </svg>
-
                 </span>
-
             </button>
 
-
             <!-- RECUPERAR CONTRASEÑA -->
-
             <div class="login-forgot">
-
-                <a href="recuperar.php">
-                    ¿Olvidaste tu contraseña?
-                </a>
-
+                <a href="recuperar.php">¿Olvidaste tu contraseña?</a>
             </div>
-
 
         </form>
 
@@ -372,9 +240,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 </main>
 
-
 <?php include("../includes/footer.php"); ?>
 
 </body>
-
 </html>

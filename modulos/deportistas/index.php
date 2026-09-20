@@ -499,6 +499,31 @@ if (tiene_permiso('deportistas')) {
 
 
 <!-- =====================================================
+     MENSAJE DE CREACIÓN / OPERACIÓN EXITOSA
+====================================================== -->
+
+<?php if (isset($_GET['creado']) || isset($_GET['success'])) { ?>
+
+<script>
+
+Swal.fire({
+
+    icon: "success",
+
+    title: "Operación Exitosa",
+
+    text: "El deportista fue registrado correctamente.",
+
+    confirmButtonText: "Aceptar"
+
+});
+
+</script>
+
+<?php } ?>
+
+
+<!-- =====================================================
      MENSAJE DE ACTUALIZACIÓN EXITOSA
 ====================================================== -->
 

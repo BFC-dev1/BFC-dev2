@@ -47,7 +47,7 @@ EN CELULAR / APK:
 Ejemplo:
 
     ┌───────────────────────────────┐
-    │ Juan Pérez                   │
+    │ Juan Pérez                    │
     │                               │
     │ Tipo Documento: CC            │
     │ Documento: 123456789          │
@@ -56,7 +56,7 @@ Ejemplo:
     │ Rol: Entrenador               │
     │ Estado: ● Activo              │
     │                               │
-    │ [ Editar ]   [ Eliminar ]    │
+    │ [ Editar ]   [ Eliminar ]     │
     └───────────────────────────────┘
 
 Esto evita:
@@ -288,10 +288,35 @@ Swal.fire({
 
 /*
 =========================================================
-11. MENSAJE DE ACTUALIZACIÓN EXITOSA
+11. MENSAJES DE OPERACIÓN EXITOSA
 =========================================================
 */
 
+/* ✅ MENSAJE DE CREACIÓN EXITOSA */
+if (isset($_GET["creado"])) {
+?>
+
+<script>
+
+Swal.fire({
+
+    icon: "success",
+
+    title: "Operación Exitosa",
+
+    text: "El usuario fue creado correctamente.",
+
+    confirmButtonText: "Aceptar"
+
+});
+
+</script>
+
+<?php
+}
+
+
+/* ✅ MENSAJE DE ACTUALIZACIÓN EXITOSA */
 if (isset($_GET["actualizado"])) {
 ?>
 
@@ -323,7 +348,7 @@ Swal.fire({
 EN PC:
 
     [Dashboard] [Crear Usuario]
-                         [Buscar] [Buscar] [Limpiar]
+                             [Buscar] [Buscar] [Limpiar]
 
 EN CELULAR:
 
@@ -1769,4 +1794,3 @@ document.addEventListener(
 </script>
 
 <?php endif; ?>
-

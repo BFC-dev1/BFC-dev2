@@ -1,9 +1,7 @@
 <?php
 
 if(session_status() === PHP_SESSION_NONE){
-
     session_start();
-
 }
 
 include("../conexion_modulos.php");
@@ -13,18 +11,14 @@ require_once("../auditoria/funciones/registrar_auditoria.php");
 
 // ✅ VALIDAR ID
 if(!isset($_GET['id'])){
-
-   
-header("Location: index.php?actualizado=1");
-exit;
-
+    header("Location: index.php?actualizado=1");
+    exit;
 }
 
-$id = $_GET['id'];
-
+$id =$_GET['id'];
 
 // ✅ CONSULTAR USUARIO
-$stmt = $conexion->prepare("
+$stmt =$conexion->prepare("
 SELECT *
 FROM usuario
 WHERE id = :id
@@ -34,29 +28,28 @@ $stmt->execute([
     ":id"=>$id
 ]);
 
-$usuario = $stmt->fetch(PDO::FETCH_ASSOC);
+$usuario =$stmt->fetch(PDO::FETCH_ASSOC);
+
+// ✅ SI NO EXISTE EL USUARIO
+if(!$usuario){
+    header("Location: index.php?actualizado=1");
+    exit;
+}
 
 /*
 =================================================
 GUARDAR DATOS ANTERIORES
 
 Se almacenan los datos originales del usuario
-antes de realizar la actualización.
-
-Estos datos se utilizarán posteriormente para
-comparar qué campos cambiaron y registrar la
-auditoría de edición.
-
+antes de realizar la actualización para auditoría.
 =================================================
 */
-
-$datosAnteriores = $usuario;
+$datosAnteriores =$usuario;
 
 // =============================================
 // OBTENER CATEGORÍAS ASIGNADAS AL ENTRENADOR
 // =============================================
-
-$stmtCatUsuario = $conexion->prepare("
+$stmtCatUsuario =$conexion->prepare("
 SELECT categoria_id
 FROM entrenador_categoria
 WHERE usuario_id = :usuario_id
@@ -66,25 +59,14 @@ $stmtCatUsuario->execute([
     ":usuario_id"=>$id
 ]);
 
-$categorias_usuario = $stmtCatUsuario->fetchAll(PDO::FETCH_COLUMN);
-
-// ✅ SI NO EXISTE
-if(!$usuario){
-
-header("Location: index.php?actualizado=1");
-exit;
-
-}
-
+$categorias_usuario =$stmtCatUsuario->fetchAll(PDO::FETCH_COLUMN);
 
 // ✅ VARIABLES ERROR
 $error_documento = false;
 $error_usuario = false;
-
 $mensaje_error = "";
 
-
-// ✅ ACTUALIZAR
+// ✅ ACTUALIZAR DATOS DEL USUARIO
 if($_POST){
 
     $nombre = trim($_POST['nombre'] ?? "");
@@ -95,10 +77,10 @@ if($_POST){
     $usuario_input = trim($_POST['usuario'] ?? "");
     $password = trim($_POST['password'] ?? "");
     $rol_id = trim($_POST['rol_id'] ?? "");
-    $categorias = $_POST['categorias'] ?? [];
+    $categorias =$_POST['categorias'] ?? [];
     $estado = trim($_POST['estado'] ?? "activo");
 
-    // ✅ VALIDAR CAMPOS
+    // ✅ VALIDAR CAMPOS OBLIGATORIOS
     if(
         empty($nombre) ||
         empty($tipo_documento) ||
@@ -108,16 +90,12 @@ if($_POST){
         empty($usuario_input) ||
         empty($rol_id)
     ){
-
         $mensaje_error = "Todos los campos son obligatorios.";
-
     }
-
 
     // ✅ VALIDAR DOCUMENTO REPETIDO
     if(empty($mensaje_error)){
-
-        $stmt_doc = $conexion->prepare("
+        $stmt_doc =$conexion->prepare("
         SELECT id
         FROM usuario
         WHERE documento = :documento
@@ -129,21 +107,14 @@ if($_POST){
             ":id"=>$id
         ]);
 
-        if($stmt_doc->fetch()){
-
-            $error_documento = true;
-
+        if($stmt_doc->fetch()){$error_documento = true;
             $mensaje_error = "El documento ya está registrado.";
-
         }
-
     }
-
 
     // ✅ VALIDAR USUARIO REPETIDO
     if(empty($mensaje_error)){
-
-        $stmt_user = $conexion->prepare("
+        $stmt_user =$conexion->prepare("
         SELECT id
         FROM usuario
         WHERE usuario = :usuario
@@ -155,18 +126,12 @@ if($_POST){
             ":id"=>$id
         ]);
 
-        if($stmt_user->fetch()){
-
-            $error_usuario = true;
-
+        if($stmt_user->fetch()){$error_usuario = true;
             $mensaje_error = "El usuario ya existe.";
-
         }
-
     }
 
-
-    // ✅ ACTUALIZAR
+    // ✅ GUARDAR EN LA BASE DE DATOS
     if(empty($mensaje_error)){
 
         try{
@@ -174,7 +139,10 @@ if($_POST){
             // ✅ SI ESCRIBE NUEVA CONTRASEÑA
             if(!empty($password)){
 
-                $update = $conexion->prepare("
+                // 🔑 ENCRIPTAR CONTRASEÑA CON PASSWORD_HASH
+                $password_hashed = password_hash($password, PASSWORD_BCRYPT);
+
+                $update =$conexion->prepare("
                 UPDATE usuario SET
                     nombre = :nombre,
                     tipo_documento = :tipo_documento,
@@ -195,7 +163,7 @@ if($_POST){
                     ":telefono"=>$telefono,
                     ":correo"=>$correo,
                     ":usuario"=>$usuario_input,
-                    ":password"=>$password,
+                    ":password"=>$password_hashed, // <--- Guardar el hash encriptado
                     ":rol_id"=>$rol_id,
                     ":estado"=>$estado,
                     ":id"=>$id
@@ -204,7 +172,7 @@ if($_POST){
             }else{
 
                 // ✅ SI NO CAMBIA CONTRASEÑA
-                $update = $conexion->prepare("
+                $update =$conexion->prepare("
                 UPDATE usuario SET
                     nombre = :nombre,
                     tipo_documento = :tipo_documento,
@@ -232,215 +200,102 @@ if($_POST){
             }
 
             // =============================================
-// ACTUALIZAR CATEGORÍAS DEL ENTRENADOR
-// =============================================
+            // ACTUALIZAR CATEGORÍAS DEL ENTRENADOR
+            // =============================================
+            $deleteCat =$conexion->prepare("
+            DELETE FROM entrenador_categoria
+            WHERE usuario_id = :usuario_id
+            ");
 
-/*
-=================================================
-ACTUALIZAR CATEGORÍAS DEL ENTRENADOR
-=================================================
-*/
+            $deleteCat->execute([
+                ":usuario_id"=>$id
+            ]);
 
-// Eliminar siempre las categorías actuales
-$deleteCat = $conexion->prepare("
-DELETE FROM entrenador_categoria
-WHERE usuario_id = :usuario_id
-");
+            // Si el usuario es entrenador, asignar las nuevas categorías
+            if($rol_id == 3){
+                foreach($categorias as$categoria_id){
+                    $insertCat =$conexion->prepare("
+                    INSERT INTO entrenador_categoria
+                    (usuario_id, categoria_id)
+                    VALUES
+                    (:usuario_id, :categoria_id)
+                    ");
 
-$deleteCat->execute([
-    ":usuario_id"=>$id
-]);
+                    $insertCat->execute([
+                        ":usuario_id"=>$id,
+                        ":categoria_id"=>$categoria_id
+                    ]);
+                }
+            }
 
-// Si el usuario es entrenador, asignar las nuevas categorías
-if($rol_id == 3){
+            /*
+            =================================================
+            OBTENER NOMBRE DEL ROL ANTERIOR Y NUEVO (AUDITORÍA)
+            =================================================
+            */
+            $stmtRolAnterior =$conexion->prepare("SELECT nombre FROM rol WHERE id = :id");
+            $stmtRolAnterior->execute([":id" => $datosAnteriores["rol_id"]]);
+            $rolAnterior =$stmtRolAnterior->fetchColumn();
 
-    foreach($categorias as $categoria_id){
+            $stmtRolNuevo =$conexion->prepare("SELECT nombre FROM rol WHERE id = :id");
+            $stmtRolNuevo->execute([":id" => $rol_id]);
+            $rolNuevo =$stmtRolNuevo->fetchColumn();
 
-        $insertCat = $conexion->prepare("
-        INSERT INTO entrenador_categoria
-        (
-            usuario_id,
-            categoria_id
-        )
-        VALUES
-        (
-            :usuario_id,
-            :categoria_id
-        )
-        ");
+            /*
+            =================================================
+            OBTENER CAMBIOS REALIZADOS PARA AUDITORÍA
+            =================================================
+            */
+            $cambios = [];
 
-        $insertCat->execute([
-            ":usuario_id"=>$id,
-            ":categoria_id"=>$categoria_id
-        ]);
+            if($datosAnteriores["nombre"] != $nombre){$cambios["nombre"] = ["antes"=>$datosAnteriores["nombre"], "despues"=>$nombre];
+            }
+            if($datosAnteriores["tipo_documento"] != $tipo_documento){$cambios["tipo_documento"] = ["antes"=>$datosAnteriores["tipo_documento"], "despues"=>$tipo_documento];
+            }
+            if($datosAnteriores["documento"] != $documento){$cambios["documento"] = ["antes"=>$datosAnteriores["documento"], "despues"=>$documento];
+            }
+            if($datosAnteriores["telefono"] != $telefono){$cambios["telefono"] = ["antes"=>$datosAnteriores["telefono"], "despues"=>$telefono];
+            }
+            if($datosAnteriores["correo"] != $correo){$cambios["correo"] = ["antes"=>$datosAnteriores["correo"], "despues"=>$correo];
+            }
+            if($datosAnteriores["usuario"] != $usuario_input){$cambios["usuario"] = ["antes"=>$datosAnteriores["usuario"], "despues"=>$usuario_input];
+            }
+            if($datosAnteriores["rol_id"] != $rol_id){$cambios["rol"] = ["antes" => $rolAnterior, "despues" => $rolNuevo];
+            }
+            if($datosAnteriores["estado"] != $estado){$cambios["estado"] = ["antes"=>$datosAnteriores["estado"], "despues"=>$estado];
+            }
+            if(!empty($password)){$cambios["password"] = ["antes"=>"*****", "despues"=>"*****"];
+            }
 
-    }
+            /*
+            =================================================
+            REGISTRAR AUDITORÍA DE EDICIÓN
+            =================================================
+            */
+            if(!empty($cambios)){
+                registrarAuditoria(
+                    $conexion,
+                    "usuario",
+                    $id,
+                    "EDITAR",
+                    $cambios,
+                    "Actualización del usuario: ".$nombre
+                );
+            }
 
-}
-
-/*
-=================================================
-OBTENER NOMBRE DEL ROL ANTERIOR Y NUEVO
-=================================================
-*/
-
-$stmtRolAnterior = $conexion->prepare("
-SELECT nombre
-FROM rol
-WHERE id = :id
-");
-
-$stmtRolAnterior->execute([
-    ":id" => $datosAnteriores["rol_id"]
-]);
-
-$rolAnterior = $stmtRolAnterior->fetchColumn();
-
-
-$stmtRolNuevo = $conexion->prepare("
-SELECT nombre
-FROM rol
-WHERE id = :id
-");
-
-$stmtRolNuevo->execute([
-    ":id" => $rol_id
-]);
-
-$rolNuevo = $stmtRolNuevo->fetchColumn();
-
-/*
-=================================================
-OBTENER CAMBIOS REALIZADOS
-
-Se comparan los datos anteriores con los nuevos
-para registrar únicamente los campos que fueron
-modificados.
-
-=================================================
-*/
-
-$cambios = [];
-
-if($datosAnteriores["nombre"] != $nombre){
-
-    $cambios["nombre"] = [
-        "antes"=>$datosAnteriores["nombre"],
-        "despues"=>$nombre
-    ];
-
-}
-
-if($datosAnteriores["tipo_documento"] != $tipo_documento){
-
-    $cambios["tipo_documento"] = [
-        "antes"=>$datosAnteriores["tipo_documento"],
-        "despues"=>$tipo_documento
-    ];
-
-}
-
-if($datosAnteriores["documento"] != $documento){
-
-    $cambios["documento"] = [
-        "antes"=>$datosAnteriores["documento"],
-        "despues"=>$documento
-    ];
-
-}
-
-if($datosAnteriores["telefono"] != $telefono){
-
-    $cambios["telefono"] = [
-        "antes"=>$datosAnteriores["telefono"],
-        "despues"=>$telefono
-    ];
-
-}
-
-if($datosAnteriores["correo"] != $correo){
-
-    $cambios["correo"] = [
-        "antes"=>$datosAnteriores["correo"],
-        "despues"=>$correo
-    ];
-
-}
-
-if($datosAnteriores["usuario"] != $usuario_input){
-
-    $cambios["usuario"] = [
-        "antes"=>$datosAnteriores["usuario"],
-        "despues"=>$usuario_input
-    ];
-
-}
-
-if($datosAnteriores["rol_id"] != $rol_id){
-
-    $cambios["rol"] = [
-        "antes"   => $rolAnterior,
-        "despues" => $rolNuevo
-    ];
-
-}
-
-if($datosAnteriores["estado"] != $estado){
-
-    $cambios["estado"] = [
-        "antes"=>$datosAnteriores["estado"],
-        "despues"=>$estado
-    ];
-
-}
-
-/*
-=================================================
-REGISTRAR AUDITORÍA DE EDICIÓN
-
-Solo se registra si hubo cambios.
-
-=================================================
-*/
-
-if(!empty($cambios)){
-
-    registrarAuditoria(
-
-        $conexion,
-
-        "usuario",
-
-        $id,
-
-        "EDITAR",
-
-        $cambios,
-
-        "Actualización del usuario: ".$nombre
-
-    );
-
-}
-
-header("Location: index.php?actualizado=1");
-exit;
+            header("Location: index.php?actualizado=1");
+            exit;
 
         }catch(PDOException $e){
-
-            $mensaje_error = $e->getMessage();
-
+            $mensaje_error =$e->getMessage();
         }
 
     }
 
 }
-
 ?>
 
-
 <?php include("../../template/header_modulos_Usuarios.php") ?>
-
 
 <div class="container mt-4">
 
@@ -448,26 +303,19 @@ exit;
 
         <!-- HEADER -->
         <div class="card-header bg-primary text-white">
-
             <h4 class="mb-0">
                 Editar Usuario
             </h4>
-
         </div>
 
         <div class="card-body">
 
             <!-- ✅ ERROR -->
             <?php if(!empty($mensaje_error)){ ?>
-
                 <div class="alert alert-danger">
-
                     <?php echo $mensaje_error; ?>
-
                 </div>
-
             <?php } ?>
-
 
             <form method="post">
 
@@ -475,312 +323,150 @@ exit;
 
                     <!-- NOMBRE -->
                     <div class="col-md-6 mb-3">
-
-                        <label class="form-label">
-                            Nombre
-                        </label>
-
+                        <label class="form-label">Nombre</label>
                         <input
                             type="text"
                             name="nombre"
                             class="form-control"
                             value="<?php echo $_POST['nombre'] ?? $usuario['nombre']; ?>"
                         >
-
                     </div>
-
 
                     <!-- TIPO DOCUMENTO -->
                     <div class="col-md-6 mb-3">
-
-                        <label class="form-label">
-                            Tipo Documento
-                        </label>
-
+                        <label class="form-label">Tipo Documento</label>
                         <input
                             type="text"
                             name="tipo_documento"
                             class="form-control"
                             value="<?php echo $_POST['tipo_documento'] ?? $usuario['tipo_documento']; ?>"
                         >
-
                     </div>
-
 
                     <!-- DOCUMENTO -->
                     <div class="col-md-6 mb-3">
-
-                        <label class="form-label">
-                            Documento
-                        </label>
-
+                        <label class="form-label">Documento</label>
                         <input
                             type="text"
                             name="documento"
                             class="form-control <?php if($error_documento){ echo 'border border-danger'; } ?>"
                             value="<?php echo $_POST['documento'] ?? $usuario['documento']; ?>"
                         >
-
                         <?php if($error_documento){ ?>
-
-                            <small class="text-danger">
-                                Este documento ya existe.
-                            </small>
-
+                            <small class="text-danger">Este documento ya existe.</small>
                         <?php } ?>
-
                     </div>
-
 
                     <!-- TELEFONO -->
                     <div class="col-md-6 mb-3">
-
-                        <label class="form-label">
-                            Teléfono
-                        </label>
-
+                        <label class="form-label">Teléfono</label>
                         <input
                             type="text"
                             name="numero_telefono"
                             class="form-control"
                             value="<?php echo $_POST['numero_telefono'] ?? $usuario['telefono']; ?>"
                         >
-
                     </div>
-
 
                     <!-- CORREO -->
                     <div class="col-md-6 mb-3">
-
-                        <label class="form-label">
-                            Correo
-                        </label>
-
+                        <label class="form-label">Correo</label>
                         <input
                             type="email"
                             name="correo"
                             class="form-control"
                             value="<?php echo $_POST['correo'] ?? $usuario['correo']; ?>"
                         >
-
                     </div>
-
 
                     <!-- USUARIO -->
                     <div class="col-md-6 mb-3">
-
-                        <label class="form-label">
-                            Usuario
-                        </label>
-
+                        <label class="form-label">Usuario</label>
                         <input
                             type="text"
                             name="usuario"
                             class="form-control <?php if($error_usuario){ echo 'border border-danger'; } ?>"
                             value="<?php echo $_POST['usuario'] ?? $usuario['usuario']; ?>"
                         >
-
                         <?php if($error_usuario){ ?>
-
-                            <small class="text-danger">
-                                Este usuario ya existe.
-                            </small>
-
+                            <small class="text-danger">Este usuario ya existe.</small>
                         <?php } ?>
-
                     </div>
-
 
                     <!-- PASSWORD -->
                     <div class="col-md-6 mb-3">
-
-                        <label class="form-label">
-                            Nueva Contraseña
-                        </label>
-
+                        <label class="form-label">Nueva Contraseña</label>
                         <input
                             type="password"
                             name="password"
                             class="form-control"
                             placeholder="Dejar vacío para no cambiar"
                         >
-
                     </div>
-
 
                     <!-- ROL -->
                     <div class="col-md-3 mb-3">
-
-                        <label class="form-label">
-                            Rol
-                        </label>
-
-                        <select
-                            name="rol_id"
-                            class="form-control"
-                        >
-
-                            <option value="">
-                                Seleccionar Rol
-                            </option>
-
+                        <label class="form-label">Rol</label>
+                        <select name="rol_id" class="form-control">
+                            <option value="">Seleccionar Rol</option>
                             <?php
-
-                            $roles = $conexion->query("
-                            SELECT id, nombre
-                            FROM rol
-                            ");
-
-                            while($row = $roles->fetch(PDO::FETCH_ASSOC)){
-
-                                $selected = "";
-
+                            $roles =$conexion->query("SELECT id, nombre FROM rol");
+                            while($row = $roles->fetch(PDO::FETCH_ASSOC)){$selected = "";
                                 $valor_actual = $_POST['rol_id'] ?? $usuario['rol_id'];
-
-                                if($valor_actual == $row['id']){
-
-                                    $selected = "selected";
-
+                                if($valor_actual == $row['id']){$selected = "selected";
                                 }
-
-                                echo "
-                                <option value='".$row['id']."' $selected>
-                                    ".$row['nombre']."
-                                </option>
-                                ";
-
+                                echo "<option value='".$row['id']."' $selected>".$row['nombre']."</option>";
                             }
-
                             ?>
-
                         </select>
-
                     </div>
 
-
                     <!-- CATEGORÍAS ENTRENADOR -->
-
-<div 
-class="col-12 mb-3"
-id="contenedorCategorias"
->
-
-<label class="form-label">
-Categorías asignadas
-</label>
-
-
-<div class="row">
-
-<?php
-
-$stmtCategorias = $conexion->query("
-SELECT id,nombre
-FROM categoria
-ORDER BY nombre
-");
-
-
-while($cat = $stmtCategorias->fetch(PDO::FETCH_ASSOC)){
-
-
-$checked = "";
-
-
-if(in_array($cat['id'],$categorias_usuario)){
-
-    $checked = "checked";
-
-}
-
-
-?>
-
-<div class="col-md-4">
-
-<div class="form-check">
-
-<input
-class="form-check-input"
-type="checkbox"
-name="categorias[]"
-value="<?php echo $cat['id']; ?>"
-<?php echo $checked; ?>
->
-
-<label class="form-check-label">
-
-<?php echo $cat['nombre']; ?>
-
-</label>
-
-
-</div>
-
-</div>
-
-
-<?php } ?>
-
-</div>
-
-</div>
-
+                    <div class="col-12 mb-3" id="contenedorCategorias">
+                        <label class="form-label">Categorías asignadas</label>
+                        <div class="row">
+                            <?php
+                            $stmtCategorias =$conexion->query("SELECT id, nombre FROM categoria ORDER BY nombre");
+                            while($cat = $stmtCategorias->fetch(PDO::FETCH_ASSOC)){$checked = in_array($cat['id'],$categorias_usuario) ? "checked" : "";
+                            ?>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input
+                                            class="form-check-input"
+                                            type="checkbox"
+                                            name="categorias[]"
+                                            value="<?php echo $cat['id']; ?>"
+                                            <?php echo $checked; ?>
+                                        >
+                                        <label class="form-check-label">
+                                            <?php echo $cat['nombre']; ?>
+                                        </label>
+                                    </div>
+                                </div>
+                            <?php } ?>
+                        </div>
+                    </div>
 
                     <!-- ESTADO -->
                     <div class="col-md-3 mb-3">
-
-                        <label class="form-label">
-                            Estado
-                        </label>
-
-                        <select
-                            name="estado"
-                            class="form-control"
-                        >
-
-                            <?php
-                            $estado_actual = $_POST['estado'] ?? $usuario['estado'];
-                            ?>
-
-                            <option 
-                                value="activo"
-                                <?php if($estado_actual == "activo"){ echo "selected"; } ?>
-                            >
+                        <label class="form-label">Estado</label>
+                        <select name="estado" class="form-control">
+                            <?php $estado_actual = $_POST['estado'] ?? $usuario['estado']; ?>
+                            <option value="activo" <?php if($estado_actual == "activo"){ echo "selected"; } ?>>
                                 Activo
                             </option>
-
-                            <option 
-                                value="inactivo"
-                                <?php if($estado_actual == "inactivo"){ echo "selected"; } ?>
-                            >
+                            <option value="inactivo" <?php if($estado_actual == "inactivo"){ echo "selected"; } ?>>
                                 Inactivo
                             </option>
-
                         </select>
-
                     </div>
 
                 </div>
 
-
                 <!-- BOTONES -->
                 <div class="d-flex gap-2 mt-3">
-
-                    <a 
-                        href="index.php"
-                        class="btn btn-danger"
-                    >
-                        Cancelar
-                    </a>
-
-                    <button
-                        type="submit"
-                        class="btn btn-primary"
-                    >
-                        Actualizar Usuario
-                    </button>
-
+                    <a href="index.php" class="btn btn-danger">Cancelar</a>
+                    <button type="submit" class="btn btn-primary">Actualizar Usuario</button>
                 </div>
 
             </form>
@@ -791,33 +477,20 @@ value="<?php echo $cat['id']; ?>"
 
 </div>
 
-
 <?php include("../../template/footer_modulos_Usuarios.php") ?>
 
-
 <script>
-
 let rol = document.querySelector("select[name='rol_id']");
 let contenedor = document.getElementById("contenedorCategorias");
 
-
 function mostrarCategorias(){
-
     if(rol.value == "3"){
-
         contenedor.style.display="block";
-
     }else{
-
         contenedor.style.display="none";
-
     }
-
 }
 
-
-rol.addEventListener("change",mostrarCategorias);
-
+rol.addEventListener("change", mostrarCategorias);
 mostrarCategorias();
-
 </script>
