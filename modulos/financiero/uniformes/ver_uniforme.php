@@ -11,6 +11,7 @@ un uniforme registrado.
 Información mostrada:
 
 - Deportista
+- Dorsal
 - Documento
 - Categoría
 - Tipo de uniforme
@@ -24,9 +25,6 @@ Información mostrada:
 - Estado de pago
 - Observaciones
 - Fecha de creación
-
-Este archivo sigue exactamente el mismo
-framework utilizado por el módulo Financiero.
 
 =================================================
 */
@@ -45,15 +43,6 @@ require_once("../../../includes/verificar_roles.php");
 /*
 =================================================
 2. VERIFICAR PERMISO
-=================================================
-
-El permiso utilizado para Uniformes es:
-
-financiero_uniformes
-
-Si el usuario no tiene permiso, vuelve
-al Dashboard.
-
 =================================================
 */
 
@@ -82,21 +71,6 @@ include(
 =================================================
 4. CONEXIÓN A LA BASE DE DATOS
 =================================================
-
-IMPORTANTE:
-
-Se utiliza exactamente la misma conexión
-que utiliza index.php y nuevo_uniforme.php.
-
-NO utilizar:
-
-../../../includes/conexion.php
-
-La conexión correcta del proyecto es:
-
-../../../modulos/conexion_modulos.php
-
-=================================================
 */
 
 include(
@@ -108,12 +82,6 @@ include(
 =================================================
 5. VALIDAR ID DEL UNIFORME
 =================================================
-
-El ID llega mediante:
-
-ver_uniforme.php?id=1
-
-=================================================
 */
 
 $id = filter_input(
@@ -122,12 +90,6 @@ $id = filter_input(
     FILTER_VALIDATE_INT
 );
 
-
-/*
--------------------------------------------------
-SI EL ID NO ES VÁLIDO
--------------------------------------------------
-*/
 
 if (!$id) {
 
@@ -142,18 +104,6 @@ if (!$id) {
 /*
 =================================================
 6. CONSULTAR UNIFORME
-=================================================
-
-Relaciones:
-
-uniformes.deportista_id
-        ↓
-deportista.id
-
-deportista.categoria_id
-        ↓
-categoria.id
-
 =================================================
 */
 
@@ -176,6 +126,7 @@ $sql = "
 
         d.nombre AS deportista_nombre,
         d.documento AS deportista_documento,
+        d.dorsal AS deportista_dorsal,
 
         c.nombre AS categoria_nombre
 
@@ -240,6 +191,11 @@ $deportista_nombre =
 $deportista_documento =
     $uniforme['deportista_documento'] ?? '-';
 
+$deportista_dorsal =
+    !empty($uniforme['deportista_dorsal'])
+        ? '#' . $uniforme['deportista_dorsal']
+        : 'S/N';
+
 $categoria_nombre =
     $uniforme['categoria_nombre'] ?? '-';
 
@@ -283,12 +239,6 @@ $fecha_creacion =
 /*
 =================================================
 10. CALCULAR VALOR TOTAL
-=================================================
-
-Valor total:
-
-valor unitario × cantidad
-
 =================================================
 */
 
@@ -378,13 +328,6 @@ if (!empty($fecha_creacion)) {
 =================================================
 15. ESTADO DE ENTREGA
 =================================================
-
-Estados reales:
-
-pendiente
-entregado
-
-=================================================
 */
 
 $estado_entrega_clase =
@@ -407,14 +350,6 @@ if ($estado_entrega === 'entregado') {
 /*
 =================================================
 16. ESTADO DE PAGO
-=================================================
-
-Estados reales:
-
-pendiente
-parcial
-pagado
-
 =================================================
 */
 
@@ -571,7 +506,7 @@ include(
 
                 <!-- NOMBRE -->
 
-                <div class="col-md-4">
+                <div class="col-md-3">
 
                     <label
                         class="form-label
@@ -593,9 +528,37 @@ include(
                 </div>
 
 
+                <!-- DORSAL -->
+
+                <div class="col-md-3">
+
+                    <label
+                        class="form-label
+                               text-muted
+                               small
+                               mb-1"
+                    >
+                        Dorsal
+                    </label>
+
+                    <div>
+
+                        <span class="badge bg-primary fs-6 px-2 py-1">
+
+                            <?= htmlspecialchars(
+                                $deportista_dorsal
+                            ) ?>
+
+                        </span>
+
+                    </div>
+
+                </div>
+
+
                 <!-- DOCUMENTO -->
 
-                <div class="col-md-4">
+                <div class="col-md-3">
 
                     <label
                         class="form-label
@@ -619,7 +582,7 @@ include(
 
                 <!-- CATEGORÍA -->
 
-                <div class="col-md-4">
+                <div class="col-md-3">
 
                     <label
                         class="form-label

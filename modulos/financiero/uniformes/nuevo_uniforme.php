@@ -130,6 +130,7 @@ $stmtDeportistas = $conexion->query("
         d.id,
         d.nombre,
         d.documento,
+        d.dorsal,
 
         c.nombre AS categoria_nombre
 
@@ -178,13 +179,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $cantidad = $_POST['cantidad'] ?? 1;
 
-$valor_raw = $_POST['valor'] ?? '';
-// Eliminar cualquier punto o coma de miles antes de guardar
-$valor = str_replace(['.', ','], '', $valor_raw);
+    $valor_raw = $_POST['valor'] ?? '';
+    // Eliminar cualquier punto o coma de miles antes de guardar
+    $valor = str_replace(['.', ','], '', $valor_raw);
 
-$fecha_pedido = $_POST['fecha_pedido'] ?? '';
+    $fecha_pedido = $_POST['fecha_pedido'] ?? '';
 
-$fecha_entrega = $_POST['fecha_entrega'] ?? '';
+    $fecha_entrega = $_POST['fecha_entrega'] ?? '';
 
     $estado_entrega =
         $_POST['estado_entrega'] ?? 'pendiente';
@@ -409,45 +410,45 @@ VALUES (
             -----------------------------------------
             */
 
-$stmt->execute([
+            $stmt->execute([
 
-    ':deportista_id' =>
-        $deportista_id,
+                ':deportista_id' =>
+                    $deportista_id,
 
-    ':tipo_uniforme' =>
-        $tipo_uniforme,
+                ':tipo_uniforme' =>
+                    $tipo_uniforme,
 
-    ':talla' =>
-        $talla,
+                ':talla' =>
+                    $talla,
 
-    ':cantidad' =>
-        $cantidad,
+                ':cantidad' =>
+                    $cantidad,
 
-    ':valor' =>
-        $valor,
+                ':valor' =>
+                    $valor,
 
-    ':fecha_pedido' =>
-        $fecha_pedido !== ''
-            ? $fecha_pedido
-            : null,
+                ':fecha_pedido' =>
+                    $fecha_pedido !== ''
+                        ? $fecha_pedido
+                        : null,
 
-    ':fecha_entrega' =>
-        $fecha_entrega !== ''
-            ? $fecha_entrega
-            : null,
+                ':fecha_entrega' =>
+                    $fecha_entrega !== ''
+                        ? $fecha_entrega
+                        : null,
 
-    ':estado_entrega' =>
-        $estado_entrega,
+                ':estado_entrega' =>
+                    $estado_entrega,
 
-    ':estado_pago' =>
-        $estado_pago,
+                ':estado_pago' =>
+                    $estado_pago,
 
-    ':observaciones' =>
-        $observaciones !== ''
-            ? $observaciones
-            : null
+                ':observaciones' =>
+                    $observaciones !== ''
+                        ? $observaciones
+                        : null
 
-]);
+            ]);
 
 
             /*
@@ -686,7 +687,7 @@ include(
                 </div>
 
 
-                <div class="row g-3 mb-4">
+                <div class="row g-3 mb-4 align-items-end">
 
 
                     <!--
@@ -717,7 +718,7 @@ include(
                             required
                         >
 
-                            <option value="">
+                            <option value="" data-dorsal="S/N">
 
                                 Seleccione un deportista
 
@@ -729,8 +730,13 @@ include(
                                 as $deportista
                             ): ?>
 
+                                <?php 
+                                $dorsal_texto = !empty($deportista['dorsal']) ? '#' . $deportista['dorsal'] : 'S/N'; 
+                                ?>
+
                                 <option
                                     value="<?= (int)$deportista['id'] ?>"
+                                    data-dorsal="<?= htmlspecialchars($dorsal_texto) ?>"
                                     <?= (
                                         (string)$deportista_id ===
                                         (string)$deportista['id']
@@ -743,6 +749,8 @@ include(
                                     <?= htmlspecialchars(
                                         $deportista['nombre']
                                     ) ?>
+
+                                    - Dorsal: <?= htmlspecialchars($dorsal_texto) ?>
 
                                     -
 
@@ -781,6 +789,25 @@ include(
 
                         </div>
 
+                    </div>
+
+                    <!--
+                    -------------------------------------------------
+                    INSIGNIA VISUAL DORSAL
+                    -------------------------------------------------
+                    -->
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold d-block">
+                            Dorsal para Marcación
+                        </label>
+                        <div class="d-flex align-items-center">
+                            <span id="badge_dorsal" class="badge bg-primary fs-6 px-3 py-2 shadow-sm">
+                                S/N
+                            </span>
+                            <small class="text-muted ms-2">
+                                (Número registrado del deportista)
+                            </small>
+                        </div>
                     </div>
 
 
@@ -1379,7 +1406,7 @@ FECHAS, ENTREGA Y COBRO
 
 <!--
 =================================================
-12. CÁLCULO DEL VALOR TOTAL
+12. CÁLCULO DEL VALOR TOTAL Y MOSTRAR DORSAL
 =================================================
 
 Valor total:
@@ -1401,6 +1428,19 @@ document.addEventListener(
         const cantidad = document.getElementById('cantidad');
         const valorInput = document.getElementById('valor');
         const valorTotal = document.getElementById('valor_total');
+        const deportistaSelect = document.getElementById('deportista_id');
+        const badgeDorsal = document.getElementById('badge_dorsal');
+
+        // Función para actualizar el badge de dorsal según la selección
+        function actualizarDorsal() {
+            const opcionSeleccionada = deportistaSelect.options[deportistaSelect.selectedIndex];
+            const dorsal = opcionSeleccionada.getAttribute('data-dorsal') || 'S/N';
+            badgeDorsal.textContent = dorsal;
+        }
+
+        // Escuchar cambios en la lista desplegable de deportistas
+        deportistaSelect.addEventListener('change', actualizarDorsal);
+        actualizarDorsal(); // Inicializar al cargar
 
         // Función para formatear números con separador de miles
         function formatearMiles(numero) {

@@ -163,9 +163,9 @@ $error = '';
 Se obtiene:
 
 uniformes
-    ↓
+   ↓
 deportista
-    ↓
+   ↓
 categoria
 
 =================================================
@@ -190,6 +190,7 @@ $stmt = $conexion->prepare("
 
         d.nombre AS deportista_nombre,
         d.documento AS deportista_documento,
+        d.dorsal AS deportista_dorsal,
         d.estado AS deportista_estado,
 
         c.nombre AS categoria_nombre
@@ -302,6 +303,7 @@ $stmtDeportistas = $conexion->prepare("
         d.id,
         d.nombre,
         d.documento,
+        d.dorsal,
         d.estado,
 
         c.nombre AS categoria_nombre
@@ -882,6 +884,7 @@ if (
             d.id,
             d.nombre,
             d.documento,
+            d.dorsal,
             d.estado,
 
             c.nombre AS categoria_nombre
@@ -1101,90 +1104,120 @@ include(
                 </div>
 
 
-                <div class="mb-4">
+                <div class="row g-3 mb-4 align-items-end">
 
-                    <label
-                        for="deportista_id"
-                        class="form-label fw-bold"
-                    >
+                    <div class="col-md-8">
 
-                        Deportista
+                        <label
+                            for="deportista_id"
+                            class="form-label fw-bold"
+                        >
 
-                        <span class="text-danger">
-                            *
-                        </span>
+                            Deportista
 
-                    </label>
+                            <span class="text-danger">
+                                *
+                            </span>
 
-
-                    <select
-                        name="deportista_id"
-                        id="deportista_id"
-                        class="form-select"
-                        required
-                    >
-
-                        <option value="">
-
-                            Seleccione un deportista
-
-                        </option>
+                        </label>
 
 
-                        <?php foreach (
-                            $deportistas
-                            as $deportista
-                        ): ?>
+                        <select
+                            name="deportista_id"
+                            id="deportista_id"
+                            class="form-select"
+                            required
+                        >
 
-                            <option
-                                value="<?= (int)$deportista['id'] ?>"
-                                <?= (string)$deportista_id
-                                    ===
-                                    (string)$deportista['id']
-                                        ? 'selected'
-                                        : ''
-                                ?>
-                            >
+                            <option value="" data-dorsal="S/N">
 
-                                <?= htmlspecialchars(
-                                    $deportista['nombre'],
-                                    ENT_QUOTES,
-                                    'UTF-8'
-                                ) ?>
-
-                                -
-
-                                <?= htmlspecialchars(
-                                    $deportista['documento'],
-                                    ENT_QUOTES,
-                                    'UTF-8'
-                                ) ?>
-
-
-                                <?php if (
-                                    $deportista['estado']
-                                    === 'inactivo'
-                                ): ?>
-
-                                    (Inactivo)
-
-                                <?php endif; ?>
+                                Seleccione un deportista
 
                             </option>
 
-                        <?php endforeach; ?>
 
-                    </select>
+                            <?php foreach (
+                                $deportistas
+                                as $deportista
+                            ): ?>
+
+                                <?php 
+                                $dorsal_texto = !empty($deportista['dorsal']) ? '#' . $deportista['dorsal'] : 'S/N'; 
+                                ?>
+
+                                <option
+                                    value="<?= (int)$deportista['id'] ?>"
+                                    data-dorsal="<?= htmlspecialchars($dorsal_texto, ENT_QUOTES, 'UTF-8') ?>"
+                                    <?= (string)$deportista_id
+                                        ===
+                                        (string)$deportista['id']
+                                            ? 'selected'
+                                            : ''
+                                    ?>
+                                >
+
+                                    <?= htmlspecialchars(
+                                        $deportista['nombre'],
+                                        ENT_QUOTES,
+                                        'UTF-8'
+                                    ) ?>
+
+                                    - Dorsal: <?= htmlspecialchars($dorsal_texto, ENT_QUOTES, 'UTF-8') ?>
+
+                                    -
+
+                                    <?= htmlspecialchars(
+                                        $deportista['documento'],
+                                        ENT_QUOTES,
+                                        'UTF-8'
+                                    ) ?>
 
 
-                    <div
-                        class="form-text"
-                    >
+                                    <?php if (
+                                        $deportista['estado']
+                                        === 'inactivo'
+                                    ): ?>
 
-                        Se muestran los deportistas
-                        activos y el deportista actualmente
-                        asociado al uniforme.
+                                        (Inactivo)
 
+                                    <?php endif; ?>
+
+                                </option>
+
+                            <?php endforeach; ?>
+
+                        </select>
+
+
+                        <div
+                            class="form-text"
+                        >
+
+                            Se muestran los deportistas
+                            activos y el deportista actualmente
+                            asociado al uniforme.
+
+                        </div>
+
+                    </div>
+
+                    <!--
+                    -------------------------------------------------
+                    INSIGNIA VISUAL DORSAL
+                    -------------------------------------------------
+                    -->
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold d-block">
+                            Dorsal para Marcación
+                        </label>
+                        <div class="d-flex align-items-center">
+                            <span id="badge_dorsal" class="badge bg-primary fs-6 px-3 py-2 shadow-sm">
+                                S/N
+                            </span>
+                            <small class="text-muted ms-2">
+                                (Número registrado del deportista)
+                            </small>
+                        </div>
                     </div>
 
                 </div>
@@ -1841,6 +1874,26 @@ document.addEventListener(
             document.getElementById(
                 'valor_total'
             );
+
+        const deportistaSelect = 
+            document.getElementById(
+                'deportista_id'
+            );
+
+        const badgeDorsal = 
+            document.getElementById(
+                'badge_dorsal'
+            );
+
+        // Actualiza la insignia del dorsal dinámicamente
+        function actualizarDorsal() {
+            const opcionSeleccionada = deportistaSelect.options[deportistaSelect.selectedIndex];
+            const dorsal = opcionSeleccionada ? (opcionSeleccionada.getAttribute('data-dorsal') || 'S/N') : 'S/N';
+            badgeDorsal.textContent = dorsal;
+        }
+
+        deportistaSelect.addEventListener('change', actualizarDorsal);
+        actualizarDorsal();
 
 
         function calcularTotal() {
