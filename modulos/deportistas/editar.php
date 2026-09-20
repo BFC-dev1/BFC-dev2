@@ -29,6 +29,28 @@ $mensajeError = "";
 $txtid = isset($_GET['id']) ? (int)$_GET['id'] : (isset($_POST['id']) ? (int)$_POST['id'] : 0);
 
 /* =================================================
+   OBTENER SIGUIENTE DORSAL DISPONIBLE (DESDE EL 1)
+================================================= */
+$stmtOcupados = $conexion->prepare("
+    SELECT dorsal 
+    FROM deportista 
+    WHERE estado = 'activo' 
+      AND dorsal IS NOT NULL 
+      AND id != :id
+");
+$stmtOcupados->execute([":id" => $txtid]);
+$ocupados = $stmtOcupados->fetchAll(PDO::FETCH_COLUMN);
+$mapaOcupados = array_flip($ocupados);
+
+$siguienteDorsalDisponible = null;
+for ($i = 1; $i <= 99; $i++) {
+    if (!isset($mapaOcupados[$i])) {
+        $siguienteDorsalDisponible = $i;
+        break;
+    }
+}
+
+/* =================================================
    ELIMINAR DOCUMENTO
 ================================================= */
 if (isset($_GET['eliminar_doc'])) {
@@ -59,6 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $tipo_documento   = $_POST['tipo_documento'] ?? "";
     $documento        = trim($_POST['documento'] ?? "");
+    $dorsal           = !empty($_POST['dorsal']) ? (int)$_POST['dorsal'] : null;
     $telefono         = $_POST['telefono'] ?? "";
     $nombre           = trim($_POST['nombre'] ?? "");
     $fecha_nacimiento = $_POST['fecha_nacimiento'] ?? "";
@@ -68,18 +91,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $parentesco       = $_POST['parentesco'] ?? "";
     $entrenador_id    = !empty($_POST['entrenador_id']) ? $_POST['entrenador_id'] : null;
 
-    // VALIDACIONES BASICAS
+    // VALIDACIONES BÁSICAS
     if (empty($acudiente)) {
         $mensajeError = "Ingresa un acudiente.";
     } elseif (empty($categoria_id)) {
         $mensajeError = "Selecciona una categoría.";
     } else {
-        // VALIDAR SI EL DOCUMENTO YA EXISTE EN OTRO DEPORTISTA
+        // 1. VALIDAR SI EL DOCUMENTO YA EXISTE EN OTRO DEPORTISTA
         $stmt_check = $conexion->prepare("SELECT id FROM deportista WHERE documento = :documento AND id != :id");
         $stmt_check->execute([":documento" => $documento, ":id" => $txtid]);
 
         if ($stmt_check->fetch()) {
             $mensajeError = "Este número de documento ya está registrado en otro deportista.";
+        } 
+        
+        // 2. VALIDAR DORSAL ÚNICO UNIVERSAL ENTRE JUGADORES ACTIVOS
+        elseif (!empty($dorsal) && $estado === 'activo') {
+            $stmt_dorsal = $conexion->prepare("
+                SELECT id, nombre 
+                FROM deportista 
+                WHERE dorsal = :dorsal 
+                  AND estado = 'activo' 
+                  AND id != :id
+            ");
+            $stmt_dorsal->execute([
+                ":dorsal" => $dorsal,
+                ":id"     => $txtid
+            ]);
+
+            $jugador_existente = $stmt_dorsal->fetch(PDO::FETCH_ASSOC);
+
+            if ($jugador_existente) {
+                $mensajeError = "El dorsal #" . $dorsal . " ya está asignado al deportista activo: " . htmlspecialchars($jugador_existente['nombre']) . ".";
+            }
         }
     }
 
@@ -118,11 +162,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmtAnterior->execute([":id" => $txtid]);
         $anterior = $stmtAnterior->fetch(PDO::FETCH_ASSOC);
 
-        // ACTUALIZAR TABLA DEPORTISTA
+        // ACTUALIZAR TABLA DEPORTISTA (INCLUYENDO DORSAL)
         $stm = $conexion->prepare("
             UPDATE deportista SET 
                 tipo_documento = :tipo_documento,
                 documento = :documento,
+                dorsal = :dorsal,
                 telefono = :telefono,
                 nombre = :nombre,
                 fecha_nacimiento = :fecha_nacimiento,
@@ -131,17 +176,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 foto = :foto
             WHERE id = :id
         ");
-        $stm->execute([
-            ":tipo_documento"   => $tipo_documento,
-            ":documento"        => $documento,
-            ":telefono"         => $telefono,
-            ":nombre"           => $nombre,
-            ":fecha_nacimiento" => $fecha_nacimiento,
-            ":categoria_id"     => $categoria_id,
-            ":estado"           => $estado,
-            ":foto"             => $foto,
-            ":id"               => $txtid
-        ]);
+        $stm->bindValue(":tipo_documento", $tipo_documento);
+        $stm->bindValue(":documento", $documento);
+        $stm->bindValue(":dorsal", $dorsal, $dorsal === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
+        $stm->bindValue(":telefono", $telefono);
+        $stm->bindValue(":nombre", $nombre);
+        $stm->bindValue(":fecha_nacimiento", $fecha_nacimiento);
+        $stm->bindValue(":categoria_id", $categoria_id);
+        $stm->bindValue(":estado", $estado);
+        $stm->bindValue(":foto", $foto);
+        $stm->bindValue(":id", $txtid, PDO::PARAM_INT);
+        $stm->execute();
 
         // ACTUALIZAR TABLA USUARIO_DEPORTISTA
         $stmt_rel = $conexion->prepare("
@@ -161,6 +206,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $campos = [
             "tipo_documento"   => $tipo_documento,
             "documento"        => $documento,
+            "dorsal"           => $dorsal,
             "telefono"         => $telefono,
             "nombre"           => $nombre,
             "fecha_nacimiento" => $fecha_nacimiento,
@@ -246,6 +292,7 @@ if ($txtid > 0) {
     if ($registro) {
         $tipo_documento   = $registro['tipo_documento'];
         $documento        = $registro['documento'];
+        $dorsal           = $registro['dorsal'] ?? "";
         $telefono         = $registro['telefono'];
         $nombre           = $registro['nombre'];
         $fecha_nacimiento = $registro['fecha_nacimiento'];
@@ -361,6 +408,19 @@ if ($txtid > 0) {
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Documento</label>
                         <input type="text" class="form-control" name="documento" value="<?php echo htmlspecialchars($documento ?? ''); ?>" required>
+                    </div>
+
+                    <!-- DORSAL CON SUGERENCIA EN TEXTO INFORMATIVO -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Dorsal / Número de Jugador</label>
+                        <input type="number" class="form-control" name="dorsal" min="1" max="99" placeholder="Ej: 10" value="<?php echo htmlspecialchars($dorsal ?? ''); ?>">
+                        <small class="text-muted d-block mt-1">
+                            <?php if ($siguienteDorsalDisponible !== null): ?>
+                                Próximo número disponible libre: <strong class="text-primary">#<?php echo $siguienteDorsalDisponible; ?></strong>
+                            <?php else: ?>
+                                No hay dorsales disponibles del 1 al 99.
+                            <?php endif; ?>
+                        </small>
                     </div>
 
                     <div class="col-md-6 mb-3">
@@ -485,7 +545,6 @@ document.addEventListener("DOMContentLoaded", function() {
     fecha.addEventListener("change", function() {
         if (!this.value) return;
 
-        // Extraer el año directamente del string 'YYYY-MM-DD' evita problemas de timezone en JS
         let anioNacimiento = parseInt(this.value.split('-')[0], 10);
         let opciones = categoria.querySelectorAll("option");
 

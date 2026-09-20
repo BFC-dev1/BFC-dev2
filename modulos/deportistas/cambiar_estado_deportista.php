@@ -44,16 +44,16 @@ CAMBIAR ESTADO DEL DEPORTISTA
 
 if(isset($_GET['id'])){
 
-    $id = $_GET['id'];
+    $id = (int)$_GET['id'];
 
     /*
     =============================================
-    OBTENER ESTADO ACTUAL
+    OBTENER ESTADO Y DORSAL ACTUAL
     =============================================
     */
 
     $stm = $conexion->prepare("
-        SELECT estado
+        SELECT id, estado, dorsal, nombre
         FROM deportista
         WHERE id = :id
     ");
@@ -78,6 +78,41 @@ if(isset($_GET['id'])){
             ($estadoAnterior == "activo")
             ? "inactivo"
             : "activo";
+
+        $dorsal = $deportista["dorsal"];
+
+        /*
+        =============================================
+        VALIDAR SI EL DORSAL ESTÁ OCUPADO AL ACTIVAR
+        =============================================
+        */
+        if ($nuevoEstado == "activo" && !empty($dorsal)) {
+
+            $stmt_dorsal = $conexion->prepare("
+                SELECT id, nombre 
+                FROM deportista 
+                WHERE dorsal = :dorsal 
+                  AND estado = 'activo' 
+                  AND id != :id
+            ");
+
+            $stmt_dorsal->execute([
+                ":dorsal" => $dorsal,
+                ":id"     => $id
+            ]);
+
+            $jugador_ocupado = $stmt_dorsal->fetch(PDO::FETCH_ASSOC);
+
+            if ($jugador_ocupado) {
+                // Denegar el cambio de estado notificando el conflicto
+                header('Content-Type: application/json');
+                echo json_encode([
+                    "status" => "error",
+                    "mensaje" => "No se puede activar a " . htmlspecialchars($deportista['nombre']) . " porque el dorsal #" . $dorsal . " ya está asignado al deportista activo: " . htmlspecialchars($jugador_ocupado['nombre']) . ". Modifica su dorsal antes de activarlo."
+                ]);
+                exit;
+            }
+        }
 
         /*
         =============================================
@@ -131,7 +166,12 @@ if(isset($_GET['id'])){
 
         );
 
-        echo "ok";
+        header('Content-Type: application/json');
+        echo json_encode([
+            "status" => "success",
+            "nuevo_estado" => $nuevoEstado
+        ]);
+        exit;
 
     }
 
